@@ -26,8 +26,8 @@ class TableRendererTest extends TestCase
     public function test_render_returns_array(): void
     {
         $table = Table::make()
-            ->column(Column::make('name')->label('Name'))
-            ->column(Column::make('email')->label('Email'));
+            ->addColumn(Column::make('name')->label('Name'))
+            ->addColumn(Column::make('email')->label('Email'));
 
         $records = collect([]);
 
@@ -45,8 +45,8 @@ class TableRendererTest extends TestCase
     public function test_render_columns_data(): void
     {
         $table = Table::make()
-            ->column(Column::make('name')->label('Name')->sortable())
-            ->column(Column::make('email')->label('Email')->sortable());
+            ->addColumn(Column::make('name')->label('Name')->sortable())
+            ->addColumn(Column::make('email')->label('Email')->sortable());
 
         $records = collect([]);
 
@@ -61,8 +61,8 @@ class TableRendererTest extends TestCase
     public function test_prepare_columns(): void
     {
         $table = Table::make()
-            ->column(Column::make('id')->label('ID'))
-            ->column(Column::make('status')->label('Status')->sortable(false));
+            ->addColumn(Column::make('id')->label('ID'))
+            ->addColumn(Column::make('status')->label('Status')->sortable(false));
 
         $reflection = new \ReflectionClass($this->renderer);
         $method = $reflection->getMethod('prepareColumns');

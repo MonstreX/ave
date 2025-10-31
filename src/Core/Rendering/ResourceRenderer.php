@@ -17,10 +17,12 @@ class ResourceRenderer
      */
     public function render(Resource $resource, $records, array $options = []): string
     {
+        $ctx = $options['context'] ?? request();
+
         $data = [
             'resourceClass' => $resource::class,
             'routeBaseName' => 'ave.resources.' . $resource->slug(),
-            'table' => $resource->table(),
+            'table' => $resource->table($ctx),
             'data' => $records,
             'metrics' => $options['metrics'] ?? [],
             'queryTags' => $options['queryTags'] ?? [],
@@ -39,10 +41,12 @@ class ResourceRenderer
      */
     public function renderCreate(Resource $resource, array $options = []): string
     {
+        $ctx = $options['context'] ?? request();
+
         $data = [
             'resourceClass' => $resource::class,
             'routeBaseName' => 'ave.resources.' . $resource->slug(),
-            'form' => $resource->form(),
+            'form' => $resource->form($ctx),
         ];
 
         return view('ave::resources.create', $data)->render();
@@ -58,10 +62,12 @@ class ResourceRenderer
      */
     public function renderEdit(Resource $resource, $model, array $options = []): string
     {
+        $ctx = $options['context'] ?? request();
+
         $data = [
             'resourceClass' => $resource::class,
             'routeBaseName' => 'ave.resources.' . $resource->slug(),
-            'form' => $resource->form(),
+            'form' => $resource->form($ctx),
             'model' => $model,
         ];
 

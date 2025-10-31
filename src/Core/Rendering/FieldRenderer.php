@@ -68,13 +68,13 @@ class FieldRenderer
         $data = $field->toArray();
 
         return [
-            'name' => $field->getName(),
-            'label' => $field->getLabel(),
-            'value' => $value ?? $field->getDefaultValue() ?? '',
-            'type' => $field->getType(),
-            'required' => $field->isRequired(),
+            'name' => $field->key(),
+            'label' => $data['label'] ?? $field->key(),
+            'value' => $value ?? $data['default'] ?? '',
+            'type' => $field->type(),
+            'required' => $data['required'] ?? false,
             'placeholder' => $data['placeholder'] ?? '',
-            'helpText' => $data['helpText'] ?? '',
+            'helpText' => $data['help'] ?? '',
             'disabled' => $data['disabled'] ?? false,
             'readonly' => $data['readonly'] ?? false,
             'hasError' => !empty($errors),

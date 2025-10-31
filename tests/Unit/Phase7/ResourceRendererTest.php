@@ -54,32 +54,26 @@ class ResourceRendererTest extends TestCase
 
 class TestResource extends Resource
 {
-    public static function slug(): string
-    {
-        return 'test-resources';
-    }
-
-    public static function label(): string
-    {
-        return 'Test Resources';
-    }
+    public static ?string $slug = 'test-resources';
+    public static ?string $label = 'Test Resources';
+    public static ?string $singularLabel = 'Test Resource';
 
     public static function getLabel(): string
     {
-        return 'Test Resources';
+        return self::$label ?? 'Test Resources';
     }
 
     public static function getSingularLabel(): string
     {
-        return 'Test Resource';
+        return self::$singularLabel ?? 'Test Resource';
     }
 
-    public function table(): Table
+    public static function table($ctx): Table
     {
         return Table::make();
     }
 
-    public function form(): Form
+    public static function form($ctx): Form
     {
         return Form::make();
     }

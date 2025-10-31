@@ -19,10 +19,10 @@ class TableRenderer
         return [
             'columns' => $this->prepareColumns($table),
             'records' => $records,
-            'sortable' => $table->isSortable(),
-            'searchable' => $table->isSearchable(),
-            'perPage' => $table->getPerPage(),
-            'defaultSort' => $table->getDefaultSort(),
+            'sortable' => true,
+            'searchable' => true,
+            'perPage' => 25,
+            'defaultSort' => null,
         ];
     }
 
@@ -37,14 +37,16 @@ class TableRenderer
         $columns = [];
 
         foreach ($table->getColumns() as $column) {
+            $data = $column->toArray();
+
             $columns[] = [
-                'name' => $column->getName(),
-                'label' => $column->getLabel(),
-                'sortable' => $column->isSortable(),
-                'searchable' => $column->isSearchable(),
-                'format' => $column->getFormat(),
-                'width' => $column->getWidth() ?? 'auto',
-                'align' => $column->getAlign() ?? 'left',
+                'name' => $data['key'] ?? 'unknown',
+                'label' => $data['label'] ?? $data['key'] ?? 'unknown',
+                'sortable' => $data['sortable'] ?? false,
+                'searchable' => $data['searchable'] ?? false,
+                'format' => $data['formatCallback'] ?? null,
+                'width' => $data['width'] ?? 'auto',
+                'align' => $data['align'] ?? 'left',
             ];
         }
 

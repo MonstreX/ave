@@ -71,7 +71,7 @@ class FormRenderer
         $fields = $column['fields'] ?? [];
         foreach ($fields as $field) {
             $value = $this->getFieldValue($field, $model);
-            $fieldErrors = $errors[$field->getName()] ?? [];
+            $fieldErrors = $errors[$field->key()] ?? [];
             $html .= $this->fieldRenderer->render($field, $value, $fieldErrors);
         }
 
@@ -89,7 +89,7 @@ class FormRenderer
     protected function getFieldValue($field, $model = null)
     {
         if ($model && method_exists($model, 'getAttribute')) {
-            return $model->getAttribute($field->getName());
+            return $model->getAttribute($field->key());
         }
 
         return null;
