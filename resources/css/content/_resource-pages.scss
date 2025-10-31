@@ -1,0 +1,72 @@
+// ============================================
+// RESOURCE & LIST PAGES
+// ============================================
+
+.resource-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.resource-toolbar .toolbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.resource-toolbar form {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.resource-search {
+    min-width: 240px;
+}
+
+.resource-table {
+    overflow-x: auto;
+    border: 1px solid #e4eaec;
+    border-radius: 4px;
+    background-color: #fff;
+}
+
+.resource-table table {
+    margin-bottom: 0;
+}
+
+.resource-table .table-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.resource-table .table-actions form {
+    display: inline;
+}
+
+.resource-table .table-actions button {
+    background: none;
+    border: none;
+    padding: 0;
+    color: #d9534f;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.resource-table .table-actions button:hover {
+    color: #c9302c;
+}
+
+.resource-pagination {
+    margin-top: 20px;
+}
+
+.resource-note {
+    margin-top: 0;
+    color: #95a5a6;
+    font-size: 13px;
+}

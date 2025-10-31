@@ -1,0 +1,80 @@
+// ============================================
+// DEMO PAGE UTILITIES
+// ============================================
+
+.demo-section {
+    margin-bottom: 45px;
+}
+
+.demo-section:last-child {
+    margin-bottom: 0;
+}
+
+.demo-section-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.demo-section-title i {
+    color: var(--ave-color-primary);
+}
+
+.demo-description {
+    margin-bottom: 18px;
+    font-size: 14px;
+    color: #6c7a89;
+}
+
+.demo-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.demo-inline {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.demo-divider {
+    height: 1px;
+    border: 0;
+    background: #ecf0f1;
+    margin: 25px 0;
+}
+
+.demo-typography h1,
+.demo-typography h2,
+.demo-typography h3,
+.demo-typography h4,
+.demo-typography h5,
+.demo-typography h6 {
+    margin-top: 0;
+    margin-bottom: 12px;
+}
+
+.demo-typography p {
+    margin-bottom: 12px;
+    color: #566473;
+}
+
+.demo-typography small {
+    color: #95a5a6;
+}
+
+.demo-list {
+    padding-left: 18px;
+    margin: 0;
+}
+
+.demo-list li {
+    margin-bottom: 6px;
+}
+
+

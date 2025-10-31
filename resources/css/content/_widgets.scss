@@ -1,0 +1,62 @@
+// ============================================
+// WIDGETS - Dashboard widgets component
+// ============================================
+
+.widgets {
+    display: grid;
+    gap: 1.5rem;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    margin-bottom: 20px;
+}
+
+.widget {
+    background: var(--ave-color-surface, #fff);
+    border-radius: 4px;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.widget.small {
+    min-height: 100px;
+}
+
+.widget-icon {
+    font-style: normal;
+    font-size: 2.5rem;
+    width: 60px;
+    text-align: center;
+}
+
+.widget-details {
+    flex: 1;
+}
+
+.widget-details h4 {
+    margin: 0 0 0.5rem;
+    font-size: 0.9rem;
+    color: #999;
+    font-weight: 400;
+    text-transform: uppercase;
+}
+
+.widget-details p {
+    margin: 0;
+    font-size: 1.8rem;
+    font-weight: 600;
+    color: #333;
+}
+
+// ============================================
+// RESPONSIVE
+// ============================================
+
+@media (max-width: 768px) {
+    .widgets {
+        grid-template-columns: 1fr;
+    }
+}
+
+

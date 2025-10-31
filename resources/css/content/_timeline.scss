@@ -1,0 +1,67 @@
+// ============================================
+// TIMELINE / ACTIVITY LOG
+// ============================================
+
+.timeline {
+    position: relative;
+    padding-left: 24px;
+    margin: 0;
+    list-style: none;
+}
+
+.timeline::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 8px;
+    width: 2px;
+    height: 100%;
+    background: #e0e6ed;
+}
+
+.timeline-item {
+    position: relative;
+    padding-bottom: 18px;
+}
+
+.timeline-item:last-child {
+    padding-bottom: 0;
+}
+
+.timeline-marker {
+    position: absolute;
+    top: 4px;
+    left: -1px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--ave-color-primary);
+    box-shadow: 0 0 0 4px rgba(34, 167, 240, 0.15);
+}
+
+.timeline-content {
+    background: #f9fbfd;
+    border: 1px solid #e3e8ee;
+    border-radius: 6px;
+    padding: 12px 16px;
+}
+
+.timeline-time {
+    font-size: 12px;
+    color: #95a5a6;
+    margin-bottom: 6px;
+}
+
+.timeline-title {
+    font-weight: 600;
+    margin: 0 0 4px;
+    color: #2c3e50;
+}
+
+.timeline-text {
+    margin: 0;
+    color: #566473;
+    font-size: 13px;
+}
+
+

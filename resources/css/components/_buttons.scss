@@ -1,0 +1,159 @@
+// ============================================
+// BUTTONS (Bootstrap-like)
+// ============================================
+
+.btn {
+    display: inline-block;
+    padding: 12px 20px;
+    margin-bottom: 0;
+    font-family: 'Open Sans', sans-serif;
+    font-size: 11px;
+    font-weight: normal;
+    text-align: center;
+    text-transform: uppercase;
+    text-decoration: none;
+    vertical-align: middle;
+    white-space: nowrap;
+    cursor: pointer;
+    border: 0;
+    border-radius: 3px;
+    outline: none !important;
+    user-select: none;
+    transition: all 0.3s ease;
+
+    &:hover,
+    &:focus {
+        text-decoration: none;
+        outline: none;
+    }
+
+    &:active {
+        outline: 0;
+        box-shadow: none;
+    }
+
+    &:disabled,
+    &.disabled {
+        cursor: not-allowed;
+        opacity: 0.5;
+        pointer-events: none;
+    }
+}
+
+// Button sizes
+.btn-sm {
+    padding: 8px 16px;
+    font-size: 10px;
+}
+
+.btn-lg {
+    padding: 16px 24px;
+    font-size: 13px;
+}
+
+// Block button
+.btn-block {
+    display: block !important;
+}
+
+// Primary button
+.btn-primary {
+    background: var(--ave-color-primary);
+    color: #fff;
+    opacity: 0.9;
+
+    &:hover,
+    &:focus {
+        opacity: 1;
+        color: #fff;
+    }
+}
+
+// Success button
+.btn-success {
+    background: #27ae60;
+    color: #fff;
+
+    &:hover,
+    &:focus {
+        background: #229954;
+        color: #fff;
+    }
+}
+
+// Danger button
+.btn-danger {
+    background: #e74c3c;
+    color: #fff;
+
+    &:hover,
+    &:focus {
+        background: #c0392b;
+        color: #fff;
+    }
+}
+
+// Secondary button
+.btn-secondary {
+    background: #6c757d;
+    color: #fff;
+
+    &:hover,
+    &:focus {
+        background: #5a6268;
+        color: #fff;
+    }
+}
+
+// Outline buttons
+.btn-outline-primary {
+    background: transparent;
+    color: var(--ave-color-primary);
+    border: 1px solid var(--ave-color-primary);
+
+    &:hover,
+    &:focus {
+        background: var(--ave-color-primary);
+        color: #fff;
+    }
+}
+
+// Icon inside button
+.btn .voyager-refresh {
+    margin-right: 5px;
+    position: relative;
+    top: 1px;
+}
+
+// Loading state
+.btn .signingin {
+    display: none;
+
+    &.visible {
+        display: inline;
+    }
+}
+
+.btn .signin {
+    display: inline;
+
+    &.hidden {
+        display: none;
+    }
+}
+
+.btn i {
+    position: relative;
+    top: 2px;
+    margin-right: 5px;
+}
+
+.btn-link {
+    background: none;
+    border: none;
+    color: inherit;
+    padding: 0;
+    cursor: pointer;
+}
+
+

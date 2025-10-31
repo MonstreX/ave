@@ -1,0 +1,64 @@
+// ============================================
+// BADGES & LABELS
+// ============================================
+
+.badge {
+    display: inline-block;
+    padding: 2px 6px;
+    font-size: 11px;
+    font-weight: 500;
+    color: #fff;
+    border-radius: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.badge-primary {
+    background: var(--ave-color-primary);
+}
+
+.badge-success {
+    background: #27ae60;
+}
+
+.badge-warning {
+    background: #f39c12;
+}
+
+.badge-danger {
+    background: #e74c3c;
+}
+
+.badge-muted {
+    background: #95a5a6;
+}
+
+.tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 16px;
+    background: #eef2f5;
+    color: #566473;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.tag .tag-remove {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: rgba(86, 100, 115, 0.2);
+    color: #566473;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.tag .tag-remove:hover {
+    background: rgba(86, 100, 115, 0.35);
+}

@@ -1,0 +1,79 @@
+// ============================================
+// TABLES - Reusable table component
+// ============================================
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 0;
+    font-size: 14px; /* Default font size for body cells */
+    color: #555;
+}
+
+.table th,
+.table td {
+    padding: 8px 12px;
+    border-bottom: 1px solid #ddd; /* Horizontal dividers */
+    text-align: left;
+    vertical-align: middle;
+    /* No vertical borders */
+}
+
+.table thead th {
+    font-weight: 400; /* Thinner font weight */
+    color: #777;
+    background-color: #efefef; /* Header background color */
+    border-bottom: 1px solid #ddd; /* Horizontal divider */
+    padding-top: 8px;
+    padding-bottom: 8px; /* Smaller header height */
+    text-transform: uppercase;
+    font-size: 10px; /* Header font size */
+}
+
+.table tbody tr:hover {
+    background-color: #f9f9f9; /* Subtle hover */
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+    background-color: #fff; /* Default for odd rows */
+}
+
+.table-striped tbody tr:nth-of-type(even) {
+    background-color: #eef3f9; /* Striped background for even rows */
+}
+
+/* Remove .table-bordered as it adds vertical borders */
+.table-bordered {
+    border: none; /* Remove outer border */
+}
+
+.table-bordered th,
+.table-bordered td {
+    border: none; /* Remove all borders, rely on border-bottom */
+}
+
+.table-action-buttons {
+    display: flex;
+    gap: 5px;
+    justify-content: flex-end;
+}
+
+.table-action-buttons .table-action-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    font-size: 16px;
+    color: #999;
+    transition: color 0.2s ease;
+    cursor: pointer;
+}
+
+.table-action-buttons .table-action-icon:hover {
+    color: var(--ave-color-primary);
+}
+
+.table-action-buttons .table-action-icon.delete:hover {
+    color: #e74c3c;
+}

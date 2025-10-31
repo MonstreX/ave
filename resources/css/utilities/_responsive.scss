@@ -1,0 +1,21 @@
+// ============================================
+// RESPONSIVE UTILITIES - Visibility helpers
+// ============================================
+
+.hidden-xs {
+    display: block;
+}
+
+.visible-xs {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .hidden-xs {
+        display: none !important;
+    }
+
+    .visible-xs {
+        display: block !important;
+    }
+}

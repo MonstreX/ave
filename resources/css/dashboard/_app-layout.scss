@@ -1,0 +1,115 @@
+// ============================================
+// APP LAYOUT - Base application container
+// ============================================
+// Used on every page - defines main structure
+
+@use "../variables";
+
+// ============================================
+// MAIN CONTAINERS
+// ============================================
+
+.ave-admin {
+    font-family: 'Open Sans', sans-serif;
+    min-height: 100vh;
+}
+
+.app {
+    min-height: 100vh;
+    position: relative;
+}
+
+.app .app-wrapper {
+    margin-right: 0;
+    margin-left: 0;
+}
+
+// ============================================
+// CONTENT AREA
+// ============================================
+
+.app .app-main {
+    margin-left: 75px;
+    margin-right: 0px;
+    transition: all var(--ave-transition-smooth);
+}
+
+.app .app-main .container-fluid {
+    padding-right: 0;
+}
+
+.app.expanded .app-main {
+    margin-left: var(--ave-sidebar-width-expanded);
+}
+
+.app .app-wrapper .app-main {
+    padding-top: 70px;
+}
+
+.app .app-wrapper .app-main.padding-top {
+    padding-top: 84px;
+}
+
+// ============================================
+// TRANSITIONS
+// ============================================
+
+.app .app-main,
+.app.expanded .app-wrapper .navbar-top,
+.app .app-wrapper .navbar-top {
+    transition: all var(--ave-transition-smooth);
+}
+
+.app.expanded.no-animation .app-wrapper,
+.app.expanded.no-animation {
+    transition: none;
+}
+
+// ============================================
+// CONTAINER FLUID OVERRIDES
+// ============================================
+
+.ave-admin .container-fluid {
+    padding-left: 25px;
+    padding-right: 25px;
+}
+
+// ============================================
+// RESPONSIVE
+// ============================================
+
+@media (max-width: 768px) {
+    .app .navbar-top {
+        min-width: 300px;
+    }
+
+    .app .app-wrapper .ave-sidebar {
+        margin-left: -270px;
+        width: 0;
+    }
+
+    .app .app-wrapper .app-main {
+        margin-left: 10px;
+    }
+
+    .app.expanded .navbar-top {
+        min-width: 480px;
+        padding-left: 0;
+    }
+
+    .app.expanded .ave-sidebar {
+        margin-left: 0;
+        width: 270px;
+    }
+
+    .app.expanded .app-main {
+        margin-left: 0;
+    }
+
+    .app .app-footer .wrapper,
+    .app.expanded .app-footer .wrapper {
+        padding-left: 25px;
+    }
+}
+
+

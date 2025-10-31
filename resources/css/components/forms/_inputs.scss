@@ -1,0 +1,130 @@
+// ============================================
+// FORM INPUTS (Bootstrap-like)
+// ============================================
+
+.form-control {
+    display: block;
+    width: 100%;
+    height: 35px;
+    min-height: 35px;
+    padding: 6px 12px;
+    background: #fff;
+    color: #1c2b36;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    line-height: normal;
+    vertical-align: middle;
+    font-weight: normal;
+    box-shadow: none;
+    transition: border-color 0.15s ease-in-out;
+    -webkit-appearance: none;
+
+    &:focus {
+        outline: 0;
+        border-color: var(--ave-color-primary);
+    }
+
+    &::placeholder {
+        color: #ccc;
+        font-weight: 300;
+    }
+
+    &:disabled {
+        background-color: #f5f5f5;
+        cursor: not-allowed;
+    }
+}
+
+// Custom File Input
+.custom-file-input {
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+
+    input[type="file"] {
+        position: absolute;
+        left: 0;
+        top: 0;
+        opacity: 0;
+        width: 100%;
+        height: 100%;
+        cursor: pointer;
+    }
+
+    .custom-file-label {
+        display: inline-block;
+        padding: 6px 12px;
+        background-color: var(--ave-color-primary);
+        color: #fff;
+        border-radius: 3px;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+        font-size: 14px;
+        margin-left: 5px;
+
+        &:hover {
+            background-color: var(--ave-color-primary-dark);
+        }
+    }
+}
+
+// Textarea
+textarea.form-control {
+    height: auto;
+    min-height: 80px;
+    resize: vertical;
+}
+
+// Select
+select.form-control {
+    cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 0.5rem center;
+    background-repeat: no-repeat;
+    background-size: 1.5em 1.5em;
+    padding-right: 2.5rem;
+}
+
+// Multiselect - remove arrow and fixed height
+select.form-control[multiple] {
+    height: auto;
+    min-height: auto;
+    background-image: none;
+    padding-right: 12px;
+}
+// Password input with toggle
+.password-input-wrapper {
+    position: relative;
+    display: block;
+
+    input {
+        padding-right: 40px;
+    }
+
+    .password-toggle {
+        position: absolute;
+        right: 8px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        padding: 4px;
+        cursor: pointer;
+        color: #757C85;
+        transition: color 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        &:hover {
+            color: var(--ave-color-primary);
+        }
+
+        svg {
+            display: block;
+        }
+    }
+}
+

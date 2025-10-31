@@ -1,0 +1,142 @@
+// ============================================
+// UTILITY HELPER CLASSES
+// ============================================
+
+// Floats
+.pull-left {
+    float: left !important;
+}
+
+.pull-right {
+    float: right !important;
+}
+
+// Clearfix
+.clearfix::before,
+.clearfix::after {
+    content: "";
+    display: table;
+}
+
+.clearfix::after {
+    clear: both;
+}
+
+// Display utilities
+.hidden {
+    display: none !important;
+}
+
+.visible {
+    display: block !important;
+}
+
+// Image utilities
+.img-responsive {
+    max-width: 100%;
+    height: auto;
+    display: block;
+}
+
+// Text utilities
+.text-left {
+    text-align: left !important;
+}
+
+.text-center {
+    text-align: center !important;
+}
+
+.text-right {
+    text-align: right !important;
+}
+
+.text-muted {
+    color: var(--ave-color-gray) !important;
+    font-size: 13px;
+}
+
+// Flip (for icons/images)
+.flip {
+    display: inline-block;
+    transform: scaleX(-1);
+}
+
+// List utilities
+.list-unstyled {
+    padding-left: 0;
+    list-style: none;
+}
+
+.list-inline {
+    padding-left: 0;
+    list-style: none;
+
+    li {
+        display: inline-block;
+        margin-right: 10px;
+
+        &:last-child {
+            margin-right: 0;
+        }
+    }
+}
+
+
+.fs-15 {
+    font-size: 1.5rem;
+}
+
+.fs-20 {
+    font-size: 2rem;
+}
+
+.mt-10 {
+    margin-top: 10px;
+}
+
+.mt-20 {
+    margin-top: 20px;
+}
+
+.mt-30 {
+    margin-top: 30px;
+}
+
+.mt-50 {
+    margin-top: 50px;
+}
+
+.mb-10 {
+    margin-bottom: 10px;
+}
+
+.mb-20 {
+    margin-bottom: 20px;
+}
+
+.mb-30 {
+    margin-bottom: 30px;
+}
+
+.mb-50 {
+    margin-bottom: 50px;
+}
+
+.no-padding {
+    padding: 0;
+}
+
+.no-padding-lr {
+    padding-right: 0;
+    padding-left: 0;
+}
+
+.no-margin {
+    margin: 0;
+}
+
+.no-margin-lr {
+    margin-left: 0;
+    margin-right: 0;
+}

@@ -1,0 +1,455 @@
+// ============================================
+// SIDEBAR STYLES (BEM)
+// ============================================
+// Import central variables
+@use "../variables";
+
+// ============================================
+// MAIN SIDEBAR BLOCK
+// ============================================
+
+.ave-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: var(--ave-sidebar-width-collapsed);
+    color: var(--ave-sidebar-text);
+    background: linear-gradient(45deg, var(--ave-sidebar-bg-start) 0%, var(--ave-sidebar-bg-end) 100%);
+    overflow: hidden;
+    transition: width var(--ave-sidebar-transition-width);
+    z-index: 9999;
+    scrollbar-width: none;
+}
+
+.ave-sidebar__nav {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    font-family: 'Open Sans', sans-serif;
+}
+
+// ============================================
+// BRANDING (LOGO)
+// ============================================
+
+.ave-sidebar__brand {
+    padding: 0;
+    border-bottom: 0;
+    background-color: var(--ave-color-primary);
+}
+
+.ave-sidebar__brand-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    height: 60px;
+    padding: 0 20px 0 14px;
+    color: inherit;
+    text-decoration: none;
+}
+
+.ave-sidebar__brand-symbol {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+}
+
+.ave-sidebar__brand-symbol img {
+    max-width: 100%;
+    max-height: 100%;
+}
+
+.ave-sidebar__brand-title {
+    position: relative;
+    font-weight: 400;
+    font-size: 16px;
+    text-transform: uppercase;
+}
+
+// ============================================
+// TEXT ELEMENTS (hidden when collapsed)
+// ============================================
+
+.ave-sidebar__brand-title,
+.ave-sidebar__user-name,
+.ave-sidebar__label {
+    display: none;
+    transform: translateX(-12px);
+    transition: opacity var(--ave-sidebar-transition-normal), transform var(--ave-sidebar-transition-normal);
+    white-space: nowrap;
+    max-width: 0;
+    overflow: hidden;
+}
+
+// ============================================
+// USER
+// ============================================
+
+.ave-sidebar__user {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 12px;
+    white-space: nowrap;
+}
+
+.ave-sidebar__user-avatar {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    min-height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+// ============================================
+// MENU
+// ============================================
+
+.ave-sidebar__menu {
+    position: relative;
+    flex: 1 1 auto;
+    height: 100%;
+    overflow: hidden;
+}
+
+// Perfect Scrollbar integration
+.ave-sidebar__menu.ps {
+    touch-action: auto;
+    -ms-touch-action: auto;
+    overflow-anchor: none;
+    overflow: hidden !important;
+}
+
+.ave-sidebar__menu .ps__rail-x,
+.ave-sidebar__menu .ps__rail-y {
+    z-index: 999;
+}
+
+// ============================================
+// LISTS
+// ============================================
+
+.ave-sidebar__list,
+.ave-sidebar__submenu-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+// ============================================
+// MENU ITEMS
+// ============================================
+
+.ave-sidebar__item {
+    position: relative;
+}
+
+.ave-sidebar__item--active > .ave-sidebar__link,
+.ave-sidebar__item--active > .ave-sidebar__toggle {
+    color: var(--ave-sidebar-text);
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.ave-sidebar__item--expanded > .ave-sidebar__submenu {
+    pointer-events: auto;
+}
+
+.ave-sidebar__item--expanded > .ave-sidebar__submenu-list {
+    padding-bottom: 8px;
+}
+
+// ============================================
+// LINKS AND BUTTONS
+// ============================================
+
+.ave-sidebar__link,
+.ave-sidebar__submenu-link {
+    width: 100%;
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+    padding: 13px 18px;
+    font-size: 14px;
+    color: var(--ave-sidebar-text-muted);
+    background: transparent;
+    border: none;
+    text-decoration: none;
+    text-align: left;
+    transition: background var(--ave-sidebar-transition-fast), color var(--ave-sidebar-transition-fast);
+    cursor: pointer;
+}
+
+.ave-sidebar__link:hover,
+.ave-sidebar__submenu-link:hover {
+    color: var(--ave-sidebar-text);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.ave-sidebar__link:focus-visible,
+.ave-sidebar__submenu-link:focus-visible {
+    outline: 2px solid rgba(34, 167, 240, 0.5);
+    outline-offset: -2px;
+}
+
+.ave-sidebar__submenu-link.is-active {
+    color: var(--ave-sidebar-text);
+    background: rgba(255, 255, 255, 0.12);
+}
+
+// ============================================
+// ICONS AND CARET
+// ============================================
+
+.ave-sidebar__icon {
+    position: relative;
+    top: 2px;
+    width: 20px;
+    text-align: center;
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+.ave-sidebar__caret {
+    --ave-sidebar-caret-rotation: 0deg;
+    margin-left: auto;
+    font-size: 12px;
+    opacity: 0;
+    transform: translateX(-12px) rotate(var(--ave-sidebar-caret-rotation));
+    transform-origin: center;
+    transition: transform var(--ave-sidebar-transition-fast), opacity var(--ave-sidebar-transition-fast);
+    visibility: hidden;
+}
+
+.ave-sidebar__label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.ave-sidebar__caret,
+.ave-sidebar__label,
+.ave-sidebar__brand-title,
+.ave-sidebar__user-name {
+    pointer-events: none;
+}
+
+// ============================================
+// TOGGLE BUTTON
+// ============================================
+
+.ave-sidebar__toggle {
+    appearance: none;
+    border: none;
+    background: transparent;
+    width: 100%;
+}
+
+// ============================================
+// SUBMENU
+// ============================================
+
+.ave-sidebar__submenu {
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: max-height var(--ave-sidebar-transition-normal), opacity var(--ave-sidebar-transition-fast);
+    background: rgba(0, 0, 0, 0.1);
+    pointer-events: none;
+}
+
+.ave-sidebar__submenu--open {
+    opacity: 1;
+    pointer-events: auto;
+    max-height: 1000px;
+}
+
+.ave-sidebar__submenu:not(.ave-sidebar__submenu--open) {
+    pointer-events: none;
+}
+
+// Submenu levels padding
+.ave-sidebar__submenu-list--level-2 .ave-sidebar__submenu-link {
+    padding-left: 30px;
+}
+
+.ave-sidebar__submenu-list--level-3 .ave-sidebar__submenu-link {
+    padding-left: 40px;
+}
+
+.ave-sidebar__submenu-list--level-4 .ave-sidebar__submenu-link {
+    padding-left: 50px;
+}
+
+// ============================================
+// HOVER STATE - show text
+// ============================================
+
+.ave-sidebar:hover .ave-sidebar__brand-title,
+.ave-sidebar:hover .ave-sidebar__user-name,
+.ave-sidebar:hover .ave-sidebar__label {
+    display: flex;
+    opacity: 1;
+    transform: translateX(0);
+    visibility: visible;
+    max-width: 200px;
+}
+
+.ave-sidebar:hover .ave-sidebar__caret {
+    opacity: 1;
+    transform: translateX(0) rotate(var(--ave-sidebar-caret-rotation));
+    visibility: visible;
+}
+
+// ============================================
+// EXPANDED ITEM - caret rotation
+// ============================================
+
+.ave-sidebar__item--expanded > .ave-sidebar__link .ave-sidebar__caret,
+.ave-sidebar__item--expanded > .ave-sidebar__toggle .ave-sidebar__caret {
+    --ave-sidebar-caret-rotation: 180deg;
+}
+
+// ============================================
+// APP CONTAINER EXPANDED STATE
+// ============================================
+
+.app.expanded .ave-sidebar {
+    width: var(--ave-sidebar-width-expanded);
+}
+
+.app.expanded .ave-sidebar .ave-sidebar__brand-title,
+.app.expanded .ave-sidebar .ave-sidebar__user-name,
+.app.expanded .ave-sidebar .ave-sidebar__label {
+    display: flex;
+    transform: translateX(0);
+    max-width: 200px;
+}
+
+.app.expanded .ave-sidebar .ave-sidebar__caret {
+    opacity: 1;
+    transform: translateX(0) rotate(var(--ave-sidebar-caret-rotation));
+    visibility: visible;
+}
+
+// ============================================
+// APP CONTAINER COLLAPSED STATE
+// ============================================
+
+.app:not(.expanded) .ave-sidebar__brand-link {
+    justify-content: center;
+    padding: 0;
+}
+
+.app:not(.expanded) .ave-sidebar__user {
+    justify-content: center;
+    padding: 12px 12px;
+}
+
+.app:not(.expanded) .ave-sidebar__link,
+.app:not(.expanded) .ave-sidebar__submenu-link {
+    justify-content: center;
+    gap: 0;
+}
+
+.app:not(.expanded) .ave-sidebar__caret {
+    margin-left: 0;
+    width: 0;
+}
+
+.app:not(.expanded) .ave-sidebar__submenu {
+    display: none;
+    max-height: 0;
+    opacity: 0;
+}
+
+.app:not(.expanded) .ave-sidebar__submenu--open {
+    display: none;
+    max-height: 0;
+    opacity: 0;
+}
+
+// ============================================
+// COLLAPSED STATE + HOVER
+// ============================================
+
+.app:not(.expanded) .ave-sidebar:hover {
+    width: var(--ave-sidebar-width-expanded);
+}
+
+.app:not(.expanded) .ave-sidebar:hover .ave-sidebar__brand-link {
+    justify-content: flex-start;
+    padding: 0 20px 0 14px;
+}
+
+.app:not(.expanded) .ave-sidebar:hover .ave-sidebar__user {
+    justify-content: flex-start;
+    padding: 12px 12px;
+}
+
+.app:not(.expanded) .ave-sidebar:hover .ave-sidebar__link,
+.app:not(.expanded) .ave-sidebar:hover .ave-sidebar__submenu-link {
+    justify-content: flex-start;
+    gap: 12px;
+}
+
+.app:not(.expanded) .ave-sidebar:hover .ave-sidebar__brand-title,
+.app:not(.expanded) .ave-sidebar:hover .ave-sidebar__user-name,
+.app:not(.expanded) .ave-sidebar:hover .ave-sidebar__label {
+    display: flex;
+    transform: translateX(0);
+    max-width: 200px;
+}
+
+.app:not(.expanded) .ave-sidebar:hover .ave-sidebar__caret {
+    opacity: 1;
+    transform: translateX(0) rotate(var(--ave-sidebar-caret-rotation));
+    visibility: visible;
+    width: auto;
+    margin-left: auto;
+}
+
+.app:not(.expanded) .ave-sidebar:hover .ave-sidebar__submenu--open {
+    display: block;
+    max-height: 1000px;
+    opacity: 1;
+    pointer-events: auto;
+}
+
+// ============================================
+// CUSTOM SCROLLBAR (WEBKIT)
+// ============================================
+
+.ave-sidebar__menu::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    background: transparent;
+}
+
+.app.expanded .ave-sidebar__menu::-webkit-scrollbar,
+.ave-sidebar__menu:hover::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+}
+
+.app.expanded .ave-sidebar__menu::-webkit-scrollbar-thumb,
+.ave-sidebar__menu:hover::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
+}
+
+.app.expanded .ave-sidebar__menu::-webkit-scrollbar-thumb:hover,
+.ave-sidebar__menu:hover::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+

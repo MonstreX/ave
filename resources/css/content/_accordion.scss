@@ -1,0 +1,54 @@
+// ============================================
+// ACCORDION / COLLAPSE
+// ============================================
+
+.accordion {
+    border-radius: 4px;
+    border: 1px solid #e4eaec;
+    overflow: hidden;
+}
+
+.accordion-item + .accordion-item {
+    border-top: 1px solid #e4eaec;
+}
+
+.accordion-header {
+    margin: 0;
+}
+
+.accordion-toggle {
+    width: 100%;
+    background: #f7f9fb;
+    border: 0;
+    padding: 12px 16px;
+    text-align: left;
+    font-weight: 600;
+    color: #2c3e50;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: background 0.2s ease;
+}
+
+.accordion-toggle:hover {
+    background: #eef2f6;
+}
+
+.accordion-toggle .icon {
+    transition: transform 0.2s ease;
+}
+
+.accordion-toggle[aria-expanded="true"] .icon {
+    transform: rotate(180deg);
+}
+
+.accordion-body {
+    padding: 16px;
+    background: #fff;
+    display: none;
+}
+
+.accordion-body.show {
+    display: block;
+}

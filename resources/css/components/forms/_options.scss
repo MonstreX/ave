@@ -1,0 +1,48 @@
+// ============================================
+// OPTION CARDS (checkbox / radio)
+// ============================================
+
+.option-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+}
+
+.option-card {
+    position: relative;
+    border: 1px solid #e0e6ed;
+    border-radius: 6px;
+    padding: 14px;
+    cursor: pointer;
+    background: #fff;
+    transition: border 0.2s ease, box-shadow 0.2s ease;
+}
+
+.option-card:hover {
+    border-color: var(--ave-color-primary);
+}
+
+.option-card input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.option-card h4 {
+    margin: 0 0 6px;
+    font-size: 14px;
+    color: #2c3e50;
+}
+
+.option-card p {
+    margin: 0;
+    font-size: 12px;
+    color: #6c7a89;
+}
+
+.option-card.selected {
+    border-color: var(--ave-color-primary);
+    box-shadow: 0 0 0 3px rgba(34, 167, 240, 0.15);
+}
+
+

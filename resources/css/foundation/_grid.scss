@@ -1,0 +1,196 @@
+// ============================================
+// FLEX GRID SYSTEM (Bootstrap-like API)
+// ============================================
+
+@use 'sass:map';
+@use 'sass:math';
+
+$grid-columns: 12;
+$grid-gutter-width: 30px;
+$grid-gutter-half: math.div($grid-gutter-width, 2);
+$grid-breakpoints: (
+    xs: 0,
+    sm: 576px,
+    md: 768px,
+    lg: 992px,
+    xl: 1200px
+);
+
+@mixin media-breakpoint-up($name) {
+    $min: map.get($grid-breakpoints, $name);
+
+    @if $min != null and $min != 0 {
+        @media (min-width: $min) {
+            @content;
+        }
+    } @else {
+        @content;
+    }
+}
+
+@function span-columns($span) {
+    @return if($span == 0, 0%, math.percentage(math.div($span, $grid-columns)));
+}
+
+.container {
+    width: 100%;
+    padding-right: $grid-gutter-half;
+    padding-left: $grid-gutter-half;
+    margin-right: auto;
+    margin-left: auto;
+
+    @include media-breakpoint-up(md) {
+        max-width: 960px;
+    }
+
+    @include media-breakpoint-up(lg) {
+        max-width: 1140px;
+    }
+
+    @include media-breakpoint-up(xl) {
+        max-width: 1320px;
+    }
+}
+
+.container-fluid {
+    width: 100%;
+    padding-right: $grid-gutter-half;
+    padding-left: $grid-gutter-half;
+    margin-right: auto;
+    margin-left: auto;
+}
+
+.row {
+    display: flex;
+    flex-wrap: wrap;
+    margin-right: -$grid-gutter-half;
+    margin-left: -$grid-gutter-half;
+
+    &.row-compact {
+        margin-right: math.div(-$grid-gutter-half, 2);
+        margin-left: math.div(-$grid-gutter-half, 2);
+
+        > [class*="col-"] {
+            padding-right: math.div($grid-gutter-half, 2);
+            padding-left: math.div($grid-gutter-half, 2);
+        }
+    }
+}
+
+.no-gutters {
+    margin-right: 0;
+    margin-left: 0;
+
+    > [class*="col-"] {
+        padding-right: 0;
+        padding-left: 0;
+    }
+}
+
+[class*="col-"],
+.col {
+    position: relative;
+    width: 100%;
+    padding-right: $grid-gutter-half;
+    padding-left: $grid-gutter-half;
+}
+
+.col {
+    flex-basis: 0;
+    flex-grow: 1;
+    max-width: 100%;
+}
+
+.col-auto {
+    flex: 0 0 auto;
+    width: auto;
+    max-width: none;
+}
+
+@each $breakpoint, $min in $grid-breakpoints {
+    $infix: if($breakpoint == xs, '', '-#{$breakpoint}');
+
+    @include media-breakpoint-up($breakpoint) {
+        .col#{$infix}-auto {
+            flex: 0 0 auto;
+            width: auto;
+            max-width: none;
+        }
+
+        .col#{$infix} {
+            flex: 1 0 0%;
+            max-width: 100%;
+        }
+
+        @for $i from 1 through $grid-columns {
+            .col#{$infix}-#{$i} {
+                flex: 0 0 span-columns($i);
+                max-width: span-columns($i);
+            }
+
+            .offset#{$infix}-#{$i} {
+                margin-left: span-columns($i);
+            }
+
+            .order#{$infix}-#{$i} {
+                order: $i;
+            }
+        }
+
+        .order#{$infix}-first {
+            order: -1;
+        }
+
+        .order#{$infix}-last {
+            order: $grid-columns + 1;
+        }
+    }
+}
+
+.align-items-start {
+    align-items: flex-start !important;
+}
+
+.align-items-center {
+    align-items: center !important;
+}
+
+.align-items-end {
+    align-items: flex-end !important;
+}
+
+.justify-content-start {
+    justify-content: flex-start !important;
+}
+
+.justify-content-center {
+    justify-content: center !important;
+}
+
+.justify-content-end {
+    justify-content: flex-end !important;
+}
+
+.justify-content-between {
+    justify-content: space-between !important;
+}
+
+.justify-content-around {
+    justify-content: space-around !important;
+}
+
+.flex-wrap {
+    flex-wrap: wrap !important;
+}
+
+.gap-sm {
+    gap: 10px;
+}
+
+.gap-md {
+    gap: 20px;
+}
+
+.gap-lg {
+    gap: 30px;
+}

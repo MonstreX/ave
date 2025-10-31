@@ -1,0 +1,122 @@
+/**
+ * Code Editor (CodeMirror 6) Styles
+ */
+
+.code-editor-wrapper {
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    overflow: hidden;
+    background: #fff;
+
+    &[data-theme="dark"],
+    &[data-theme="monokai"] {
+        background: #272822;
+        border-color: #1e1f1c;
+    }
+}
+
+.code-editor-content {
+    // CodeMirror 6 has its own styles
+    // We just provide container styling
+
+    .cm-editor {
+        outline: none;
+        font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+        font-size: 14px;
+        line-height: 1.5;
+
+        .cm-scroller {
+            overflow: auto;
+        }
+
+        .cm-content {
+            padding: 8px 0;
+        }
+
+        .cm-line {
+            padding: 0 8px;
+        }
+
+        // Gutters (line numbers)
+        .cm-gutters {
+            background: #f8f8f8;
+            border-right: 1px solid #ddd;
+            color: #999;
+        }
+
+        .cm-activeLineGutter {
+            background: #e8f2ff;
+        }
+
+        .cm-activeLine {
+            background: #f0f8ff;
+        }
+
+        // Selection
+        .cm-selectionBackground {
+            background: #d7d4f0 !important;
+        }
+
+        // Cursor
+        .cm-cursor {
+            border-left-color: var(--ave-color-primary, #22a7f0);
+        }
+    }
+
+    // Dark theme overrides
+    [data-theme="dark"] &,
+    [data-theme="monokai"] & {
+        .cm-editor {
+            .cm-gutters {
+                background: #272822;
+                border-right-color: #1e1f1c;
+                color: #75715e;
+            }
+
+            .cm-activeLineGutter {
+                background: #3e3d32;
+            }
+
+            .cm-activeLine {
+                background: #3e3d32;
+            }
+        }
+    }
+}
+
+// Ave state
+.code-editor-wrapper:focus-within {
+    border-color: var(--ave-color-primary, #22a7f0);
+    box-shadow: 0 0 0 3px rgba(34, 167, 240, 0.1);
+}
+
+// Error state
+.form-field.has-error .code-editor-wrapper {
+    border-color: #e74c3c;
+
+    &:focus-within {
+        box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.1);
+    }
+}
+
+// Disabled state
+.code-editor-wrapper:has(textarea:disabled) {
+    background: #f9f9f9;
+    opacity: 0.6;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+// Readonly state
+.code-editor-wrapper:has(textarea:readonly) {
+    .cm-editor {
+        .cm-content {
+            cursor: default;
+        }
+
+        .cm-cursor {
+            display: none;
+        }
+    }
+}
+

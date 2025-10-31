@@ -1,0 +1,10 @@
+// ============================================
+// DASHBOARD - Main entry point for dashboard styles
+// ============================================
+// This file only imports other modules
+
+// Base layout components (used on every page)
+@use 'app-layout';
+@use 'navbar';
+@use 'sidebar';
+@use 'footer';

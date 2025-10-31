@@ -1,0 +1,55 @@
+// ============================================
+// BREADCRUMBS / STEPPER
+// ============================================
+
+.breadcrumb-demo {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: #95a5a6;
+}
+
+.breadcrumb-demo a {
+    color: var(--ave-color-primary);
+    font-weight: 600;
+}
+
+.breadcrumb-demo .separator {
+    color: #c5ced6;
+}
+
+.stepper {
+    display: flex;
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.step {
+    position: relative;
+    flex: 1;
+    padding: 12px 16px;
+    border-radius: 6px;
+    border: 1px solid #e4eaec;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.step.active {
+    border-color: var(--ave-color-primary);
+    box-shadow: 0 2px 8px rgba(34, 167, 240, 0.15);
+}
+
+.step-title {
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.step-description {
+    font-size: 13px;
+    color: #6c7a89;
+}
+
+

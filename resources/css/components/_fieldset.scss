@@ -1,0 +1,420 @@
+// ============================================
+// FIELDSET - Multiple field sets (repeater)
+// ============================================
+
+.fieldset-field {
+    margin-bottom: 1.5rem;
+}
+
+.fieldset-container {
+    //border: 1px solid #e2e8f0;
+    //border-radius: 6px;
+    //padding: 1rem;
+    //background-color: #f7fafc;
+
+    // Sort mode - force collapse and show handles
+    &.sort-mode {
+        .fieldset-drag-handle {
+            opacity: 1 !important;
+        }
+
+        .btn-fieldset-collapse {
+            pointer-events: none;
+            opacity: 0.3;
+        }
+
+        .fieldset-item-fields {
+            max-height: 0 !important;
+            padding-top: 0 !important;
+            padding-bottom: 0 !important;
+        }
+    }
+}
+
+// ============================================
+// FIELDSET ACTION BAR
+// ============================================
+
+.fieldset-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+}
+
+.fieldset-actions-left,
+.fieldset-actions-right {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.btn-fieldset-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.375rem 0.75rem;
+    background: #fff;
+    border: 1px solid #cbd5e0;
+    border-radius: 4px;
+    color: #4a5568;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+        background: #edf2f7;
+        border-color: #a0aec0;
+        color: #2d3748;
+    }
+
+    .icon {
+        width: 14px;
+        height: 14px;
+    }
+}
+
+// Sort Mode Toggle
+.fieldset-sort-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    user-select: none;
+
+    input[type="checkbox"] {
+        position: absolute;
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .toggle-slider {
+        position: relative;
+        width: 40px;
+        height: 22px;
+        background: #cbd5e0;
+        border-radius: 11px;
+        transition: background 0.2s;
+
+        &::before {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 18px;
+            height: 18px;
+            background: #fff;
+            border-radius: 50%;
+            transition: transform 0.2s;
+        }
+    }
+
+    input:checked + .toggle-slider {
+        background: #4299e1;
+
+        &::before {
+            transform: translateX(18px);
+        }
+    }
+
+    .toggle-label {
+        font-size: 13px;
+        font-weight: 500;
+        color: #4a5568;
+    }
+}
+
+.fieldset-items {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+// ============================================
+// FIELDSET ITEM
+// ============================================
+
+.fieldset-item {
+    position: relative;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    display: flex;
+    gap: 0.5rem;
+    // NO transition here! SortableJS handles animation
+
+    &:hover {
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+
+        .fieldset-drag-handle {
+            opacity: 1;
+        }
+    }
+
+    // SortableJS classes
+    &.sortable-chosen {
+        opacity: 1;
+    }
+
+    &.sortable-ghost {
+        opacity: 0.4;
+        background: #edf2f7;
+
+        // Hide fields content during drag (ghost placeholder)
+        .fieldset-item-fields {
+            display: none;
+        }
+    }
+
+    &.sortable-drag {
+        opacity: 0.9;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+
+        // Hide fields content during drag (actual dragging element)
+        .fieldset-item-fields {
+            display: none !important;
+        }
+
+        // Keep header visible
+        .fieldset-item-header {
+            border-bottom: 1px solid #e2e8f0;
+        }
+    }
+}
+
+.fieldset-drag-handle {
+    display: none; // Hidden by default, shown in sort mode
+    align-items: flex-start;
+    justify-content: center;
+    padding: 1rem 0.5rem;
+    cursor: move;
+    color: #a0aec0;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+    flex-shrink: 0;
+
+    // Show in sort mode
+    .sort-mode & {
+        display: flex;
+    }
+
+    &:hover {
+        opacity: 1;
+        color: #718096;
+    }
+
+    .icon {
+        width: 16px;
+        height: 16px;
+    }
+}
+
+.fieldset-item-content {
+    flex: 1;
+    min-width: 0;
+}
+
+// ============================================
+// FIELDSET ITEM HEADER
+// ============================================
+
+.fieldset-item-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #e2e8f0;
+    background: #f7fafc;
+
+    // Hide border when collapsed
+    .fieldset-item.collapsed & {
+        border-bottom: none;
+    }
+}
+
+.btn-fieldset-collapse {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    width: 24px;
+    height: 24px;
+    background: transparent;
+    border: none;
+    color: #718096;
+    cursor: pointer;
+    transition: all 0.2s;
+    flex-shrink: 0;
+
+    &:hover {
+        color: #4299e1;
+        background: #edf2f7;
+        border-radius: 4px;
+    }
+
+    .icon {
+        width: 16px;
+        height: 16px;
+        transition: transform 0.2s;
+    }
+
+    // Rotate chevron when collapsed
+    .fieldset-item.collapsed & .icon {
+        transform: rotate(-90deg);
+    }
+}
+
+.fieldset-item-number {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 24px;
+    height: 24px;
+    padding: 0 0.5rem;
+    background: #4299e1;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: 12px;
+}
+
+.fieldset-item-preview {
+    width: 32px;
+    height: 32px;
+    border-radius: 4px;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    border: 1px solid #e2e8f0;
+    flex-shrink: 0;
+    display: none; // Hidden by default, shown via JS
+
+    &:empty {
+        display: none;
+    }
+}
+
+.fieldset-item-title {
+    font-size: 13px;
+    font-weight: 500;
+    color: #2d3748;
+    margin-right: auto;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 300px;
+
+    &:empty {
+        display: none;
+    }
+}
+
+.btn-fieldset-delete {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    background: transparent;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    color: #718096;
+    cursor: pointer;
+    transition: all 0.2s;
+    flex-shrink: 0;
+    margin-left: auto;
+
+    &:hover {
+        background: #fed7d7;
+        border-color: #fc8181;
+        color: #c53030;
+    }
+
+    .icon {
+        width: 18px;
+        height: 18px;
+    }
+}
+
+.btn-fieldset-action[disabled],
+.btn-fieldset-action.is-disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+// ============================================
+// FIELDSET ITEM FIELDS
+// ============================================
+
+.fieldset-item-fields {
+    padding: 1rem;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+
+    // Collapsed state
+    .fieldset-item.collapsed & {
+        max-height: 0;
+        padding-top: 0;
+        padding-bottom: 0;
+    }
+
+    // Reduce spacing for nested form fields
+    .form-field {
+        margin-bottom: 1rem;
+
+        &:last-child {
+            margin-bottom: 0;
+        }
+    }
+
+    // Make nested labels smaller
+    .form-label {
+        font-size: 13px;
+        font-weight: 500;
+    }
+}
+
+// ============================================
+// ADD BUTTON
+// ============================================
+
+.btn-fieldset-add {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.375rem 0.75rem;
+    background: #4299e1;
+    border: 1px solid #4299e1;
+    border-radius: 4px;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+        background: #3182ce;
+        border-color: #3182ce;
+    }
+
+    .icon {
+        width: 14px;
+        height: 14px;
+    }
+}
+
+// ============================================
+// EMPTY STATE
+// ============================================
+
+.fieldset-items:empty + .btn-fieldset-add {
+    margin-top: 0;
+}

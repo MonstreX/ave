@@ -1,0 +1,60 @@
+// ============================================
+// PANELS - Reusable panel component
+// ============================================
+
+.panel {
+    background-color: #fff;
+    border: 1px solid #e1e1e1;
+    border-radius: 4px;
+    // box-shadow intentionally disabled to keep panels flat by default
+    margin-bottom: 22px;
+}
+
+.panel-bordered > .panel-heading {
+    border-bottom: 1px solid #e4eaec;
+}
+
+.panel-title {
+    display: block;
+    font-size: 18px;
+    font-weight: 300;
+    padding: 15px 20px;
+    text-align: left;
+    margin: 0;
+}
+
+.panel-title i {
+    font-size: 18px;
+}
+
+.panel-body {
+    padding: 20px;
+}
+
+.panel-footer {
+    padding: 15px 20px;
+    background-color: #f5f5f5;
+    border-top: 1px solid #e4eaec;
+    border-bottom-left-radius: 3px;
+    border-bottom-right-radius: 3px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+// ============================================
+// PANEL VARIANTS
+// ============================================
+
+.panel-info .panel-heading {
+    background-color: #d9edf7;
+    border-color: #bce8f1;
+    color: #31708f;
+}
+
+.panel-heading-primary {
+    background-color: var(--ave-color-primary);
+    color: #fff;
+    border-color: var(--ave-color-primary);
+}
+

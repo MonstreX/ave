@@ -1,0 +1,195 @@
+// ============================================
+// CHECKBOXES & RADIO BUTTONS
+// ============================================
+
+.checkbox,
+.radio {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+
+    input[type="checkbox"],
+    input[type="radio"] {
+        margin: 0;
+        width: 16px;
+        height: 16px;
+        cursor: pointer;
+    }
+
+    label {
+        margin: 0;
+        font-size: 14px;
+        color: #757C85;
+        font-weight: 400;
+        cursor: pointer;
+        user-select: none;
+    }
+}
+
+// Inline checkboxes
+.checkbox-inline,
+.radio-inline {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-right: 15px;
+
+    input[type="checkbox"],
+    input[type="radio"] {
+        margin: 0;
+    }
+}
+
+// ============================================
+// CUSTOM CHECKBOXES
+// ============================================
+.checkbox-wrapper, .checkbox-label {
+    display: block;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+
+    .checkbox-input {
+        position: absolute;
+        opacity: 0;
+        cursor: pointer;
+        width: 0;
+        height: 0;
+    }
+
+    .checkbox-custom {
+        position: relative;
+        display: inline-block;
+        width: 18px;
+        height: 18px;
+        background: #fff;
+        border: 2px solid #ddd;
+        border-radius: 3px;
+        transition: all 0.2s ease;
+
+        &::after {
+            content: '';
+            position: absolute;
+            display: none;
+            left: 5px;
+            top: 2px;
+            width: 4px;
+            height: 8px;
+            border: solid #fff;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
+    }
+
+    .checkbox-input:checked ~ .checkbox-custom {
+        background: var(--ave-color-primary);
+        border-color: var(--ave-color-primary);
+
+        &::after {
+            display: block;
+        }
+    }
+
+    .checkbox-input:disabled ~ .checkbox-custom {
+        background: #f5f5f5;
+        cursor: not-allowed;
+    }
+
+    .checkbox-text {
+        font-size: 14px;
+        color: #757C85;
+        font-weight: 400;
+    }
+
+    &:hover .checkbox-input:not(:disabled) ~ .checkbox-custom {
+        border-color: var(--ave-color-primary);
+    }
+}
+
+// ============================================
+// CUSTOM RADIO BUTTONS
+// ============================================
+.radio-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    &.radio-group-inline {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+}
+
+.radio-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+
+    .radio-input {
+        position: absolute;
+        opacity: 0;
+        cursor: pointer;
+        width: 0;
+        height: 0;
+    }
+
+    .radio-custom {
+        position: relative;
+        display: inline-block;
+        width: 18px;
+        height: 18px;
+        background: #fff;
+        border: 2px solid #ddd;
+        border-radius: 50%;
+        transition: all 0.2s ease;
+
+        &::after {
+            content: '';
+            position: absolute;
+            display: none;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #fff;
+        }
+    }
+
+    .radio-input:checked ~ .radio-custom {
+        background: var(--ave-color-primary);
+        border-color: var(--ave-color-primary);
+
+        &::after {
+            display: block;
+        }
+    }
+
+    .radio-input:disabled ~ .radio-custom {
+        background: #f5f5f5;
+        cursor: not-allowed;
+    }
+
+    .radio-text {
+        font-size: 14px;
+        color: #757C85;
+        font-weight: 400;
+    }
+
+    &:hover .radio-input:not(:disabled) ~ .radio-custom {
+        border-color: var(--ave-color-primary);
+    }
+}
+

@@ -1,0 +1,66 @@
+// ============================================
+// Ave - Main SCSS Entry Point
+// ============================================
+
+@use 'sass:meta';
+
+// Import central variables first
+@use './variables';
+
+// Foundation styles
+@use './foundation/base';
+@use './foundation/grid';
+@use './foundation/icons';
+
+// Components (reusable UI elements)
+@use './components/buttons';
+@use './components/alerts';
+@use './components/tabs';
+@use './components/toast';
+@use './components/media-field';
+@use './components/fieldset';
+@use './components/track-a';
+@use './components/forms/labels';
+@use './components/forms/inputs';
+@use './components/forms/groups';
+@use './components/forms/checkboxes';
+@use './components/forms/switches';
+@use './components/forms/chips';
+@use './components/forms/options';
+@use './components/forms/selects';
+@use './components/forms/rich-editor';
+@use './components/forms/code-editor';
+@use './components/forms/content-editor';
+
+// Auth pages
+@use './auth/login';
+
+// Dashboard layout (base layout used everywhere)
+@use './dashboard/dashboard';
+
+// Content components (used on different pages as needed)
+@use './content/page-header';
+@use './content/panels';
+@use './content/tables';
+@use './content/widgets';
+@use './content/notifications';
+@use './content/demo';
+@use './content/badges';
+@use './content/pagination';
+@use './content/timeline';
+@use './content/accordion';
+@use './content/metrics';
+@use './content/breadcrumbs';
+@use './content/resource-pages';
+@use './content/media';
+
+// Utilities (helpers and overlays)
+@use './utilities/animations';
+@use './utilities/helpers';
+@use './utilities/loader';
+@use './utilities/mobile-overlay';
+@use './utilities/responsive';
+@use './utilities/modal';
+
+@include meta.load-css('jodit/es2021/jodit.min.css');
+

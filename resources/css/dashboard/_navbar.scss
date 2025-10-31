@@ -1,0 +1,488 @@
+// ============================================
+// NAVBAR STYLES (BEM)
+// ============================================
+// Import central variables
+@use "../variables";
+
+// ============================================
+// MAIN NAVBAR BLOCK
+// ============================================
+
+.ave-navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: 60px;
+    background: #ffffff;
+    z-index: 9998;
+    border: 0;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+    transition: var(--ave-navbar-transition);
+}
+
+// Legacy Voyager compatibility
+.ave-admin .navbar,
+.ave-admin .navbar.navbar-default {
+    background: hsla(0, 0%, 98%, .9);
+    border-bottom: 0;
+    box-shadow: 0 0 0;
+}
+
+.ave-navbar__content {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0;
+    margin: 0;
+    width: calc(100% - var(--ave-sidebar-width-collapsed));
+}
+
+.app.expanded .ave-navbar__content {
+    width: calc(100% - var(--ave-sidebar-width-expanded));
+}
+
+.ave-navbar__left {
+    display: flex;
+    align-items: center;
+    height: 100%;
+    flex: 1;
+    min-width: 0;
+}
+
+.ave-navbar__right {
+    display: flex;
+    align-items: center;
+    height: 100%;
+    flex: 0 0 auto;
+}
+
+.ave-navbar__nav {
+    display: flex;
+    align-items: center;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+// Navbar positioning with sidebar
+.app .ave-navbar {
+    left: var(--ave-sidebar-width-collapsed);
+    transition: left var(--ave-navbar-transition);
+}
+
+.app.expanded .ave-navbar {
+    left: var(--ave-sidebar-width-expanded);
+}
+
+// ============================================
+// HAMBURGER BUTTON (JS-controlled, DO NOT rename classes!)
+// ============================================
+
+.hamburger {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 60px;
+    height: 60px;
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+    padding: 0;
+    margin: 0;
+    transition: opacity var(--ave-navbar-transition-fast);
+}
+
+.hamburger:hover {
+    opacity: 0.7;
+}
+
+.hamburger-inner {
+    position: relative;
+    width: 20px;
+    height: 2px;
+    background: var(--ave-hamburger-color);
+    display: block;
+    border-radius: 2px;
+    transition: all var(--ave-navbar-transition-fast);
+}
+
+.hamburger-inner:before {
+    content: '';
+    position: absolute;
+    top: calc(6px * -1);
+    left: 10px;
+    width: 10px;
+    height: 2px;
+    background: var(--ave-hamburger-color);
+    border-radius: 2px;
+    transition: all var(--ave-navbar-transition-fast);
+}
+
+.hamburger-inner:after {
+    content: '';
+    position: absolute;
+    bottom: calc(6px * -1);
+    left: 0;
+    width: 20px;
+    height: 2px;
+    background: var(--ave-hamburger-color);
+    border-radius: 2px;
+    transition: all var(--ave-navbar-transition-fast);
+}
+
+// Active state (sidebar expanded)
+.hamburger.is-active .hamburger-inner {
+    background: transparent;
+    width: 0;
+    height: 0;
+}
+
+.hamburger.is-active .hamburger-inner:before {
+    content: '\e039';
+    font-family: 'Voyager';
+    width: auto;
+    height: auto;
+    background: transparent;
+    color: var(--ave-hamburger-color);
+    font-size: 20px;
+    top: -10px;
+    left: -10px;
+    border-radius: 0;
+    transform: none;
+}
+
+.hamburger.is-active .hamburger-inner:after {
+    display: none;
+}
+
+// No animation class (for initial load)
+.hamburger.no-animation .hamburger-inner,
+.hamburger.no-animation .hamburger-inner:before,
+.hamburger.no-animation .hamburger-inner:after {
+    transition: none;
+}
+
+// ============================================
+// BREADCRUMB NAVIGATION
+// ============================================
+
+.ave-navbar__breadcrumb {
+    list-style: none;
+    position: relative;
+    margin: 0;
+    gap: 0;
+    background-color: #fff;
+    border: 1px solid #eee;
+    border-radius: 25px;
+    font-size: 12px;
+    padding: 8px 16px;
+}
+
+.ave-navbar__breadcrumb-item {
+    cursor: pointer;
+    display: inline-block;
+    gap: 6px;
+    padding-bottom: 2px;
+    color: #64748b;
+}
+
+.ave-navbar__breadcrumb a {
+    color: #22A7F0;
+}
+
+.ave-navbar__breadcrumb-item i {
+    position: relative;
+    font-size: 14px;
+    color: var(--ave-color-primary);
+    margin-right: 5px;
+    top: 2px;
+}
+
+.ave-navbar__breadcrumb-link {
+    color: #64748b;
+    text-decoration: none;
+    transition: color var(--ave-navbar-transition-normal);
+}
+
+.ave-navbar__breadcrumb-link:hover {
+    color: var(--ave-color-primary);
+}
+
+.ave-navbar__breadcrumb-item + .ave-navbar__breadcrumb-item:before {
+    content: "\e046";
+    font-family: Voyager;
+    margin-right: 3px;
+    position: relative;
+    top: 2px;
+}
+
+// ============================================
+// PROFILE DROPDOWN (JS-controlled, DO NOT rename dropdown classes!)
+// ============================================
+
+.ave-navbar__profile {
+    position: relative;
+    height: 100%;
+    display: flex;
+    align-items: center;
+}
+
+.ave-navbar__profile-toggle {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 20px;
+    height: 60px;
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+    text-decoration: none;
+    transition: opacity var(--ave-navbar-transition-fast);
+}
+
+.ave-navbar__profile-toggle:hover {
+    opacity: 0.7;
+}
+
+.ave-navbar__profile-img {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.ave-navbar__caret {
+    display: inline-block;
+    width: 0;
+    height: 0;
+    margin-left: 2px;
+    vertical-align: middle;
+    border-top: 4px solid #76838F;
+    border-right: 4px solid transparent;
+    border-left: 4px solid transparent;
+}
+
+// Dropdown menu (keep .dropdown classes for JS!)
+.dropdown.profile {
+    position: relative;
+    height: 100%;
+    display: flex;
+    align-items: center;
+}
+
+.dropdown-toggle {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 20px;
+    height: 60px;
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+    text-decoration: none;
+    transition: opacity var(--ave-navbar-transition-fast);
+}
+
+.dropdown-toggle:hover {
+    opacity: 0.7;
+}
+
+// Profile image (used in blade template)
+.profile-img {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+// Caret (used in blade template)
+.caret {
+    display: inline-block;
+    width: 0;
+    height: 0;
+    margin-left: 2px;
+    vertical-align: middle;
+    border-top: 4px solid #76838F;
+    border-right: 4px solid transparent;
+    border-left: 4px solid transparent;
+}
+
+.dropdown-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    z-index: 10000;
+    display: none;
+    width: 280px;
+    margin: 0;
+    padding: 0;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    box-shadow: var(--ave-dropdown-shadow);
+    transform-origin: 100% 0;
+}
+
+.dropdown.open .dropdown-menu {
+    display: block;
+}
+
+.dropdown-menu > li {
+    list-style: none;
+}
+
+.dropdown-menu > li + li {
+    margin-top: 0;
+}
+
+// ============================================
+// DROPDOWN PROFILE SECTION
+// ============================================
+
+.dropdown-profile {
+    display: flex;
+    align-items: center;
+    padding: 16px;
+}
+
+.dropdown-profile__avatar {
+    flex: 0 0 auto;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin-right: 14px;
+}
+
+.dropdown-profile__avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.dropdown-profile__details {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.dropdown-profile__name {
+    font-size: 15px;
+    font-weight: 600;
+    color: #1e293b;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dropdown-profile__email {
+    font-size: 13px;
+    color: #64748b;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dropdown-divider {
+    height: 1px;
+    margin: 8px 0;
+    background: #e5e7eb;
+}
+
+// ============================================
+// DROPDOWN ITEMS
+// ============================================
+
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    font-size: 14px;
+    color: #475569;
+    text-decoration: none;
+    transition: background var(--ave-navbar-transition-normal), color var(--ave-navbar-transition-normal);
+}
+
+.dropdown-item i {
+    font-size: 14px;
+    color: var(--ave-color-primary);
+}
+
+.dropdown-item:hover,
+.dropdown-item:focus {
+    background: #f8fafc;
+    color: #0f172a;
+    text-decoration: none;
+}
+
+.dropdown-item--danger {
+    color: #dc2626;
+}
+
+.dropdown-item--danger i {
+    color: inherit;
+}
+
+.dropdown-logout form {
+    margin: 0;
+}
+
+.dropdown-logout .dropdown-item {
+    width: 100%;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+}
+
+.dropdown-logout .dropdown-item:hover,
+.dropdown-logout .dropdown-item:focus {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+// ============================================
+// BODY SPACING
+// ============================================
+
+.app .app-main {
+    padding-top: 80px;
+    margin-left: var(--ave-sidebar-width-collapsed);
+    transition: margin-left var(--ave-navbar-transition);
+}
+
+//.app.expanded .app-main {
+//    margin-left: var(--ave-sidebar-width-expanded);
+//}
+
+// ============================================
+// RESPONSIVE
+// ============================================
+
+@media (max-width: 768px) {
+    .ave-navbar__content {
+        width: 100%;
+    }
+
+    .app.expanded .ave-navbar__content {
+        width: calc(100% - var(--ave-sidebar-width-expanded));
+    }
+
+    .app .ave-navbar {
+        left: 0;
+        transition: left var(--ave-navbar-transition);
+    }
+
+    .app.expanded .ave-navbar {
+        left: var(--ave-sidebar-width-expanded);
+    }
+}
+
+

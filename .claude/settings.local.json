@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(\"E:\\OSPanel-v6\\modules\\PHP-8.3\\PHP\\php.exe\" artisan vendor:publish --tag=assets --force)",
+      "Bash(npm install:*)",
+      "Bash(/dev/null)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

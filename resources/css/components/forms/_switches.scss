@@ -1,0 +1,174 @@
+// ============================================
+// FORM SWITCHES / TOGGLES
+// ============================================
+
+.form-switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.form-switch input {
+    display: none;
+}
+
+.form-switch-track {
+    position: relative;
+    width: 42px;
+    height: 22px;
+    background: #dfe4ea;
+    border-radius: 999px;
+    transition: background 0.2s ease;
+}
+
+.form-switch-thumb {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease;
+}
+
+.form-switch input:checked + .form-switch-track {
+    background: var(--ave-color-primary);
+}
+
+.form-switch input:checked + .form-switch-track .form-switch-thumb {
+    transform: translateX(20px);
+}
+
+.form-switch-label {
+    font-size: 14px;
+    color: #566473;
+}
+
+
+// ============================================
+// CUSTOM TOGGLE SWITCHES
+// ============================================
+.toggle-wrapper {
+    display: block;
+}
+
+.toggle-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+
+    .toggle-input {
+        position: absolute;
+        opacity: 0;
+        cursor: pointer;
+        width: 0;
+        height: 0;
+    }
+
+    .toggle-switch {
+        position: relative;
+        display: inline-block;
+        border-radius: 999px;
+        transition: background-color 0.2s ease;
+        background: #dfe4ea;
+
+        .toggle-slider {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            border-radius: 50%;
+            background: #fff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease;
+        }
+    }
+
+    // Toggle sizes
+    .toggle-switch-small {
+        width: 36px;
+        height: 20px;
+
+        .toggle-slider {
+            width: 16px;
+            height: 16px;
+        }
+    }
+
+    .toggle-switch-medium {
+        width: 44px;
+        height: 24px;
+
+        .toggle-slider {
+            width: 20px;
+            height: 20px;
+        }
+    }
+
+    .toggle-switch-large {
+        width: 52px;
+        height: 28px;
+
+        .toggle-slider {
+            width: 24px;
+            height: 24px;
+        }
+    }
+
+    // Checked state
+    .toggle-input:checked ~ .toggle-switch-small .toggle-slider {
+        transform: translateX(16px);
+    }
+
+    .toggle-input:checked ~ .toggle-switch-medium .toggle-slider {
+        transform: translateX(20px);
+    }
+
+    .toggle-input:checked ~ .toggle-switch-large .toggle-slider {
+        transform: translateX(24px);
+    }
+
+    // Toggle colors
+    .toggle-input:checked ~ .toggle-switch-primary {
+        background: var(--ave-color-primary);
+    }
+
+    .toggle-input:checked ~ .toggle-switch-success {
+        background: #10b981;
+    }
+
+    .toggle-input:checked ~ .toggle-switch-danger {
+        background: #ef4444;
+    }
+
+    .toggle-input:checked ~ .toggle-switch-warning {
+        background: #f59e0b;
+    }
+
+    .toggle-input:checked ~ .toggle-switch-info {
+        background: #3b82f6;
+    }
+
+    // Disabled state
+    .toggle-input:disabled ~ .toggle-switch {
+        background: #e5e7eb;
+        cursor: not-allowed;
+
+        .toggle-slider {
+            background: #d1d5db;
+        }
+    }
+
+    .toggle-text {
+        font-size: 14px;
+        color: #757C85;
+        font-weight: 400;
+    }
+}
+
