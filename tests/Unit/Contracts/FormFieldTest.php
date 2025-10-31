@@ -19,7 +19,7 @@ class FormFieldTest extends TestCase
         $methodNames = array_map(fn($m) => $m->getName(), $methods);
 
         $this->assertContains('key', $methodNames);
-        $this->assertContains('label', $methodNames);
+        $this->assertContains('getLabel', $methodNames);
         $this->assertContains('isRequired', $methodNames);
         $this->assertContains('toArray', $methodNames);
         $this->assertContains('extract', $methodNames);
