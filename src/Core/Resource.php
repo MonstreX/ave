@@ -133,4 +133,37 @@ abstract class Resource
     {
         return static::$label ?? class_basename(static::class);
     }
+
+    /**
+     * Get resource slug (alternative method for controller)
+     */
+    public function slug(): string
+    {
+        return static::getSlug();
+    }
+
+    /**
+     * Get resource label (alternative method for controller)
+     */
+    public function label(): string
+    {
+        return static::getLabel();
+    }
+
+    /**
+     * Get a new model instance
+     */
+    public function getModel()
+    {
+        return new (static::$model)();
+    }
+
+    /**
+     * Get a new query for the model
+     */
+    public function newQuery()
+    {
+        $query = static::$model::query();
+        return static::applyEagerLoading($query);
+    }
 }

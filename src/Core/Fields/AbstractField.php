@@ -92,6 +92,14 @@ abstract class AbstractField implements FormField
         return $this->required;
     }
 
+    /**
+     * Get validation rules for the field
+     */
+    public function getRules(): array
+    {
+        return $this->rules;
+    }
+
     public function toArray(): array
     {
         return [

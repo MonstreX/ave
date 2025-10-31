@@ -105,4 +105,36 @@ class Form
 
         return null;
     }
+
+    /**
+     * Get all fields for the controller
+     */
+    public function getFields(): array
+    {
+        return $this->getAllFields();
+    }
+
+    /**
+     * Get form layout (rows)
+     */
+    public function getLayout(): array
+    {
+        return $this->rows();
+    }
+
+    /**
+     * Get submit button label
+     */
+    public function getSubmitLabel(): string
+    {
+        return $this->submitLabel ?? 'Save';
+    }
+
+    /**
+     * Get cancel URL
+     */
+    public function getCancelUrl(): ?string
+    {
+        return $this->cancelUrl;
+    }
 }

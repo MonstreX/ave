@@ -173,4 +173,44 @@ class Table
             }
         });
     }
+
+    /**
+     * Get table filters
+     */
+    public function getFilters(): array
+    {
+        return $this->filters;
+    }
+
+    /**
+     * Get row actions
+     */
+    public function getActions(): array
+    {
+        return $this->actions;
+    }
+
+    /**
+     * Get bulk actions
+     */
+    public function getBulkActions(): array
+    {
+        return $this->bulkActions;
+    }
+
+    /**
+     * Get searchable columns
+     */
+    public function getSearchable(): array
+    {
+        return array_map(fn($c) => $c->key(), array_filter($this->columns, fn($c) => $c->isSearchable()));
+    }
+
+    /**
+     * Get pagination per page size
+     */
+    public function getPerPage(): int
+    {
+        return $this->perPage;
+    }
 }
