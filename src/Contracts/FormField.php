@@ -21,7 +21,7 @@ interface FormField
      *
      * @return string
      */
-    public function label(): string;
+    public function getLabel(): string;
 
     /**
      * Check if field is required
