@@ -43,6 +43,9 @@
             ]
         }
     },
+    "scripts": {
+        "test": "phpunit tests/Unit/ --testdox"
+    },
     "minimum-stability": "stable",
     "prefer-stable": true,
     "config": {
