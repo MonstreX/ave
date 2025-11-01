@@ -1,4 +1,4 @@
-﻿@php
+@php
     $field ??= null;
     $context ??= null;
 

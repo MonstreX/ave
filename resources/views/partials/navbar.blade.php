@@ -1,4 +1,4 @@
-﻿<nav class="navbar navbar-default navbar-fixed-top ave-navbar">
+<nav class="navbar navbar-default navbar-fixed-top ave-navbar">
     <div class="ave-navbar__content">
         <div class="ave-navbar__left">
             <button class="hamburger btn-link no-animation" data-ave-nav="toggle">

@@ -1,6 +1,6 @@
-﻿<?php
+<?php
 
-namespace Monstrex\\Ave\\Core;
+namespace Monstrex\Ave\Core;
 
 use Illuminate\Database\Eloquent\Builder;
 
@@ -166,3 +166,4 @@ class Table
         return $this->searchPlaceholder ?? 'Search...';
     }
 }
+

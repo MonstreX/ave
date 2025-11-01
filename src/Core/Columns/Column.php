@@ -82,6 +82,11 @@ class Column
         return $this->sortable;
     }
 
+    public function getLabel(): string
+    {
+        return $this->label ?? ucfirst(str_replace('_', ' ', $this->key));
+    }
+
     public function formatValue(mixed $value, mixed $record): mixed
     {
         if ($this->formatCallback) {
@@ -103,3 +108,4 @@ class Column
         ];
     }
 }
+

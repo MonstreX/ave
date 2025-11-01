@@ -1,4 +1,4 @@
-﻿{{-- resources/views/components/forms/text-input.blade.php --}}
+{{-- resources/views/components/forms/text-input.blade.php --}}
 @php
     $name = ($key ?? null) ?: $field->key();
     $labelText = $label ?? $field->getLabel();

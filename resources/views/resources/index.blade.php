@@ -3,7 +3,7 @@
 @section('breadcrumbs')
 <ol class="ave-navbar__breadcrumb hidden-xs">
     <li class="ave-navbar__breadcrumb-item">
-        <a href="{{ route('ave.dashboard') }}" class="ave-navbar__breadcrumb-link">
+        <a href="{{ (\Illuminate\Support\Facades\Route::has('ave.dashboard') ? route('ave.dashboard') : url('/')) }}" class="ave-navbar__breadcrumb-link">
             <i class="voyager-boat"></i> {{ __('Dashboard') }}
         </a>
     </li>
@@ -38,7 +38,7 @@
                     @if($metric->getIcon())
                         <span class="metric-icon">{{ $metric->getIcon() }}</span>
                     @else
-                        <span class="metric-icon">📊</span>
+                        <span class="metric-icon">рџ“Љ</span>
                     @endif
                     <div class="metric-value">{{ $metric->formatValue($metric->getValue()) }}</div>
                     <p class="metric-label">{{ $metric->getLabel() }}</p>
@@ -227,6 +227,8 @@
     </div>
 </div>
 @endsection
+
+
 
 
 

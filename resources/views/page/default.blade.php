@@ -1,4 +1,4 @@
-﻿@extends('ave::layouts.master')
+@extends('ave::layouts.master')
 
 @section('page_header')
     <div class="page-header">

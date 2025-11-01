@@ -1,4 +1,4 @@
-﻿{{-- resources/views/components/forms/textarea.blade.php --}}
+{{-- resources/views/components/forms/textarea.blade.php --}}
 @php
     $name = ($key ?? null) ?: $field->key();
     $labelText = $label ?? $field->getLabel();

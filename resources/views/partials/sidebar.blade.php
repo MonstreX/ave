@@ -1,9 +1,7 @@
-﻿@php
-    use Illuminate\Support\Facades\Route;
-    use Monstrex\Ave\Core\ResourceManager;
+@php
 
-    $dashboardRoute = Route::has('ave.dashboard') ? route('ave.dashboard') : null;
-    $resourceManager = app()->bound(ResourceManager::class) ? app(ResourceManager::class) : null;
+    $dashboardRoute = \Illuminate\Support\Facades\Route::has('ave.dashboard') ? route('ave.dashboard') : null;
+    $resourceManager = app()->bound(\Monstrex\Ave\Core\ResourceManager::class) ? app(\Monstrex\Ave\Core\ResourceManager::class) : null;
     $resourceEntries = collect();
 
     if ($resourceManager) {
@@ -98,5 +96,8 @@
         </div>
     </nav>
 </div>
+
+
+
 
 

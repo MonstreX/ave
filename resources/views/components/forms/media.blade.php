@@ -1,4 +1,4 @@
-﻿<div class="form-group">
+<div class="form-group">
     <label>{{ $field->getLabel() }}</label>
     <input type="file" name="{{ $field->key() }}" class="form-control">
     @if($field->getHelpText())
