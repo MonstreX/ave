@@ -8,8 +8,8 @@
         </a>
     </li>
     <li class="ave-navbar__breadcrumb-item">
-        <a href="{{ route($routeBaseName . '.index') }}" class="ave-navbar__breadcrumb-link">
-            {{ $resourceClass::getLabel() }}
+        <a href="{{ route('ave.resource.index', ['slug' => $slug]) }}" class="ave-navbar__breadcrumb-link">
+            {{ $resource::getLabel() }}
         </a>
     </li>
     <li class="ave-navbar__breadcrumb-item is-active">
@@ -21,10 +21,10 @@
 @section('page_header')
 <div class="page-header">
     <h1 class="page-title">
-        <i class="voyager-plus"></i> Create {{ $resourceClass::getSingularLabel() }}
+        <i class="voyager-plus"></i> Create {{ $resource::getSingularLabel() }}
     </h1>
     <div class="page-header-actions">
-        <a href="{{ route($routeBaseName . '.index') }}" class="btn btn-secondary">
+        <a href="{{ route('ave.resource.index', ['slug' => $slug]) }}" class="btn btn-secondary">
             <i class="voyager-angle-left"></i> <span>Back</span>
         </a>
     </div>

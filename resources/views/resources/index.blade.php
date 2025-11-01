@@ -8,7 +8,7 @@
         </a>
     </li>
     <li class="ave-navbar__breadcrumb-item is-active">
-        {{ $resourceClass::getLabel() }}
+        {{ $resource::getLabel() }}
     </li>
 </ol>
 @endsection
@@ -16,12 +16,12 @@
 @section('page_header')
 <div class="page-header">
     <h1 class="page-title">
-        <i class="voyager-data"></i> {{ $resourceClass::getLabel() }}
+        <i class="voyager-data"></i> {{ $resource::getLabel() }}
     </h1>
     <div class="page-header-actions">
-        @if($resourceClass::canCreate())
-            <a href="{{ route($routeBaseName . '.create') }}" class="btn btn-success">
-                <i class="voyager-plus"></i> <span>Create {{ $resourceClass::getSingularLabel() }}</span>
+        @if((new $resource())->can('create', auth()->user()))
+            <a href="{{ route('ave.resource.create', ['slug' => $slug]) }}" class="btn btn-success">
+                <i class="voyager-plus"></i> <span>Create {{ $resource::getSingularLabel() }}</span>
             </a>
         @endif
     </div>
