@@ -110,33 +110,54 @@ class ResourcePersistence implements Persistable
     /**
      * Merge form data with Fieldset handling
      *
+     * Processes form data by iterating through form rows/columns/fields
+     * and properly handling Fieldset serialization using the Fieldset's serialize() method
+     *
      * @param Form $form Form instance
      * @param Model|null $model Model instance for extraction
-     * @param array $data Form data
+     * @param array $data Form data from request
      * @param Request $request Current request
-     * @return array Merged data ready for model
+     * @return array Merged data ready for model persistence
      */
     protected function mergeFormData(Form $form, ?Model $model, array $data, Request $request): array
     {
-        $merged = [];
+        $payload = [];
 
-        foreach ($form->getAllFields() as $field) {
-            $key = $field->key();
+        // Iterate through all form rows
+        foreach ($form->rows() as $row) {
+            // Each row has columns
+            foreach ($row['columns'] as $col) {
+                // Each column has fields
+                foreach ($col['fields'] as $field) {
+                    $key = $field->key();
 
-            if (!isset($data[$key])) {
-                continue;
-            }
+                    // Handle Fieldset fields specially
+                    if ($field instanceof Fieldset) {
+                        // Get incoming data for this fieldset
+                        $incoming = $request->input($key, []);
 
-            if ($field instanceof Fieldset) {
-                // Serialize Fieldset to JSON
-                $merged[$key] = json_encode($data[$key]);
-            } else {
-                // Normal field
-                $merged[$key] = $data[$key];
+                        // Ensure it's an array and convert to indexed array
+                        $incoming = is_array($incoming) ? array_values($incoming) : [];
+
+                        // Use Fieldset's serialize() method for proper handling
+                        if (method_exists($field, 'serialize')) {
+                            $payload[$key] = $field->serialize($incoming);
+                        } else {
+                            // Fallback to JSON encoding if serialize() not available
+                            $payload[$key] = json_encode($incoming);
+                        }
+                        continue;
+                    }
+
+                    // For normal fields, only include if in data array
+                    if (array_key_exists($key, $data)) {
+                        $payload[$key] = $data[$key];
+                    }
+                }
             }
         }
 
-        return $merged;
+        return $payload;
     }
 
     /**

@@ -113,14 +113,16 @@ class Table
 
     /**
      * Get table configuration as array
+     *
+     * Serializes all objects (columns, filters, actions) to arrays for view rendering
      */
     public function get(): array
     {
         return [
-            'columns'           => $this->columns,
-            'filters'           => $this->filters,
-            'actions'           => $this->actions,
-            'bulkActions'       => $this->bulkActions,
+            'columns'           => array_map(fn($c) => $c->toArray(), $this->columns),
+            'filters'           => array_map(fn($f) => $f->toArray(), $this->filters),
+            'actions'           => array_map(fn($a) => $a->toArray(), $this->actions),
+            'bulkActions'       => array_map(fn($a) => $a->toArray(), $this->bulkActions),
             'defaultSort'       => $this->defaultSort,
             'perPage'           => $this->perPage,
             'searchable'        => $this->searchable,

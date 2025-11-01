@@ -30,16 +30,18 @@ class PageController extends Controller
             abort(404, "Page '{$slug}' not found");
         }
 
-        $page = new $pageClass();
-
         // Resolve view with fallback
         $view = $this->views->resolvePage($slug);
 
+        // Render page content (using static method if available)
+        $payload = method_exists($pageClass, 'render')
+            ? $pageClass::render($request)
+            : (new $pageClass())->render($request);
+
         return view($view, [
-            'page' => $page,
-            'slug' => $slug,
-            'label' => $page->label(),
-            'content' => $page->render($request),
+            'payload' => $payload,
+            'slug'    => $slug,
+            'page'    => $pageClass,
         ]);
     }
 }

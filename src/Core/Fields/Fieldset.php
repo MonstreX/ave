@@ -53,6 +53,20 @@ class Fieldset extends AbstractField
         ]);
     }
 
+    /**
+     * Serialize fieldset data to JSON string
+     *
+     * Used during form submission to convert fieldset array data to JSON for storage
+     *
+     * @param array $data Fieldset data (typically array of rows)
+     * @return string JSON-encoded fieldset data
+     */
+    public function serialize(array $data): string
+    {
+        // Ensure data is properly formatted and convert to JSON
+        return json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    }
+
     public function extract(mixed $raw): mixed
     {
         // Fieldset data is typically an array or JSON string

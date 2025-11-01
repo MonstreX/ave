@@ -86,14 +86,17 @@ abstract class Resource implements Authorizable
      */
     public function can(string $ability, ?Authenticatable $user, mixed $model = null): bool
     {
+        // Check if resource has a policy configured
+        if (!static::$policy) {
+            return true; // No policy = allowed by default
+        }
+
+        // If no user, deny access
         if (!$user) {
             return false;
         }
 
-        if (!static::$policy) {
-            return true; // No policy = allowed
-        }
-
+        // Use Laravel Gate to check policy
         return Gate::forUser($user)->allows($ability, $model ?? static::$model);
     }
 

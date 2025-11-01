@@ -4,6 +4,8 @@ namespace Monstrex\Ave\Core\Query;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\Paginator;
+use Illuminate\Http\Request;
+use Monstrex\Ave\Core\Table;
 
 class TableQueryBuilder
 {
@@ -22,6 +24,59 @@ class TableQueryBuilder
     public static function for(Builder $query): static
     {
         return new static($query);
+    }
+
+    /**
+     * Static facade method for applying table query builder logic
+     *
+     * This is the primary way to use TableQueryBuilder from controllers.
+     * It handles search, filters, and sorting based on request input.
+     *
+     * @param Builder $query Eloquent query builder
+     * @param Table $table Table configuration
+     * @param Request $request Current request
+     * @return Builder Modified query builder
+     */
+    public static function apply(Builder $query, Table $table, Request $request): Builder
+    {
+        // Get table configuration
+        $tableConfig = $table->get();
+
+        // Apply search
+        $search = trim((string) $request->get('q', ''));
+        if ($search !== '' && !empty($tableConfig['searchable'] ?? [])) {
+            $query = $table->applySearch($query, $search);
+        }
+
+        // Apply filters
+        $filters = $request->only(
+            array_map(fn($f) => $f->key(), $tableConfig['filters'] ?? [])
+        );
+        if (!empty($filters)) {
+            $query = $table->applyFilters($query, $filters);
+        }
+
+        // Apply sorting
+        if ($request->has('sort')) {
+            $sortColumn = $request->get('sort');
+            $sortDirection = $request->get('direction', 'asc');
+            if (in_array($sortDirection, ['asc', 'desc'])) {
+                $query->orderBy($sortColumn, $sortDirection);
+            }
+        }
+
+        return $query;
+    }
+
+    /**
+     * Get per-page value from table configuration
+     *
+     * @param Table $table Table configuration
+     * @return int Records per page
+     */
+    public static function getPerPage(Table $table): int
+    {
+        return $table->get()['perPage'] ?? 25;
     }
 
     public function search(string $term): static

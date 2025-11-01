@@ -273,4 +273,78 @@ class ResourceController extends Controller
 
         return response()->json($resourceClass::form($request)->rows());
     }
+
+    /**
+     * Execute bulk action on selected resources
+     *
+     * POST /admin/resource/{slug}/bulk
+     */
+    public function bulk(Request $request, string $slug)
+    {
+        $resourceClass = $this->resources->resource($slug);
+
+        if (!$resourceClass) {
+            throw ResourceException::notFound($slug);
+        }
+
+        // Validate input
+        $validated = $request->validate([
+            'action' => 'required|string',
+            'ids'    => 'required|array|min:1',
+            'ids.*'  => 'numeric',
+        ]);
+
+        $modelClass = $resourceClass::$model;
+
+        if (!$modelClass) {
+            throw ResourceException::invalidModel($resourceClass);
+        }
+
+        // Get the action
+        $action = $validated['action'];
+        $ids = $validated['ids'];
+
+        // Get table configuration to find the action
+        $table = $resourceClass::table($request);
+        $tableConfig = $table->get();
+        $bulkActions = $tableConfig['bulkActions'] ?? [];
+
+        // Find matching bulk action
+        $bulkAction = null;
+        foreach ($bulkActions as $ba) {
+            if ($ba->key() === $action) {
+                $bulkAction = $ba;
+                break;
+            }
+        }
+
+        if (!$bulkAction) {
+            return response()->json(['error' => "Action '{$action}' not found"], 404);
+        }
+
+        // Authorization check for each model
+        $resource = new $resourceClass();
+        foreach ($ids as $id) {
+            try {
+                $model = $modelClass::findOrFail($id);
+                if (!$resource->can('update', $request->user(), $model)) {
+                    throw ResourceException::unauthorized($slug, 'bulk:' . $action);
+                }
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                throw ResourceException::modelNotFound($slug, $id);
+            }
+        }
+
+        // Get models and execute action
+        $models = $modelClass::whereIn($modelClass::make()->getKeyName(), $ids)->get();
+
+        // Execute bulk action
+        $bulkAction->execute($models, $request);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => "Bulk action '{$action}' executed on " . count($ids) . " items",
+            'count' => count($ids),
+        ]);
+    }
 }

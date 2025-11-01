@@ -10,6 +10,9 @@ use SplFileInfo;
 
 /**
  * Discovers Resource classes in the application
+ *
+ * Can be used both statically (discoverPackage/discoverApp) and as an instance
+ * with custom paths for flexibility.
  */
 class AdminResourceDiscovery
 {
@@ -19,6 +22,38 @@ class AdminResourceDiscovery
     public function __construct(array $paths = [])
     {
         $this->paths = $paths;
+    }
+
+    /**
+     * Discover resources in the package
+     *
+     * Static method for convenience - discovers resources bundled with the Ave package
+     *
+     * @return array Array of resource classes indexed by slug
+     */
+    public static function discoverPackage(): array
+    {
+        $discovery = new static([
+            __DIR__ . '/../../Resources',
+        ]);
+
+        return $discovery->discover();
+    }
+
+    /**
+     * Discover resources in the application
+     *
+     * Static method for convenience - discovers resources in the app directory
+     *
+     * @return array Array of resource classes indexed by slug
+     */
+    public static function discoverApp(): array
+    {
+        $discovery = new static([
+            app_path('Ave/Resources'),
+        ]);
+
+        return $discovery->discover();
     }
 
     /**

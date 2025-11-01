@@ -19,5 +19,5 @@ interface Authorizable
      * @param mixed $model Model instance for singular checks
      * @return bool
      */
-    public function authorize(string $ability, ?Authenticatable $user = null, mixed $model = null): bool;
+    public function can(string $ability, ?Authenticatable $user, mixed $model = null): bool;
 }

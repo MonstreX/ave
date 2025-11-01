@@ -17,7 +17,9 @@ class FormValidator
     /**
      * Build validation rules from form
      *
-     * Supports mode-specific rules (create vs edit) and field nesting
+     * Iterates through all form rows/columns/fields and builds validation rules.
+     * Properly handles nested Fieldsets with dot notation.
+     * Supports mode-specific rules (create vs edit).
      *
      * @param Form $form Form instance
      * @param string $resourceClass Resource class name
@@ -30,11 +32,37 @@ class FormValidator
     {
         $rules = [];
 
-        foreach ($form->getAllFields() as $field) {
-            $fieldRules = $this->getFieldRules($field, $mode, $model);
+        // Iterate through all form rows
+        foreach ($form->rows() as $row) {
+            // Each row has columns
+            foreach ($row['columns'] as $col) {
+                // Each column has fields
+                foreach ($col['fields'] as $field) {
+                    $arr = $field->toArray();
+                    $key = $arr['key'];
+                    $fieldRules = $arr['rules'] ?? [];
 
-            if (!empty($fieldRules)) {
-                $rules[$field->key()] = $fieldRules;
+                    // Handle Fieldset fields specially
+                    if ($field instanceof Fieldset) {
+                        // Process nested fields with dot notation
+                        foreach ($field->getFields() as $nestedField) {
+                            $nestedArr = $nestedField->toArray();
+                            $nestedKey = $nestedArr['key'];
+                            $nestedRules = $nestedArr['rules'] ?? [];
+
+                            if (!empty($nestedRules)) {
+                                // Use dot notation for nested validation: fieldset.*.nestedkey
+                                $rules["{$key}.*.{$nestedKey}"] = $this->formatRules($nestedRules, $nestedField->isRequired());
+                            }
+                        }
+                        continue;
+                    }
+
+                    // For normal fields, add rules
+                    if (!empty($fieldRules)) {
+                        $rules[$key] = $this->formatRules($fieldRules, $field->isRequired());
+                    }
+                }
             }
         }
 
@@ -47,73 +75,33 @@ class FormValidator
     }
 
     /**
-     * Get rules for a single field
+     * Format rules array or string to pipe-separated string
      *
-     * @param mixed $field Field instance
-     * @param string $mode Create or edit mode
-     * @param Model|null $model Model instance
-     * @return array|string Rules array or pipe-separated string
+     * @param array|string $rules Rules from field
+     * @param bool $required Whether field is required
+     * @return string Pipe-separated rules
      */
-    protected function getFieldRules($field, string $mode, ?Model $model): array|string
+    protected function formatRules($rules, bool $required = false): string
     {
-        $rules = [];
-
-        // Handle Fieldset recursively
-        if ($field instanceof Fieldset) {
-            return $this->getFieldsetRules($field, $mode, $model);
-        }
-
-        $fieldRules = $field->getRules();
-
-        // If field.getRules() returns string, convert to array
-        if (is_string($fieldRules)) {
-            $rules = array_filter(explode('|', $fieldRules));
+        // Convert to array if string
+        if (is_string($rules)) {
+            $rules = array_filter(explode('|', $rules));
         } else {
-            $rules = array_filter((array) $fieldRules);
+            $rules = array_filter((array) $rules);
         }
 
-        // Add required rule if field is required
-        if ($field->isRequired()) {
+        // Add required/nullable rule
+        if ($required) {
             if (!in_array('required', $rules)) {
                 array_unshift($rules, 'required');
             }
         } else {
-            // Add nullable if not required
             if (!in_array('nullable', $rules)) {
                 array_unshift($rules, 'nullable');
             }
         }
 
-        // Return as pipe-separated string
         return implode('|', $rules);
-    }
-
-    /**
-     * Get rules for Fieldset fields (nested validation)
-     *
-     * @param Fieldset $fieldset Fieldset instance
-     * @param string $mode Create or edit mode
-     * @param Model|null $model Model instance
-     * @return array Nested rules with dot notation
-     */
-    protected function getFieldsetRules($fieldset, string $mode, ?Model $model): array
-    {
-        $rules = [];
-        $fieldsetKey = $fieldset->key();
-
-        // Get fields from Fieldset schema if method exists
-        $subFields = method_exists($fieldset, 'getFields') ? $fieldset->getFields() : [];
-
-        foreach ($subFields as $subField) {
-            $subRules = $this->getFieldRules($subField, $mode, $model);
-
-            if (!empty($subRules)) {
-                // Use dot notation for nested fields
-                $rules[$fieldsetKey . '.*.' . $subField->key()] = $subRules;
-            }
-        }
-
-        return $rules;
     }
 
     /**
