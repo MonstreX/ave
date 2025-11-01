@@ -35,6 +35,17 @@ abstract class AbstractField implements FormField
         return $this->key;
     }
 
+    public function getKey(): string
+    {
+        return $this->key;
+    }
+
+    public function setKey(string $key): static
+    {
+        $this->key = $key;
+        return $this;
+    }
+
     public function type(): string
     {
         return static::TYPE;
@@ -90,14 +101,16 @@ abstract class AbstractField implements FormField
         return $this->label ?? $this->key;
     }
 
+    public function getHelpText(): ?string
+    {
+        return $this->help;
+    }
+
     public function isRequired(): bool
     {
         return $this->required;
     }
 
-    /**
-     * Get validation rules for the field
-     */
     public function getRules(): array
     {
         return $this->rules;
@@ -125,13 +138,6 @@ abstract class AbstractField implements FormField
 
     /**
      * Fill field value from a data source
-     *
-     * Works with any DataSourceInterface implementation:
-     * - ModelDataSource: for Eloquent models
-     * - ArrayDataSource: for arrays/JSON (used in FieldSet)
-     *
-     * @param  DataSourceInterface  $source
-     * @return void
      */
     public function fillFromDataSource(DataSourceInterface $source): void
     {
@@ -141,11 +147,6 @@ abstract class AbstractField implements FormField
 
     /**
      * Fill field value from Eloquent model
-     *
-     * Backward compatibility method that delegates to fillFromDataSource()
-     *
-     * @param  mixed  $model  Eloquent model instance
-     * @return void
      */
     public function fillFromModel(mixed $model): void
     {
@@ -155,12 +156,6 @@ abstract class AbstractField implements FormField
 
     /**
      * Apply field value to a data source
-     *
-     * Works with any DataSourceInterface implementation
-     *
-     * @param  DataSourceInterface  $source
-     * @param  mixed  $value
-     * @return void
      */
     public function applyToDataSource(DataSourceInterface $source, mixed $value): void
     {
@@ -169,8 +164,6 @@ abstract class AbstractField implements FormField
 
     /**
      * Get the field's current value
-     *
-     * @return mixed
      */
     public function getValue(): mixed
     {
@@ -179,9 +172,6 @@ abstract class AbstractField implements FormField
 
     /**
      * Set the field's value
-     *
-     * @param  mixed  $value
-     * @return void
      */
     public function setValue(mixed $value): void
     {
