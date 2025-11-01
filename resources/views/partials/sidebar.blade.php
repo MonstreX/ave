@@ -1,33 +1,10 @@
 @php
-
-    $dashboardRoute = \Illuminate\Support\Facades\Route::has('ave.dashboard') ? route('ave.dashboard') : null;
-    $resourceManager = app()->bound(\Monstrex\Ave\Core\ResourceManager::class) ? app(\Monstrex\Ave\Core\ResourceManager::class) : null;
-    $resourceEntries = collect();
-
-    if ($resourceManager) {
-        foreach ($resourceManager->all() as $slug => $resourceClass) {
-            if (!class_exists($resourceClass)) {
-                continue;
-            }
-
-            $resourceEntries->push([
-                'slug' => $slug,
-                'class' => $resourceClass,
-                'label' => $resourceClass::getLabel(),
-                'icon' => $resourceClass::getIcon() ?: 'voyager-data',
-                'group' => $resourceClass::getGroup(),
-                'sort' => $resourceClass::getNavSort(),
-            ]);
-        }
-    }
-
-    $groupedResources = $resourceEntries
-        ->sortBy([
-            ['group', 'asc'],
-            ['sort', 'asc'],
-            ['label', 'asc'],
-        ])
-        ->groupBy('group');
+    $dashboardRoute = $dashboardRoute ?? null;
+    $groupedResources = $groupedResources instanceof \Illuminate\Support\Collection
+        ? $groupedResources
+        : collect($groupedResources ?? []);
+    $groupedResources = $groupedResources->filter();
+    $user = auth()->user();
 @endphp
 
 <div class="side-menu sidebar-inverse ave-sidebar" data-ave-sidebar>
@@ -41,7 +18,6 @@
             </a>
         </div>
 
-        @php $user = auth()->user(); @endphp
         @if($user)
             <div class="ave-sidebar__user">
                 <img src="{{ $user_avatar }}" alt="{{ $user->name }}" class="ave-sidebar__user-avatar">

@@ -304,16 +304,15 @@ class ResourceController extends Controller
         $action = $validated['action'];
         $ids = $validated['ids'];
 
-        // Get table configuration to find the action
         $table = $resourceClass::table($request);
-        $tableConfig = $table->get();
-        $bulkActions = $tableConfig['bulkActions'] ?? [];
-
-        // Find matching bulk action
         $bulkAction = null;
-        foreach ($bulkActions as $ba) {
-            if ($ba->key() === $action) {
-                $bulkAction = $ba;
+        foreach ($table->getBulkActions() as $candidate) {
+            if (!method_exists($candidate, 'key')) {
+                continue;
+            }
+
+            if ($candidate->key() === $action) {
+                $bulkAction = $candidate;
                 break;
             }
         }
@@ -335,10 +334,9 @@ class ResourceController extends Controller
             }
         }
 
-        // Get models and execute action
-        $models = $modelClass::whereIn($modelClass::make()->getKeyName(), $ids)->get();
+        $keyName = $modelClass::make()->getKeyName();
+        $models = $modelClass::whereIn($keyName, $ids)->get();
 
-        // Execute bulk action
         $bulkAction->execute($models, $request);
 
         return response()->json([

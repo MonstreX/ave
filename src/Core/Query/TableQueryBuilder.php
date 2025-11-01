@@ -3,7 +3,6 @@
 namespace Monstrex\Ave\Core\Query;
 
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Pagination\Paginator;
 use Illuminate\Http\Request;
 use Monstrex\Ave\Core\Table;
 
@@ -31,38 +30,41 @@ class TableQueryBuilder
      *
      * This is the primary way to use TableQueryBuilder from controllers.
      * It handles search, filters, and sorting based on request input.
-     *
-     * @param Builder $query Eloquent query builder
-     * @param Table $table Table configuration
-     * @param Request $request Current request
-     * @return Builder Modified query builder
      */
     public static function apply(Builder $query, Table $table, Request $request): Builder
     {
-        // Get table configuration
-        $tableConfig = $table->get();
-
-        // Apply search
         $search = trim((string) $request->get('q', ''));
-        if ($search !== '' && !empty($tableConfig['searchable'] ?? [])) {
+        if ($search !== '' && $table->isSearchable()) {
             $query = $table->applySearch($query, $search);
         }
 
-        // Apply filters
-        $filters = $request->only(
-            array_map(fn($f) => $f->key(), $tableConfig['filters'] ?? [])
-        );
-        if (!empty($filters)) {
-            $query = $table->applyFilters($query, $filters);
+        $filterValues = [];
+        foreach ($table->getFilters() as $filter) {
+            if (!method_exists($filter, 'key')) {
+                continue;
+            }
+
+            $key = $filter->key();
+            if ($request->exists($key)) {
+                $filterValues[$key] = $request->input($key);
+            }
         }
 
-        // Apply sorting
-        if ($request->has('sort')) {
-            $sortColumn = $request->get('sort');
-            $sortDirection = $request->get('direction', 'asc');
-            if (in_array($sortDirection, ['asc', 'desc'])) {
-                $query->orderBy($sortColumn, $sortDirection);
+        if (!empty($filterValues)) {
+            $query = $table->applyFilters($query, $filterValues);
+        }
+
+        $sortColumn = $request->get('sort');
+        if ($sortColumn) {
+            $sortDirection = strtolower((string) $request->get('dir', $request->get('direction', 'asc')));
+            if (!in_array($sortDirection, ['asc', 'desc'], true)) {
+                $sortDirection = 'asc';
             }
+
+            $query->orderBy($sortColumn, $sortDirection);
+        } elseif ($defaultSort = $table->getDefaultSort()) {
+            [$column, $direction] = $defaultSort;
+            $query->orderBy($column, $direction);
         }
 
         return $query;
@@ -70,13 +72,10 @@ class TableQueryBuilder
 
     /**
      * Get per-page value from table configuration
-     *
-     * @param Table $table Table configuration
-     * @return int Records per page
      */
     public static function getPerPage(Table $table): int
     {
-        return $table->get()['perPage'] ?? 25;
+        return $table->getPerPage();
     }
 
     public function search(string $term): static
@@ -136,6 +135,10 @@ class TableQueryBuilder
         }
 
         foreach ($filterObjects as $filter) {
+            if (!method_exists($filter, 'key')) {
+                continue;
+            }
+
             if (isset($this->filters[$filter->key()])) {
                 $filter->apply($this->query, $this->filters[$filter->key()]);
             }

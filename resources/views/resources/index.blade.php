@@ -38,7 +38,7 @@
                     @if($metric->getIcon())
                         <span class="metric-icon">{{ $metric->getIcon() }}</span>
                     @else
-                        <span class="metric-icon">рџ“Љ</span>
+                        <span class="metric-icon">📊</span>
                     @endif
                     <div class="metric-value">{{ $metric->formatValue($metric->getValue()) }}</div>
                     <p class="metric-label">{{ $metric->getLabel() }}</p>

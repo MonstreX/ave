@@ -2,7 +2,7 @@
     $field ??= null;
     $context ??= null;
 
-    if ($field instanceof \\Monstrex\\Ave\\Core\\Fields\\Fieldset) {
+    if ($field instanceof \Monstrex\Ave\Core\Fields\Fieldset) {
         $fieldsetData = $field->toArray();
 
         $key = $field->getKey();

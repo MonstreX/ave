@@ -151,6 +151,11 @@ class Table
         return $this->bulkActions;
     }
 
+    public function getDefaultSort(): ?array
+    {
+        return $this->defaultSort;
+    }
+
     public function hasBulkActions(): bool
     {
         return !empty($this->bulkActions);
@@ -165,5 +170,9 @@ class Table
     {
         return $this->searchPlaceholder ?? 'Search...';
     }
-}
 
+    public function getPerPage(): int
+    {
+        return $this->perPage;
+    }
+}

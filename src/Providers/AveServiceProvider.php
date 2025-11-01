@@ -2,8 +2,9 @@
 
 namespace Monstrex\Ave\Providers;
 
-use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\View;
+use Illuminate\Support\ServiceProvider;
 use Monstrex\Ave\Core\Registry\ResourceRegistry;
 use Monstrex\Ave\Core\Registry\PageRegistry;
 use Monstrex\Ave\Core\ResourceManager;
@@ -15,6 +16,7 @@ use Monstrex\Ave\Core\Persistence\ResourcePersistence;
 use Monstrex\Ave\Core\Discovery\AdminResourceDiscovery;
 use Monstrex\Ave\Core\Discovery\AdminPageDiscovery;
 use Monstrex\Ave\Console\Commands\CacheClearCommand;
+use Monstrex\Ave\View\Composers\SidebarComposer;
 
 /**
  * AveServiceProvider Class
@@ -74,6 +76,8 @@ class AveServiceProvider extends ServiceProvider
 
         // Load views
         $this->loadViewsFrom(__DIR__ . '/../../resources/views', 'ave');
+
+        View::composer('ave::partials.sidebar', SidebarComposer::class);
 
         // Load routes
         $this->loadRoutesFrom(__DIR__ . '/../routes/admin.php');

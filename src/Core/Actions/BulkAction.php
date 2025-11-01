@@ -3,6 +3,8 @@
 namespace Monstrex\Ave\Core\Actions;
 
 use Closure;
+use Illuminate\Http\Request;
+use ReflectionFunction;
 
 class BulkAction
 {
@@ -60,12 +62,20 @@ class BulkAction
         return $this->key;
     }
 
-    public function execute(array $ids): mixed
+    public function execute(iterable $records, Request $request): mixed
     {
-        if ($this->callback) {
-            return call_user_func($this->callback, $ids);
+        if (!$this->callback) {
+            return null;
         }
-        return null;
+
+        $reflection = new ReflectionFunction($this->callback);
+        $parameterCount = $reflection->getNumberOfParameters();
+
+        return match (true) {
+            $parameterCount === 0 => call_user_func($this->callback),
+            $parameterCount === 1 => call_user_func($this->callback, $records),
+            default => call_user_func($this->callback, $records, $request),
+        };
     }
 
     public function toArray(): array

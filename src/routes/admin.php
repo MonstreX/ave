@@ -15,6 +15,10 @@ if ($guard = config('ave.auth_guard')) {
 Route::prefix($prefix)
     ->middleware(array_filter($middleware))
     ->group(function () {
+        Route::get('/', static function () {
+            return view('ave::dashboard');
+        })->name('ave.dashboard');
+
         // Resource routes
         Route::get('/resource/{slug}', [ResourceController::class, 'index'])
             ->name('ave.resource.index');
