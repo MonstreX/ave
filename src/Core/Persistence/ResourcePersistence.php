@@ -76,9 +76,8 @@ class ResourcePersistence implements Persistable
                 continue;
             }
 
-            if (array_key_exists($key, $data)) {
-                $payload[$key] = $data[$key];
-            }
+            $value = $data[$key] ?? $request->input($key);
+            $payload[$key] = $field->extract($value);
         }
 
         return $payload;
