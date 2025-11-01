@@ -5,6 +5,7 @@ namespace Monstrex\Ave\Core\Fields;
 use Monstrex\Ave\Contracts\FormField;
 use Monstrex\Ave\Core\DataSources\DataSourceInterface;
 use Monstrex\Ave\Core\DataSources\ModelDataSource;
+use Monstrex\Ave\Core\Forms\FormContext;
 
 abstract class AbstractField implements FormField
 {
@@ -19,6 +20,7 @@ abstract class AbstractField implements FormField
     protected bool $required = false;
     protected bool $disabled = false;
     protected ?string $placeholder = null;
+    protected ?string $view = null;
 
     public function __construct(string $key)
     {
@@ -176,5 +178,43 @@ abstract class AbstractField implements FormField
     public function setValue(mixed $value): void
     {
         $this->value = $value;
+    }
+
+    /**
+     * Render field to HTML
+     *
+     * This is the primary rendering method that:
+     * 1. Ensures field is prepared for display (if not already done)
+     * 2. Determines the Blade template to use
+     * 3. Converts field to array for backward compatibility
+     * 4. Passes both object and array to template
+     *
+     * @param FormContext|null $context Optional form context for field preparation
+     * @return string Rendered HTML
+     */
+    public function render(?FormContext $context = null): string
+    {
+        // Ensure field is prepared if context is provided
+        if ($context !== null && method_exists($this, 'prepareForDisplay')) {
+            // Only prepare if value is not yet set
+            if (is_null($this->value) && is_null($this->getValue())) {
+                $this->prepareForDisplay($context);
+            }
+        }
+
+        // Determine view template
+        // Priority: custom view > default naming convention
+        $view = $this->view ?? 'ave::components.forms.' . str_replace('_', '-', $this->type());
+
+        // Convert field to array for template compatibility
+        $fieldData = $this->toArray();
+        $fieldData['value'] = $this->getValue();
+
+        // Render template with both object and array for flexibility
+        return view($view, [
+            'field'   => $this,           // Field object for method calls
+            'context' => $context,        // FormContext for nested processing
+            ...$fieldData,                // Spread array for template variable compatibility
+        ])->render();
     }
 }

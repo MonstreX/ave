@@ -41,13 +41,11 @@
 
                 @foreach($form->rows() as $row)
                     <div class="form-row">
-                        @foreach($row['columns'] as $column)
-                            <div class="form-column" style="grid-column: span {{ $column['span'] ?? 12 }}">
-                                @foreach($column['fields'] as $field)
-                                    @include('ave::components.forms.' . $field['type'], [
-                                        'field' => $field,
-                                        'model' => $model,
-                                    ])
+                        @foreach($row->getColumns() as $column)
+                            <div class="form-column" style="grid-column: span {{ $column->getSpan() }}">
+                                @foreach($column->getFields() as $field)
+                                    {{-- Render field using the new render() method which handles FormContext --}}
+                                    {!! $field->render($context ?? null) !!}
                                 @endforeach
                             </div>
                         @endforeach
