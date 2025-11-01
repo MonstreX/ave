@@ -30,11 +30,21 @@ abstract class Page
         return static::$slug ?? strtolower(class_basename(static::class));
     }
 
+    public static function slug(): string
+    {
+        return static::getSlug();
+    }
+
     /**
      * Get page label
      */
     public static function getLabel(): string
     {
         return static::$label ?? class_basename(static::class);
+    }
+
+    public static function label(): string
+    {
+        return static::getLabel();
     }
 }

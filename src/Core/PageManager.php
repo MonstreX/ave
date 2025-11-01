@@ -4,129 +4,80 @@ namespace Monstrex\Ave\Core;
 
 use Monstrex\Ave\Core\Discovery\AdminPageDiscovery;
 use Monstrex\Ave\Core\Registry\PageRegistry;
-use Monstrex\Ave\Core\Page;
 
 /**
- * Manager for Pages with discovery and registry
+ * Facade for discovering and accessing page classes.
  */
 class PageManager
 {
-    protected PageDiscovery $discovery;
-    protected PageRegistry $registry;
-
     public function __construct(
-        ?PageDiscovery $discovery = null,
-        ?PageRegistry $registry = null
-    ) {
-        $this->discovery = $discovery ?? new PageDiscovery();
-        $this->registry = $registry ?? new PageRegistry();
-    }
+        protected AdminPageDiscovery $discovery,
+        protected PageRegistry $registry,
+    ) {}
 
-    /**
-     * Add path to discovery
-     */
     public function addDiscoveryPath(string $path): self
     {
         $this->discovery->addPath($path);
+
         return $this;
     }
 
-    /**
-     * Discover and register pages
-     */
     public function discover(): self
     {
-        $discovered = $this->discovery->discover();
-
-        foreach ($discovered as $slug => $pageClass) {
-            $this->registry->register($slug, $pageClass);
+        foreach ($this->discovery->discover() as $slug => $pageClass) {
+            $this->registry->register($pageClass, $slug);
         }
 
         return $this;
     }
 
-    /**
-     * Register a page
-     */
-    public function register(string $slug, string $pageClass): self
+    public function register(string $pageClass, ?string $slug = null): self
     {
-        $this->registry->register($slug, $pageClass);
+        $this->registry->register($pageClass, $slug);
+
         return $this;
     }
 
     /**
-     * Get page class by slug
+     * @return class-string<Page>|null
      */
-    public function get(string $slug): ?string
+    public function page(string $slug): ?string
     {
         return $this->registry->get($slug);
     }
 
-    /**
-     * Get page instance by slug
-     */
-    public function getInstance(string $slug): ?Page
+    public function instance(string $slug): ?Page
     {
-        $pageClass = $this->get($slug);
+        $class = $this->page($slug);
 
-        if (!$pageClass) {
-            return null;
-        }
-
-        return new $pageClass();
+        return $class ? new $class() : null;
     }
 
-    /**
-     * Check if page exists
-     */
     public function has(string $slug): bool
     {
         return $this->registry->has($slug);
     }
 
     /**
-     * Get all pages
+     * @return array<string,class-string<Page>>
      */
     public function all(): array
     {
         return $this->registry->all();
     }
 
-    /**
-     * Get all page instances
-     */
-    public function allInstances(): array
-    {
-        $instances = [];
-
-        foreach ($this->all() as $slug => $pageClass) {
-            $instances[$slug] = new $pageClass();
-        }
-
-        return $instances;
-    }
-
-    /**
-     * Get page count
-     */
     public function count(): int
     {
         return $this->registry->count();
     }
 
-    /**
-     * Get discovery instance
-     */
-    public function getDiscovery(): PageDiscovery
-    {
-        return $this->discovery;
-    }
-
-    /**
-     * Get registry instance
-     */
-    public function getRegistry(): PageRegistry
+    public function registry(): PageRegistry
     {
         return $this->registry;
+    }
+
+    public function discovery(): AdminPageDiscovery
+    {
+        return $this->discovery;
     }
 }

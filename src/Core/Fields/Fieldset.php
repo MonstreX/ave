@@ -3,37 +3,56 @@
 namespace Monstrex\Ave\Core\Fields;
 
 use Illuminate\Http\Request;
-use Monstrex\Ave\Core\DataSources\DataSourceInterface;
-use Monstrex\Ave\Core\DataSources\ArrayDataSource;
-use Monstrex\Ave\Core\Forms\FormContext;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
+use Monstrex\Ave\Core\DataSources\ArrayDataSource;
+use Monstrex\Ave\Core\DataSources\DataSourceInterface;
+use Monstrex\Ave\Core\Forms\FormContext;
 
 class Fieldset extends AbstractField
 {
+    /** @var array<AbstractField> */
     protected array $childSchema = [];
+
     protected array $itemInstances = [];
+
     protected array $itemIds = [];
+
     protected bool $sortable = true;
+
     protected bool $collapsible = false;
+
     protected bool $collapsed = false;
-    protected int $minItems = 0;
-    protected int $maxItems = 999;
-    protected string $addButtonLabel = 'Добавить';
+
+    protected ?int $minItems = null;
+
+    protected ?int $maxItems = null;
+
+    protected string $addButtonLabel = 'Add item';
+
     protected string $rowTitleTemplate = '';
+
     protected string $containerClass = '';
 
     public static function make(string $key): static
     {
-        return parent::make($key)->default([]);
+        return parent::make($key)
+            ->default([])
+            ->rules(['array']);
     }
 
+    /**
+     * @param array<AbstractField> $fields
+     */
     public function schema(array $fields): static
     {
         $this->childSchema = $fields;
+
         return $this;
     }
 
+    /**
+     * @return array<AbstractField>
+     */
     public function getChildSchema(): array
     {
         return $this->childSchema;
@@ -42,103 +61,104 @@ class Fieldset extends AbstractField
     public function sortable(bool $sortable = true): static
     {
         $this->sortable = $sortable;
+
         return $this;
     }
 
     public function collapsible(bool $collapsible = true): static
     {
         $this->collapsible = $collapsible;
+
         return $this;
     }
 
     public function collapsed(bool $collapsed = true): static
     {
         $this->collapsed = $collapsed;
+
         if ($collapsed) {
             $this->collapsible = true;
         }
+
         return $this;
     }
 
-    public function minItems(int $min): static
+    public function minItems(?int $min): static
     {
         $this->minItems = $min;
+
         return $this;
     }
 
-    public function maxItems(int $max): static
+    public function maxItems(?int $max): static
     {
         $this->maxItems = $max;
+
         return $this;
+    }
+
+    public function getMinItems(): ?int
+    {
+        return $this->minItems;
+    }
+
+    public function getMaxItems(): ?int
+    {
+        return $this->maxItems;
     }
 
     public function addButtonLabel(string $label): static
     {
         $this->addButtonLabel = $label;
+
         return $this;
     }
 
     public function rowTitleTemplate(string $template): static
     {
         $this->rowTitleTemplate = $template;
+
         return $this;
     }
 
     public function containerClass(string $class): static
     {
         $this->containerClass = $class;
+
         return $this;
     }
 
-    /**
-     * Prepare for display - create field instances for each item
-     * Important: Create item-specific context for nested fields like Media, CodeEditor, RichEditor
-     */
     public function prepareForDisplay(FormContext $context): void
     {
         $dataSource = $context->dataSource();
-        $itemsData = $dataSource->get($this->key) ?? [];
+        $items = $dataSource ? $dataSource->get($this->key) : [];
 
-        if (!is_array($itemsData)) {
-            $itemsData = [];
+        if (!is_array($items)) {
+            $items = [];
         }
 
         $this->itemInstances = [];
         $this->itemIds = [];
 
-        foreach ($itemsData as $index => $itemData) {
+        foreach (array_values($items) as $index => $item) {
+            $itemData = is_array($item) ? $item : [];
             $itemDataSource = new ArrayDataSource($itemData);
             $itemFields = [];
             $itemId = Str::random(8);
 
-            $this->itemIds[$index] = $itemId;
-
             foreach ($this->childSchema as $fieldDefinition) {
                 $field = clone $fieldDefinition;
-                $field->setKey("{$this->key}.{$index}." . $field->getKey());
+                $field->setKey(sprintf('%s.%d.%s', $this->key, $index, $field->getKey()));
                 $field->fillFromDataSource($itemDataSource);
 
-                // Create item-specific context for nested fields
-                // This allows Media, CodeEditor, RichEditor and other complex fields to work correctly
                 if (method_exists($field, 'prepareForDisplay')) {
-                    $itemContext = FormContext::forData($itemData);
-                    if ($context->getOldInput()) {
-                        $itemContext->withOldInput($context->getOldInput());
-                    }
-                    // Pass errors if available
-                    if (method_exists($context, 'getErrors')) {
-                        $itemErrors = $context->getErrors($field->getKey());
-                        if (!empty($itemErrors)) {
-                            $itemContext->withErrors([$field->getKey() => $itemErrors]);
-                        }
-                    }
-
-                    $field->prepareForDisplay($itemContext);
+                    $field->prepareForDisplay(FormContext::forData($itemData));
                 }
 
                 $itemFields[] = $field;
             }
 
+            $this->itemIds[$index] = $itemId;
             $this->itemInstances[$index] = [
                 'id' => $itemId,
                 'index' => $index,
@@ -150,55 +170,26 @@ class Fieldset extends AbstractField
 
     public function beforeApply(Request $request, FormContext $context): void
     {
-        $allValues = $request->all();
-        $keyPrefix = $this->key . '.';
-        $items = [];
-        $indices = [];
+        $submitted = $request->input($this->key, []);
 
-        foreach ($allValues as $key => $value) {
-            if (strpos($key, $keyPrefix) === 0) {
-                $remainder = substr($key, strlen($keyPrefix));
-                if (preg_match('/^(\d+)\./', $remainder, $matches)) {
-                    $index = (int)$matches[1];
-                    $indices[$index] = true;
-                }
+        if (!is_array($submitted)) {
+            $submitted = [];
+        }
+
+        $cleaned = [];
+
+        foreach ($submitted as $item) {
+            if (is_array($item)) {
+                $cleaned[] = $item;
             }
         }
 
-        foreach (array_keys($indices) as $index) {
-            $itemPrefix = $this->key . '.' . $index . '.';
-            $itemData = [];
-
-            foreach ($allValues as $key => $value) {
-                if (strpos($key, $itemPrefix) === 0) {
-                    $fieldKey = substr($key, strlen($itemPrefix));
-                    $itemData[$fieldKey] = $value;
-                }
-            }
-
-            if (!empty($itemData)) {
-                $items[$index] = $itemData;
-            }
-        }
-
-        $items = array_values($items);
-        $this->setValue($items);
+        $this->setValue($cleaned);
     }
 
     public function applyToDataSource(DataSourceInterface $source, mixed $value): void
     {
-        if (!is_array($value)) {
-            $value = [];
-        }
-
-        $cleanedItems = [];
-        foreach ($value as $item) {
-            if (is_array($item)) {
-                $cleanedItems[] = $item;
-            }
-        }
-
-        $source->set($this->key, $cleanedItems);
+        $source->set($this->key, is_array($value) ? $value : []);
     }
 
     public function toArray(): array
@@ -226,21 +217,21 @@ class Fieldset extends AbstractField
 
     public function getItemId(int $index): string
     {
-        return $this->itemIds[$index] ?? 'item-' . $index;
+        return $this->itemIds[$index] ?? ('item-' . $index);
     }
 
     public function getRowTitle(int $index): string
     {
-        if (empty($this->rowTitleTemplate)) {
-            return "Элемент " . ($index + 1);
+        $data = $this->itemInstances[$index]['data'] ?? [];
+
+        if ($this->rowTitleTemplate === '') {
+            return 'Item ' . ($index + 1);
         }
 
-        $itemData = $this->itemInstances[$index]['data'] ?? [];
-        $title = $this->rowTitleTemplate;
-        $title = str_replace('{index}', (string)($index + 1), $title);
+        $title = str_replace('{index}', (string) ($index + 1), $this->rowTitleTemplate);
 
-        foreach ($itemData as $key => $value) {
-            $title = str_replace('{' . $key . '}', (string)$value, $title);
+        foreach ($data as $key => $value) {
+            $title = str_replace('{' . $key . '}', (string) $value, $title);
         }
 
         return $title;
@@ -248,53 +239,45 @@ class Fieldset extends AbstractField
 
     public function render(FormContext $context): string
     {
-        if (empty($this->itemInstances) && empty($this->childSchema) === false) {
+        if (empty($this->itemInstances) && !empty($this->childSchema)) {
             $this->prepareForDisplay($context);
         }
 
         $view = $this->view ?: 'ave::components.forms.fieldset';
-
-        // Extract error information from context
-        $hasError = $context->hasError($this->key);
         $errors = $context->getErrors($this->key);
 
-        // Get all field data as array
-        $fieldData = $this->toArray();
-
         return view($view, [
-            'field'      => $this,
-            'context'    => $context,
-            'hasError'   => $hasError,
-            'errors'     => $errors,
+            'field' => $this,
+            'context' => $context,
+            'hasError' => !empty($errors),
+            'errors' => $errors,
             'attributes' => '',
-            ...$fieldData,
+            ...$this->toArray(),
         ])->render();
     }
 
-    public function getItemFields(int $index): array
+    public function isSortable(): bool
     {
-        return $this->itemInstances[$index]['fields'] ?? [];
+        return $this->sortable;
     }
 
-    public function getItemId(int $index): string
+    public function isCollapsible(): bool
     {
-        return $this->itemIds[$index] ?? 'item-' . $index;
+        return $this->collapsible;
     }
 
-    public function getRowTitle(int $index): string
+    public function isCollapsed(): bool
     {
-        if (empty($this->rowTitleTemplate)) {
-            return "Элемент " . ($index + 1);
-        }
+        return $this->collapsed;
+    }
 
-        $itemData = $this->itemInstances[$index]['data'] ?? [];
-        $title = $this->rowTitleTemplate;
-        $title = str_replace('{index}', (string)($index + 1), $title);
+    public function getAddButtonLabel(): string
+    {
+        return $this->addButtonLabel;
+    }
 
-        foreach ($itemData as $key => $value) {
-            $title = str_replace('{' . $key . '}', (string)$value, $title);
-        }
-
-        return $title;
+    public function getContainerClass(): string
+    {
+        return $this->containerClass;
     }
 }

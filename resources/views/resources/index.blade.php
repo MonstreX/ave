@@ -138,7 +138,7 @@
                                 name="q"
                                 value="{{ request('q') }}"
                                 class="form-control"
-                                placeholder="{{ $table->searchPlaceholder ?? 'Search...' }}"
+                                placeholder="{{ $table->getSearchPlaceholder() ?? 'Search...' }}"
                             >
                         </div>
                     </div>

@@ -1,9 +1,21 @@
-{{-- resources/views/components/forms/text-input.blade.php --}}
+﻿{{-- resources/views/components/forms/text-input.blade.php --}}
+@php
+    $name = ($key ?? null) ?: $field->key();
+    $labelText = $label ?? $field->getLabel();
+    $helpText = ($help ?? null) ?: $field->getHelpText();
+    $isRequired = $required ?? $field->isRequired();
+    $isDisabled = $disabled ?? false;
+    $isReadonly = $readonly ?? false;
+    $inputType = $type ?? 'text';
+    $inputValue = $value ?? $field->getValue();
+    $placeholderText = $placeholder ?? null;
+@endphp
+
 <div class="form-field @if($hasError) has-error @endif">
-    @if($label)
+    @if(!empty($labelText))
         <label for="{{ $name }}" class="form-label">
-            {{ $label }}
-            @if($required)
+            {{ $labelText }}
+            @if($isRequired)
                 <span class="required">*</span>
             @endif
         </label>
@@ -21,14 +33,14 @@
             @endif
 
             <input 
-                type="{{ $type ?? 'text' }}"
+                type="{{ $inputType }}"
                 id="{{ $name }}"
                 name="{{ $name }}"
-                value="{{ $value ?? '' }}"
-                @if($required) required @endif
-                @if($disabled) disabled @endif
-                @if($readonly) readonly @endif
-                @if($placeholder) placeholder="{{ $placeholder }}" @endif
+                value="{{ $inputValue ?? '' }}"
+                @if($isRequired) required @endif
+                @if($isDisabled) disabled @endif
+                @if($isReadonly) readonly @endif
+                @if($placeholderText) placeholder="{{ $placeholderText }}" @endif
                 class="form-control {{ $class ?? '' }} input-affix-control"
                 @if(!empty($slugSource)) data-ave-slug-source="{{ $slugSource }}" @endif
                 {!! $attributes !!}
@@ -40,14 +52,14 @@
         </div>
     @else
         <input 
-            type="{{ $type ?? 'text' }}"
+            type="{{ $inputType }}"
             id="{{ $name }}"
             name="{{ $name }}"
-            value="{{ $value ?? '' }}"
-            @if($required) required @endif
-            @if($disabled) disabled @endif
-            @if($readonly) readonly @endif
-            @if($placeholder) placeholder="{{ $placeholder }}" @endif
+            value="{{ $inputValue ?? '' }}"
+            @if($isRequired) required @endif
+            @if($isDisabled) disabled @endif
+            @if($isReadonly) readonly @endif
+            @if($placeholderText) placeholder="{{ $placeholderText }}" @endif
             class="form-control {{ $class ?? '' }}"
             @if(!empty($slugSource)) data-ave-slug-source="{{ $slugSource }}" @endif
             {!! $attributes !!}
@@ -62,8 +74,7 @@
         </div>
     @endif
 
-@if($helpText)
-    <div class="help-text">{{ $helpText }}</div>
-@endif
+    @if(!empty($helpText))
+        <div class="help-text">{{ $helpText }}</div>
+    @endif
 </div>
-

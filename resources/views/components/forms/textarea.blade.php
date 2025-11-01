@@ -1,9 +1,21 @@
-{{-- resources/views/components/forms/textarea.blade.php --}}
+﻿{{-- resources/views/components/forms/textarea.blade.php --}}
+@php
+    $name = ($key ?? null) ?: $field->key();
+    $labelText = $label ?? $field->getLabel();
+    $helpText = ($help ?? null) ?: $field->getHelpText();
+    $isRequired = $required ?? $field->isRequired();
+    $isDisabled = $disabled ?? false;
+    $isReadonly = $readonly ?? false;
+    $inputValue = $value ?? $field->getValue();
+    $placeholderText = $placeholder ?? null;
+    $rowsCount = $rows ?? 4;
+@endphp
+
 <div class="form-field @if($hasError) has-error @endif">
-    @if($label)
+    @if(!empty($labelText))
         <label for="{{ $name }}" class="form-label">
-            {{ $label }}
-            @if($required)
+            {{ $labelText }}
+            @if($isRequired)
                 <span class="required">*</span>
             @endif
         </label>
@@ -12,15 +24,15 @@
     <textarea 
         id="{{ $name }}"
         name="{{ $name }}"
-        rows="{{ $rows ?? 4 }}"
-        @if($required) required @endif
-        @if($disabled) disabled @endif
-        @if($readonly) readonly @endif
-        @if($placeholder) placeholder="{{ $placeholder }}" @endif
-        @if($autosize ?? false) data-autosize="true" @endif
+        rows="{{ $rowsCount }}"
+        @if($isRequired) required @endif
+        @if($isDisabled) disabled @endif
+        @if($isReadonly) readonly @endif
+        @if($placeholderText) placeholder="{{ $placeholderText }}" @endif
+        @if(!empty($autosize)) data-autosize="true" @endif
         class="form-control {{ $class ?? '' }}"
         {!! $attributes !!}
-    >{{ is_array($value) ? json_encode($value, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) : ($value ?? '') }}</textarea>
+    >{{ is_array($inputValue) ? json_encode($inputValue, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) : ($inputValue ?? '') }}</textarea>
     
     @if(!empty($errors))
         <div class="error-message">
@@ -30,7 +42,7 @@
         </div>
     @endif
     
-    @if($helpText)
+    @if(!empty($helpText))
         <div class="help-text">{{ $helpText }}</div>
     @endif
 </div>

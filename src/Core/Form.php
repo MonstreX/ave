@@ -4,7 +4,7 @@ namespace Monstrex\Ave\Core;
 
 class Form
 {
-    /** @var array */
+    /** @var array<FormRow> */
     protected array $rows = [];
 
     protected ?string $submitLabel = null;
@@ -62,14 +62,28 @@ class Form
         return $this;
     }
 
+    public function layout(): array
+    {
+        return array_map(
+            fn (FormRow $row) => [
+                'columns' => array_map(
+                    fn (FormColumn $column) => [
+                        'span' => $column->getSpan(),
+                        'fields' => $column->getFields(),
+                    ],
+                    $row->getColumns()
+                ),
+            ],
+            $this->rows
+        );
+    }
+
     /**
-     * Get all form rows
-     *
-     * @return array
+     * Get all form rows serialized for JSON responses.
      */
     public function rows(): array
     {
-        return array_map(fn($r) => $r->toArray(), $this->rows);
+        return array_map(fn (FormRow $row) => $row->toArray(), $this->rows);
     }
 
     /**
@@ -119,7 +133,7 @@ class Form
      */
     public function getLayout(): array
     {
-        return $this->rows();
+        return $this->layout();
     }
 
     /**

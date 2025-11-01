@@ -34,8 +34,23 @@ class AveServiceProvider extends ServiceProvider
         // Register singletons
         $this->app->singleton(ResourceRegistry::class);
         $this->app->singleton(PageRegistry::class);
-        $this->app->singleton(ResourceManager::class);
-        $this->app->singleton(PageManager::class);
+        $this->app->singleton(AdminResourceDiscovery::class);
+        $this->app->singleton(AdminPageDiscovery::class);
+
+        $this->app->singleton(ResourceManager::class, function ($app) {
+            return new ResourceManager(
+                $app->make(AdminResourceDiscovery::class),
+                $app->make(ResourceRegistry::class),
+            );
+        });
+
+        $this->app->singleton(PageManager::class, function ($app) {
+            return new PageManager(
+                $app->make(AdminPageDiscovery::class),
+                $app->make(PageRegistry::class),
+            );
+        });
+
         $this->app->singleton(ViewResolver::class);
         $this->app->singleton(ResourceRenderer::class);
         $this->app->singleton(FormValidator::class);
@@ -120,15 +135,15 @@ class AveServiceProvider extends ServiceProvider
      */
     protected function registerDiscovered(array $discovered): void
     {
-        $resourceRegistry = $this->app->make(ResourceRegistry::class);
-        $pageRegistry = $this->app->make(PageRegistry::class);
+        $resourceManager = $this->app->make(ResourceManager::class);
+        $pageManager = $this->app->make(PageManager::class);
 
-        foreach ($discovered['resources'] as $resourceClass) {
-            $resourceRegistry->register($resourceClass);
+        foreach ($discovered['resources'] as $slug => $resourceClass) {
+            $resourceManager->register($resourceClass, $slug);
         }
 
-        foreach ($discovered['pages'] as $pageClass) {
-            $pageRegistry->register($pageClass);
+        foreach ($discovered['pages'] as $slug => $pageClass) {
+            $pageManager->register($pageClass, $slug);
         }
     }
 }

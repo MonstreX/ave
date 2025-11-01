@@ -1,18 +1,26 @@
 <?php
 
 return [
-    // Admin routes prefix
+    /*
+     * Route prefix for all Ave admin endpoints.
+     */
     'route_prefix' => env('AVE_ROUTE_PREFIX', 'admin'),
 
-    // Authentication guard name
-    'auth_guard' => env('AVE_AUTH_GUARD', 'web'),
+    /*
+     * Authentication guard that should be used for Ave routes.
+     */
+    'auth_guard' => env('AVE_AUTH_GUARD'),
 
-    // Extra middleware for admin routes
+    /*
+     * Middleware stack applied to Ave routes (in addition to the auth guard).
+     */
     'middleware' => [
-        // 'verified',
+        'web',
     ],
 
-    // Media Storage configuration
+    /*
+     * Media storage configuration reused from v1 implementation.
+     */
     'media' => [
         'url_generator' => Monstrex\Ave\Media\Services\URLGeneratorService::class,
         'storage' => [
@@ -31,4 +39,10 @@ return [
             ],
         ],
     ],
+
+    /*
+     * Discovery cache configuration.
+     */
+    'cache_discovery' => true,
+    'cache_ttl' => 3600,
 ];

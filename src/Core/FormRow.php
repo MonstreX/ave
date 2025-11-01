@@ -4,7 +4,9 @@ namespace Monstrex\Ave\Core;
 
 class FormRow
 {
-    /** @var array */
+    /**
+     * @var array<FormColumn>
+     */
     protected array $columns = [];
 
     public static function make(): static
@@ -13,29 +15,24 @@ class FormRow
     }
 
     /**
-     * Define columns for this row
-     *
-     * @param array $columns
+     * @param array<FormColumn> $columns
      */
     public function columns(array $columns): static
     {
         $this->columns = $columns;
+
         return $this;
     }
 
-    /**
-     * Add single column
-     */
     public function addColumn(FormColumn $column): static
     {
         $this->columns[] = $column;
+
         return $this;
     }
 
     /**
-     * Get all columns
-     *
-     * @return array
+     * @return array<FormColumn>
      */
     public function getColumns(): array
     {
@@ -45,7 +42,7 @@ class FormRow
     public function toArray(): array
     {
         return [
-            'columns' => array_map(fn($c) => $c->toArray(), $this->columns),
+            'columns' => array_map(static fn (FormColumn $column) => $column->toArray(), $this->columns),
         ];
     }
 }

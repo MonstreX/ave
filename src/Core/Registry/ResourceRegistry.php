@@ -2,39 +2,46 @@
 
 namespace Monstrex\Ave\Core\Registry;
 
+use InvalidArgumentException;
 use Monstrex\Ave\Core\Resource;
 
 /**
- * Registry for managing Resource instances
+ * Registry for managing Resource classes keyed by slug.
  */
 class ResourceRegistry
 {
+    /**
+     * @var array<string,class-string<Resource>>
+     */
     protected array $resources = [];
 
     /**
-     * Register a resource class
+     * Register a resource class under its slug (or a custom one).
      */
-    public function register(string $slug, string $resourceClass): self
+    public function register(string $resourceClass, ?string $slug = null): self
     {
         if (!is_subclass_of($resourceClass, Resource::class)) {
-            throw new \InvalidArgumentException("Class {$resourceClass} must extend " . Resource::class);
+            throw new InvalidArgumentException("Class {$resourceClass} must extend " . Resource::class);
         }
 
+        $slug ??= $resourceClass::getSlug();
         $this->resources[$slug] = $resourceClass;
+
         return $this;
     }
 
     /**
-     * Unregister a resource
+     * Unregister a resource by slug.
      */
     public function unregister(string $slug): self
     {
         unset($this->resources[$slug]);
+
         return $this;
     }
 
     /**
-     * Check if resource is registered
+     * Check if a resource is registered.
      */
     public function has(string $slug): bool
     {
@@ -42,7 +49,9 @@ class ResourceRegistry
     }
 
     /**
-     * Get a resource class
+     * Get a resource class by slug.
+     *
+     * @return class-string<Resource>|null
      */
     public function get(string $slug): ?string
     {
@@ -50,7 +59,9 @@ class ResourceRegistry
     }
 
     /**
-     * Get all registered resources
+     * Get all registered resources.
+     *
+     * @return array<string,class-string<Resource>>
      */
     public function all(): array
     {
@@ -58,7 +69,7 @@ class ResourceRegistry
     }
 
     /**
-     * Get resource count
+     * Registered resource count.
      */
     public function count(): int
     {
@@ -66,11 +77,12 @@ class ResourceRegistry
     }
 
     /**
-     * Clear all resources
+     * Reset registry.
      */
     public function clear(): self
     {
         $this->resources = [];
+
         return $this;
     }
 }

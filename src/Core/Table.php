@@ -1,6 +1,6 @@
-<?php
+﻿<?php
 
-namespace Monstrex\Ave\Core;
+namespace Monstrex\\Ave\\Core;
 
 use Illuminate\Database\Eloquent\Builder;
 
@@ -29,7 +29,7 @@ class Table
     }
 
     /**
-     * Define table columns
+     * Define table columns.
      *
      * @param array $columns
      */
@@ -39,110 +39,73 @@ class Table
         return $this;
     }
 
-    /**
-     * Add single column
-     */
     public function addColumn($column): static
     {
         $this->columns[] = $column;
         return $this;
     }
 
-    /**
-     * Define filters
-     */
     public function filters(array $filters): static
     {
         $this->filters = $filters;
         return $this;
     }
 
-    /**
-     * Define row actions
-     */
     public function actions(array $actions): static
     {
         $this->actions = $actions;
         return $this;
     }
 
-    /**
-     * Define bulk actions (for selected rows)
-     */
     public function bulkActions(array $actions): static
     {
         $this->bulkActions = $actions;
         return $this;
     }
 
-    /**
-     * Set default sort column and direction
-     */
     public function defaultSort(string $column, string $direction = 'desc'): static
     {
         $this->defaultSort = [$column, $direction];
         return $this;
     }
 
-    /**
-     * Set pagination size
-     */
     public function perPage(int $perPage): static
     {
         $this->perPage = $perPage;
         return $this;
     }
 
-    /**
-     * Enable/disable global search
-     */
     public function searchable(bool $on = true): static
     {
         $this->searchable = $on;
         return $this;
     }
 
-    /**
-     * Set search placeholder text
-     */
     public function searchPlaceholder(string $text): static
     {
         $this->searchPlaceholder = $text;
         return $this;
     }
 
-    /**
-     * Get table configuration as array
-     *
-     * Serializes all objects (columns, filters, actions) to arrays for view rendering
-     */
     public function get(): array
     {
         return [
-            'columns'           => array_map(fn($c) => $c->toArray(), $this->columns),
-            'filters'           => array_map(fn($f) => $f->toArray(), $this->filters),
-            'actions'           => array_map(fn($a) => $a->toArray(), $this->actions),
-            'bulkActions'       => array_map(fn($a) => $a->toArray(), $this->bulkActions),
-            'defaultSort'       => $this->defaultSort,
-            'perPage'           => $this->perPage,
-            'searchable'        => $this->searchable,
-            'searchPlaceholder' => $this->searchPlaceholder ?? 'Search...',
+            'columns' => array_map(fn($c) => $c->toArray(), $this->columns),
+            'filters' => array_map(fn($f) => $f->toArray(), $this->filters),
+            'actions' => array_map(fn($a) => $a->toArray(), $this->actions),
+            'bulkActions' => array_map(fn($a) => $a->toArray(), $this->bulkActions),
+            'defaultSort' => $this->defaultSort,
+            'perPage' => $this->perPage,
+            'searchable' => $this->searchable,
+            'searchPlaceholder' => $this->searchPlaceholder ?? 'Search...'
         ];
     }
 
-    /**
-     * Get all columns
-     *
-     * @return array
-     */
     public function getColumns(): array
     {
         return $this->columns;
     }
 
-    /**
-     * Apply filters to query based on request
-     */
     public function applyFilters(Builder $query, array $filterValues): Builder
     {
         foreach ($this->filters as $filter) {
@@ -154,9 +117,6 @@ class Table
         return $query;
     }
 
-    /**
-     * Apply search to query
-     */
     public function applySearch(Builder $query, string $searchTerm): Builder
     {
         if (!$this->searchable || trim($searchTerm) === '') {
@@ -176,69 +136,33 @@ class Table
         });
     }
 
-    /**
-     * Get table filters
-     */
     public function getFilters(): array
     {
         return $this->filters;
     }
 
-    /**
-     * Get row actions
-     */
     public function getActions(): array
     {
         return $this->actions;
     }
 
-    /**
-     * Get bulk actions
-     */
     public function getBulkActions(): array
     {
         return $this->bulkActions;
     }
 
-    /**
-     * Get searchable columns
-     */
-    public function getSearchable(): array
-    {
-        return array_map(fn($c) => $c->key(), array_filter($this->columns, fn($c) => $c->isSearchable()));
-    }
-
-    /**
-     * Get pagination per page size
-     */
-    public function getPerPage(): int
-    {
-        return $this->perPage;
-    }
-
-    /**
-     * Check if table has searchable columns
-     */
-    public function hasSearchableColumns(): bool
-    {
-        return !empty(array_filter($this->columns, fn($c) => $c->isSearchable()));
-    }
-
-    /**
-     * Check if table has bulk actions
-     */
     public function hasBulkActions(): bool
     {
         return !empty($this->bulkActions);
     }
 
-    /**
-     * Get table configuration as array (for JSON API)
-     *
-     * @return array
-     */
-    public function toArray(): array
+    public function isSearchable(): bool
     {
-        return $this->get();
+        return $this->searchable;
+    }
+
+    public function getSearchPlaceholder(): string
+    {
+        return $this->searchPlaceholder ?? 'Search...';
     }
 }

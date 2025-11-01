@@ -1,13 +1,20 @@
 <?php
 
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Route;
 use Monstrex\Ave\Http\Controllers\ResourceController;
 use Monstrex\Ave\Http\Controllers\PageController;
 
-Route::prefix(config('ave.prefix', 'admin'))
-    ->middleware(config('ave.middleware', ['web', 'auth']))
-    ->group(function () {
+$prefix = config('ave.route_prefix', 'admin');
+$middleware = Arr::wrap(config('ave.middleware', ['web']));
 
+if ($guard = config('ave.auth_guard')) {
+    $middleware[] = 'auth:' . $guard;
+}
+
+Route::prefix($prefix)
+    ->middleware(array_filter($middleware))
+    ->group(function () {
         // Resource routes
         Route::get('/resource/{slug}', [ResourceController::class, 'index'])
             ->name('ave.resource.index');

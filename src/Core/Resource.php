@@ -137,6 +137,38 @@ abstract class Resource implements Authorizable
     }
 
     /**
+     * Get resource singular label
+     */
+    public static function getSingularLabel(): string
+    {
+        return static::$singularLabel ?? static::getLabel();
+    }
+
+    /**
+     * Get resource icon identifier.
+     */
+    public static function getIcon(): ?string
+    {
+        return static::$icon;
+    }
+
+    /**
+     * Get navigation group name.
+     */
+    public static function getGroup(): string
+    {
+        return static::$group ?? 'Resources';
+    }
+
+    /**
+     * Get navigation sort order.
+     */
+    public static function getNavSort(): int
+    {
+        return static::$navSort ?? 0;
+    }
+
+    /**
      * Get resource slug (alternative method for controller)
      */
     public function slug(): string
@@ -150,6 +182,29 @@ abstract class Resource implements Authorizable
     public function label(): string
     {
         return static::getLabel();
+    }
+
+    /**
+     * Get singular label via instance.
+     */
+    public function singularLabel(): string
+    {
+        return static::getSingularLabel();
+    }
+
+    public function icon(): ?string
+    {
+        return static::getIcon();
+    }
+
+    public function group(): string
+    {
+        return static::getGroup();
+    }
+
+    public function navSort(): int
+    {
+        return static::getNavSort();
     }
 
     /**
@@ -169,3 +224,4 @@ abstract class Resource implements Authorizable
         return static::applyEagerLoading($query);
     }
 }
+

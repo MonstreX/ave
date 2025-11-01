@@ -9,70 +9,38 @@ use RecursiveIteratorIterator;
 use SplFileInfo;
 
 /**
- * Discovers Page classes in the application
- *
- * Can be used both statically (discoverPackage/discoverApp) and as an instance
- * with custom paths for flexibility.
+ * Discovers Page classes in the application and package.
  */
 class AdminPageDiscovery
 {
     protected array $discoveredPages = [];
     protected array $paths = [];
+    protected bool $bootstrapped = false;
 
     public function __construct(array $paths = [])
     {
-        $this->paths = $paths;
+        $this->paths = array_values(array_filter($paths, fn ($path) => $path !== null));
     }
 
-    /**
-     * Discover pages in the package
-     *
-     * Static method for convenience - discovers pages bundled with the Ave package
-     *
-     * @return array Array of page classes indexed by slug
-     */
-    public static function discoverPackage(): array
-    {
-        $discovery = new static([
-            __DIR__ . '/../../Pages',
-        ]);
-
-        return $discovery->discover();
-    }
-
-    /**
-     * Discover pages in the application
-     *
-     * Static method for convenience - discovers pages in the app directory
-     *
-     * @return array Array of page classes indexed by slug
-     */
-    public static function discoverApp(): array
-    {
-        $discovery = new static([
-            app_path('Ave/Pages'),
-        ]);
-
-        return $discovery->discover();
-    }
-
-    /**
-     * Add a path to search for pages
-     */
     public function addPath(string $path): self
     {
-        if (!in_array($path, $this->paths)) {
-            $this->paths[] = $path;
+        $normalized = $this->normalizePath($path);
+
+        if ($normalized && !in_array($normalized, $this->paths, true)) {
+            $this->paths[] = $normalized;
         }
+
         return $this;
     }
 
     /**
-     * Discover all Page classes in configured paths
+     * @return array<string,class-string<Page>>
      */
     public function discover(): array
     {
         $this->discoveredPages = [];
+
+        $this->ensureDefaultPaths();
 
         foreach ($this->paths as $path) {
             if (!is_dir($path)) {
@@ -86,8 +54,21 @@ class AdminPageDiscovery
     }
 
     /**
-     * Scan directory for Page classes
+     * @return array<string,class-string<Page>>
      */
+    public function getPages(): array
+    {
+        return $this->discoveredPages;
+    }
+
+    /**
+     * @return class-string<Page>|null
+     */
+    public function getPage(string $slug): ?string
+    {
+        return $this->discoveredPages[$slug] ?? null;
+    }
+
     protected function scanDirectory(string $path): void
     {
         $iterator = new RecursiveIteratorIterator(
@@ -95,6 +76,7 @@ class AdminPageDiscovery
             RecursiveIteratorIterator::LEAVES_ONLY
         );
 
+        /** @var SplFileInfo $file */
         foreach ($iterator as $file) {
             if ($file->getExtension() !== 'php') {
                 continue;
@@ -104,9 +86,6 @@ class AdminPageDiscovery
         }
     }
 
-    /**
-     * Check if a file contains a Page class
-     */
     protected function checkFile(SplFileInfo $file): void
     {
         $className = $this->getClassNameFromFile($file);
@@ -123,50 +102,61 @@ class AdminPageDiscovery
             }
 
             if (is_subclass_of($className, Page::class)) {
-                $this->discoveredPages[$className::slug()] = $className;
+                $this->discoveredPages[$className::getSlug()] = $className;
             }
-        } catch (\Exception $e) {
-            // Skip classes that cannot be reflected
+        } catch (\Throwable) {
+            // Ignore classes that cannot be reflected.
         }
     }
 
-    /**
-     * Get class name from file path
-     */
     protected function getClassNameFromFile(SplFileInfo $file): ?string
     {
-        $content = file_get_contents($file->getRealPath());
+        $content = @file_get_contents($file->getRealPath());
 
-        // Extract namespace
-        if (preg_match('/namespace\s+([^;]+);/', $content, $matches)) {
-            $namespace = trim($matches[1]);
-        } else {
+        if ($content === false) {
             return null;
         }
 
-        // Extract class name
-        if (preg_match('/class\s+(\w+)/', $content, $matches)) {
-            $className = trim($matches[1]);
-        } else {
+        if (!preg_match('/namespace\s+([^;]+);/', $content, $namespaceMatches)) {
             return null;
         }
 
-        return $namespace . '\\' . $className;
+        if (!preg_match('/class\s+(\w+)/', $content, $classMatches)) {
+            return null;
+        }
+
+        $namespace = trim($namespaceMatches[1]);
+        $className = trim($classMatches[1]);
+
+        return sprintf('%s\\%s', $namespace, $className);
     }
 
-    /**
-     * Get all discovered pages
-     */
-    public function getPages(): array
+    protected function ensureDefaultPaths(): void
     {
-        return $this->discoveredPages;
+        if ($this->bootstrapped) {
+            return;
+        }
+
+        $defaults = [
+            $this->normalizePath(__DIR__ . '/../../Pages'),
+            $this->normalizePath(app_path('Ave/Pages')),
+        ];
+
+        foreach ($defaults as $path) {
+            if ($path && !in_array($path, $this->paths, true)) {
+                $this->paths[] = $path;
+            }
+        }
+
+        $this->bootstrapped = true;
     }
 
-    /**
-     * Get page by slug
-     */
-    public function getPage(string $slug): ?string
+    protected function normalizePath(?string $path): ?string
     {
-        return $this->discoveredPages[$slug] ?? null;
+        if (!$path) {
+            return null;
+        }
+
+        return rtrim($path, DIRECTORY_SEPARATOR);
     }
 }

@@ -1,29 +1,31 @@
-@php
-    $field = $field ?? null;
-    $context = $context ?? null;
+﻿@php
+    $field ??= null;
+    $context ??= null;
 
-    if ($field) {
+    if ($field instanceof \\Monstrex\\Ave\\Core\\Fields\\Fieldset) {
+        $fieldsetData = $field->toArray();
+
         $key = $field->getKey();
         $label = $field->getLabel();
         $required = $field->isRequired();
-        $sortable = $field->sortable ?? true;
-        $collapsible = $field->collapsible ?? false;
-        $collapsed = $field->collapsed ?? false;
-        $minItems = $field->minItems ?? 0;
-        $maxItems = $field->maxItems ?? 999;
-        $addButtonLabel = $field->addButtonLabel ?? 'Добавить';
-        $itemInstances = $field->itemInstances ?? [];
-        $itemIds = $field->itemIds ?? [];
+        $sortable = $field->isSortable();
+        $collapsible = $field->isCollapsible();
+        $collapsed = $field->isCollapsed();
+        $minItems = $field->getMinItems();
+        $maxItems = $field->getMaxItems();
+        $addButtonLabel = $field->getAddButtonLabel();
+        $itemInstances = $fieldsetData["itemInstances"] ?? [];
+        $itemIds = $fieldsetData["itemIds"] ?? [];
         $helpText = $field->getHelpText();
         $errors = $context ? $context->getErrors($key) : [];
     }
 @endphp
 
 <div class="form-field fieldset-field @if(!empty($errors)) has-error @endif" data-field-name="{{ $key ?? 'fieldset' }}">
-    @if($label)
+    @if(!empty($label))
         <label class="form-label">
             {{ $label }}
-            @if($required)
+            @if(!empty($required))
                 <span class="required">*</span>
             @endif
         </label>
@@ -31,17 +33,16 @@
 
     <div class="fieldset-container"
          data-fieldset
-         data-sortable="{{ $sortable ? 'true' : 'false' }}"
-         data-collapsible="{{ $collapsible ? 'true' : 'false' }}"
-         data-collapsed="{{ $collapsed ? 'true' : 'false' }}"
-         data-min-items="{{ $minItems }}"
+         data-sortable="{{ !empty($sortable) ? 'true' : 'false' }}"
+         data-collapsible="{{ !empty($collapsible) ? 'true' : 'false' }}"
+         data-collapsed="{{ !empty($collapsed) ? 'true' : 'false' }}"
+         data-min-items="{{ $minItems ?? '' }}"
          data-max-items="{{ $maxItems ?? '' }}"
          data-field-name="{{ $key ?? 'fieldset' }}">
 
-        {{-- Action Bar --}}
         <div class="fieldset-actions">
             <div class="fieldset-actions-left">
-                @if($collapsible)
+                @if(!empty($collapsible))
                     <button type="button" class="btn-fieldset-action" data-action="collapse-all" title="Collapse All">
                         <svg class="icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
                             <path d="M4 6l4 4 4-4M4 2l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -56,7 +57,7 @@
                     </button>
                 @endif
 
-                @if($sortable)
+                @if(!empty($sortable))
                     <label class="fieldset-sort-toggle">
                         <input type="checkbox" data-action="toggle-sort">
                         <span class="toggle-slider"></span>
@@ -70,17 +71,16 @@
                     <svg class="icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
                         <path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                     </svg>
-                    <span>{{ $addButtonLabel ?? 'Добавить' }}</span>
+                    <span>{{ $addButtonLabel }}</span>
                 </button>
             </div>
         </div>
 
-        {{-- Existing items --}}
         <div class="fieldset-items" data-fieldset-items>
             @if(!empty($itemInstances))
                 @foreach($itemInstances as $index => $item)
-                    <div class="fieldset-item{{ $collapsed ? ' collapsed' : '' }}" data-item-index="{{ $index }}">
-                        @if($sortable)
+                    <div class="fieldset-item{{ !empty($collapsed) ? ' collapsed' : '' }}" data-item-index="{{ $index }}">
+                        @if(!empty($sortable))
                             <div class="fieldset-drag-handle" title="Drag to reorder">
                                 <svg class="icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
                                     <circle cx="6" cy="4" r="1" fill="currentColor"/>
@@ -95,7 +95,7 @@
 
                         <div class="fieldset-item-content">
                             <div class="fieldset-item-header">
-                                @if($collapsible)
+                                @if(!empty($collapsible))
                                     <button type="button" class="btn-fieldset-collapse" data-action="collapse" title="Expand/Collapse">
                                         <svg class="icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
                                             <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -136,7 +136,7 @@
         </div>
     @endif
 
-    @if($helpText)
+    @if(!empty($helpText))
         <div class="help-text">{{ $helpText }}</div>
     @endif
 </div>

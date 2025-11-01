@@ -2,6 +2,7 @@
 
 namespace Monstrex\Ave\Core\Fields;
 
+use Illuminate\Support\Str;
 use Monstrex\Ave\Contracts\FormField;
 use Monstrex\Ave\Core\DataSources\DataSourceInterface;
 use Monstrex\Ave\Core\DataSources\ModelDataSource;
@@ -45,6 +46,7 @@ abstract class AbstractField implements FormField
     public function setKey(string $key): static
     {
         $this->key = $key;
+
         return $this;
     }
 
@@ -56,45 +58,60 @@ abstract class AbstractField implements FormField
     public function label(?string $label): static
     {
         $this->label = $label;
+
         return $this;
     }
 
     public function help(?string $help): static
     {
         $this->help = $help;
+
         return $this;
     }
 
     public function default(mixed $value): static
     {
         $this->default = $value;
+
         return $this;
     }
 
     public function rules(array $rules): static
     {
         $this->rules = $rules;
+
         return $this;
     }
 
     public function required(bool $required = true): static
     {
         $this->required = $required;
-        if ($required && !in_array('required', $this->rules)) {
+
+        if ($required && !in_array('required', $this->rules, true)) {
             $this->rules[] = 'required';
         }
+
         return $this;
     }
 
     public function disabled(bool $disabled = true): static
     {
         $this->disabled = $disabled;
+
         return $this;
     }
 
     public function placeholder(string $placeholder): static
     {
         $this->placeholder = $placeholder;
+
+        return $this;
+    }
+
+    public function template(string $view): static
+    {
+        $this->view = $view;
+
         return $this;
     }
 
@@ -121,14 +138,14 @@ abstract class AbstractField implements FormField
     public function toArray(): array
     {
         return [
-            'key'         => $this->key,
-            'type'        => $this->type(),
-            'label'       => $this->label,
-            'help'        => $this->help,
-            'default'     => $this->default,
-            'rules'       => $this->rules,
-            'required'    => $this->required,
-            'disabled'    => $this->disabled,
+            'key' => $this->key,
+            'type' => $this->type(),
+            'label' => $this->label,
+            'help' => $this->help,
+            'default' => $this->default,
+            'rules' => $this->rules,
+            'required' => $this->required,
+            'disabled' => $this->disabled,
             'placeholder' => $this->placeholder,
         ];
     }
@@ -138,90 +155,69 @@ abstract class AbstractField implements FormField
         return $raw;
     }
 
-    /**
-     * Fill field value from a data source
-     */
     public function fillFromDataSource(DataSourceInterface $source): void
     {
-        $value = $source->get($this->key);
-        $this->value = $value;
+        $this->value = $source->get($this->key);
     }
 
-    /**
-     * Fill field value from Eloquent model
-     */
     public function fillFromModel(mixed $model): void
     {
-        $dataSource = new ModelDataSource($model);
-        $this->fillFromDataSource($dataSource);
+        $this->fillFromDataSource(new ModelDataSource($model));
     }
 
-    /**
-     * Apply field value to a data source
-     */
     public function applyToDataSource(DataSourceInterface $source, mixed $value): void
     {
         $source->set($this->key, $value);
     }
 
-    /**
-     * Get the field's current value
-     */
     public function getValue(): mixed
     {
         return $this->value ?? $this->default;
     }
 
-    /**
-     * Set the field's value
-     */
     public function setValue(mixed $value): void
     {
         $this->value = $value;
     }
 
-    /**
-     * Render field to HTML
-     *
-     * This is the primary rendering method that:
-     * 1. Ensures field is prepared for display
-     * 2. Determines the Blade template to use
-     * 3. Extracts error and context information for templates
-     * 4. Passes all necessary data to template
-     *
-     * @param FormContext $context Form context for field preparation and data access
-     * @return string Rendered HTML
-     */
     public function render(FormContext $context): string
     {
-        // Ensure field is prepared for display
-        if (method_exists($this, 'prepareForDisplay')) {
-            // Only prepare if value is not yet set
-            if (is_null($this->value) && is_null($this->getValue())) {
-                $this->prepareForDisplay($context);
-            }
+        if ($context->hasOldInput($this->key)) {
+            $this->value = $context->oldInput($this->key);
         }
 
-        // Determine view template
-        // Priority: custom view > default naming convention
-        $view = $this->view ?? 'ave::components.forms.' . str_replace('_', '-', $this->type());
+        if (method_exists($this, 'prepareForDisplay') && $this->getValue() === null) {
+            $this->prepareForDisplay($context);
+        }
 
-        // Convert field to array for template compatibility
+        $view = $this->view ?? $this->resolveDefaultView();
+
         $fieldData = $this->toArray();
         $fieldData['value'] = $this->getValue();
 
-        // Extract error information from context
-        $hasError = $context->hasError($this->key);
-        $errors = $context->getErrors($this->key);
-
-        // Render template with all necessary data
         return view($view, [
-            'field'      => $this,              // Field object for method calls
-            'context'    => $context,           // FormContext for nested processing
-            'hasError'   => $hasError,          // Error flag for CSS classes
-            'errors'     => $errors,            // Error messages array
-            'attributes' => '',                 // HTML attributes string (for compatibility)
-            ...$fieldData,                      // Spread array for variable compatibility
+            'field' => $this,
+            'context' => $context,
+            'hasError' => $context->hasError($this->key),
+            'errors' => $context->getErrors($this->key),
+            'attributes' => '',
+            ...$fieldData,
         ])->render();
+    }
+
+    protected function resolveDefaultView(): string
+    {
+        $map = [
+            'text' => 'text-input',
+            'number' => 'number-input',
+            'datetime' => 'datetime-input',
+            'richtext' => 'rich-editor',
+            'file' => 'media-field',
+        ];
+
+        $type = Str::kebab($this->type());
+        $template = $map[$type] ?? $type;
+
+        return "ave::components.forms.{$template}";
     }
 }

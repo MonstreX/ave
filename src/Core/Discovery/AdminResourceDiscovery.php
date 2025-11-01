@@ -9,70 +9,40 @@ use RecursiveIteratorIterator;
 use SplFileInfo;
 
 /**
- * Discovers Resource classes in the application
- *
- * Can be used both statically (discoverPackage/discoverApp) and as an instance
- * with custom paths for flexibility.
+ * Discovers Resource classes in the application and package.
  */
 class AdminResourceDiscovery
 {
     protected array $discoveredResources = [];
     protected array $paths = [];
+    protected bool $bootstrapped = false;
 
     public function __construct(array $paths = [])
     {
-        $this->paths = $paths;
+        $this->paths = array_values(array_filter($paths, fn ($path) => $path !== null));
     }
 
-    /**
-     * Discover resources in the package
-     *
-     * Static method for convenience - discovers resources bundled with the Ave package
-     *
-     * @return array Array of resource classes indexed by slug
-     */
-    public static function discoverPackage(): array
-    {
-        $discovery = new static([
-            __DIR__ . '/../../Resources',
-        ]);
-
-        return $discovery->discover();
-    }
-
-    /**
-     * Discover resources in the application
-     *
-     * Static method for convenience - discovers resources in the app directory
-     *
-     * @return array Array of resource classes indexed by slug
-     */
-    public static function discoverApp(): array
-    {
-        $discovery = new static([
-            app_path('Ave/Resources'),
-        ]);
-
-        return $discovery->discover();
-    }
-
-    /**
-     * Add a path to search for resources
-     */
     public function addPath(string $path): self
     {
-        if (!in_array($path, $this->paths)) {
-            $this->paths[] = $path;
+        $normalized = $this->normalizePath($path);
+
+        if ($normalized && !in_array($normalized, $this->paths, true)) {
+            $this->paths[] = $normalized;
         }
+
         return $this;
     }
 
     /**
-     * Discover all Resource classes in configured paths
+     * Discover all Resource classes in configured paths.
+     *
+     * @return array<string,class-string<Resource>>
      */
     public function discover(): array
     {
         $this->discoveredResources = [];
+
+        $this->ensureDefaultPaths();
 
         foreach ($this->paths as $path) {
             if (!is_dir($path)) {
@@ -86,8 +56,21 @@ class AdminResourceDiscovery
     }
 
     /**
-     * Scan directory for Resource classes
+     * @return array<string,class-string<Resource>>
      */
+    public function getResources(): array
+    {
+        return $this->discoveredResources;
+    }
+
+    /**
+     * @return class-string<Resource>|null
+     */
+    public function getResource(string $slug): ?string
+    {
+        return $this->discoveredResources[$slug] ?? null;
+    }
+
     protected function scanDirectory(string $path): void
     {
         $iterator = new RecursiveIteratorIterator(
@@ -95,6 +78,7 @@ class AdminResourceDiscovery
             RecursiveIteratorIterator::LEAVES_ONLY
         );
 
+        /** @var SplFileInfo $file */
         foreach ($iterator as $file) {
             if ($file->getExtension() !== 'php') {
                 continue;
@@ -104,9 +88,6 @@ class AdminResourceDiscovery
         }
     }
 
-    /**
-     * Check if a file contains a Resource class
-     */
     protected function checkFile(SplFileInfo $file): void
     {
         $className = $this->getClassNameFromFile($file);
@@ -125,48 +106,59 @@ class AdminResourceDiscovery
             if (is_subclass_of($className, Resource::class)) {
                 $this->discoveredResources[$className::getSlug()] = $className;
             }
-        } catch (\Exception $e) {
-            // Skip classes that cannot be reflected
+        } catch (\Throwable) {
+            // Ignore classes that cannot be reflected.
         }
     }
 
-    /**
-     * Get class name from file path
-     */
     protected function getClassNameFromFile(SplFileInfo $file): ?string
     {
-        $content = file_get_contents($file->getRealPath());
+        $content = @file_get_contents($file->getRealPath());
 
-        // Extract namespace
-        if (preg_match('/namespace\s+([^;]+);/', $content, $matches)) {
-            $namespace = trim($matches[1]);
-        } else {
+        if ($content === false) {
             return null;
         }
 
-        // Extract class name
-        if (preg_match('/class\s+(\w+)/', $content, $matches)) {
-            $className = trim($matches[1]);
-        } else {
+        if (!preg_match('/namespace\s+([^;]+);/', $content, $namespaceMatches)) {
             return null;
         }
 
-        return $namespace . '\\' . $className;
+        if (!preg_match('/class\s+(\w+)/', $content, $classMatches)) {
+            return null;
+        }
+
+        $namespace = trim($namespaceMatches[1]);
+        $className = trim($classMatches[1]);
+
+        return sprintf('%s\\%s', $namespace, $className);
     }
 
-    /**
-     * Get all discovered resources
-     */
-    public function getResources(): array
+    protected function ensureDefaultPaths(): void
     {
-        return $this->discoveredResources;
+        if ($this->bootstrapped) {
+            return;
+        }
+
+        $defaults = [
+            $this->normalizePath(__DIR__ . '/../../Resources'),
+            $this->normalizePath(app_path('Ave/Resources')),
+        ];
+
+        foreach ($defaults as $path) {
+            if ($path && !in_array($path, $this->paths, true)) {
+                $this->paths[] = $path;
+            }
+        }
+
+        $this->bootstrapped = true;
     }
 
-    /**
-     * Get resource by slug
-     */
-    public function getResource(string $slug): ?string
+    protected function normalizePath(?string $path): ?string
     {
-        return $this->discoveredResources[$slug] ?? null;
+        if (!$path) {
+            return null;
+        }
+
+        return rtrim($path, DIRECTORY_SEPARATOR);
     }
 }

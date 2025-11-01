@@ -2,39 +2,46 @@
 
 namespace Monstrex\Ave\Core\Registry;
 
+use InvalidArgumentException;
 use Monstrex\Ave\Core\Page;
 
 /**
- * Registry for managing Page instances
+ * Registry for managing Page classes keyed by slug.
  */
 class PageRegistry
 {
+    /**
+     * @var array<string,class-string<Page>>
+     */
     protected array $pages = [];
 
     /**
-     * Register a page class
+     * Register a page class under its slug (or a custom one).
      */
-    public function register(string $slug, string $pageClass): self
+    public function register(string $pageClass, ?string $slug = null): self
     {
         if (!is_subclass_of($pageClass, Page::class)) {
-            throw new \InvalidArgumentException("Class {$pageClass} must extend " . Page::class);
+            throw new InvalidArgumentException("Class {$pageClass} must extend " . Page::class);
         }
 
+        $slug ??= $pageClass::getSlug();
         $this->pages[$slug] = $pageClass;
+
         return $this;
     }
 
     /**
-     * Unregister a page
+     * Unregister a page by slug.
      */
     public function unregister(string $slug): self
     {
         unset($this->pages[$slug]);
+
         return $this;
     }
 
     /**
-     * Check if page is registered
+     * Check if a page is registered.
      */
     public function has(string $slug): bool
     {
@@ -42,7 +49,9 @@ class PageRegistry
     }
 
     /**
-     * Get a page class
+     * Get a page class by slug.
+     *
+     * @return class-string<Page>|null
      */
     public function get(string $slug): ?string
     {
@@ -50,7 +59,9 @@ class PageRegistry
     }
 
     /**
-     * Get all registered pages
+     * Get all registered pages.
+     *
+     * @return array<string,class-string<Page>>
      */
     public function all(): array
     {
@@ -58,7 +69,7 @@ class PageRegistry
     }
 
     /**
-     * Get page count
+     * Registered page count.
      */
     public function count(): int
     {
@@ -66,11 +77,12 @@ class PageRegistry
     }
 
     /**
-     * Clear all pages
+     * Reset registry.
      */
     public function clear(): self
     {
         $this->pages = [];
+
         return $this;
     }
 }
