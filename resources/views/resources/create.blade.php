@@ -35,17 +35,30 @@
 <div class="page-content">
     <div class="panel panel-bordered">
         <div class="panel-body">
-            <form action="{{ route($routeBaseName . '.store') }}" method="POST" enctype="multipart/form-data">
+            <form action="{{ route('ave.resource.store', ['slug' => $slug]) }}" method="POST" enctype="multipart/form-data">
                 @csrf
 
-                {!! $form->render() !!}
+                @foreach($form->rows() as $row)
+                    <div class="form-row">
+                        @foreach($row['columns'] as $column)
+                            <div class="form-column" style="grid-column: span {{ $column['span'] ?? 12 }}">
+                                @foreach($column['fields'] as $field)
+                                    @include('ave::components.forms.' . $field['type'], [
+                                        'field' => $field,
+                                        'model' => $model,
+                                    ])
+                                @endforeach
+                            </div>
+                        @endforeach
+                    </div>
+                @endforeach
 
                 <div class="form-actions">
-                    <a href="{{ route($routeBaseName . '.index') }}" class="btn btn-secondary">
+                    <a href="{{ route('ave.resource.index', ['slug' => $slug]) }}" class="btn btn-secondary">
                         Cancel
                     </a>
                     <button type="submit" class="btn btn-primary">
-                        Create {{ $resourceClass::getSingularLabel() }}
+                        Create {{ $resource::getLabel() }}
                     </button>
                 </div>
             </form>

@@ -8,8 +8,8 @@
         </a>
     </li>
     <li class="ave-navbar__breadcrumb-item">
-        <a href="{{ route($routeBaseName . '.index') }}" class="ave-navbar__breadcrumb-link">
-            {{ $resourceClass::getLabel() }}
+        <a href="{{ route('ave.resource.index', ['slug' => $slug]) }}" class="ave-navbar__breadcrumb-link">
+            {{ $resource::getLabel() }}
         </a>
     </li>
     <li class="ave-navbar__breadcrumb-item is-active">
@@ -21,10 +21,10 @@
 @section('page_header')
 <div class="page-header">
     <h1 class="page-title">
-        <i class="voyager-edit"></i> Edit {{ $resourceClass::getSingularLabel() }}
+        <i class="voyager-edit"></i> Edit {{ $resource::getLabel() }}
     </h1>
     <div class="page-header-actions">
-        <a href="{{ route($routeBaseName . '.index') }}" class="btn btn-secondary">
+        <a href="{{ route('ave.resource.index', ['slug' => $slug]) }}" class="btn btn-secondary">
             <i class="voyager-angle-left"></i> <span>Back</span>
         </a>
     </div>
@@ -35,18 +35,31 @@
 <div class="page-content">
     <div class="panel panel-bordered">
         <div class="panel-body">
-            <form action="{{ route($routeBaseName . '.update', ['record' => $model->getKey()]) }}" method="POST" enctype="multipart/form-data">
+            <form action="{{ route('ave.resource.update', ['slug' => $slug, 'id' => $model->getKey()]) }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 @method('PUT')
 
-                {!! $form->render() !!}
+                @foreach($form->rows() as $row)
+                    <div class="form-row">
+                        @foreach($row['columns'] as $column)
+                            <div class="form-column" style="grid-column: span {{ $column['span'] ?? 12 }}">
+                                @foreach($column['fields'] as $field)
+                                    @include('ave::components.forms.' . $field['type'], [
+                                        'field' => $field,
+                                        'model' => $model,
+                                    ])
+                                @endforeach
+                            </div>
+                        @endforeach
+                    </div>
+                @endforeach
 
                 <div class="form-actions">
-                    <a href="{{ route($routeBaseName . '.index') }}" class="btn btn-secondary">
+                    <a href="{{ route('ave.resource.index', ['slug' => $slug]) }}" class="btn btn-secondary">
                         Cancel
                     </a>
                     <button type="submit" class="btn btn-primary">
-                        Update {{ $resourceClass::getSingularLabel() }}
+                        Update {{ $resource::getLabel() }}
                     </button>
                 </div>
             </form>

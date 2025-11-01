@@ -28,7 +28,7 @@ class ResourceRenderer
         return view($view, [
             'resource' => $resourceClass,
             'slug'     => $slug,
-            'table'    => $table->get(),
+            'table'    => $table,
             'records'  => $records,
             'request'  => $request,
         ]);
@@ -51,7 +51,7 @@ class ResourceRenderer
         return view($view, [
             'resource' => $resourceClass,
             'slug'     => $slug,
-            'form'     => $form->rows(),
+            'form'     => $form,
             'model'    => $model,
             'request'  => $request,
         ]);

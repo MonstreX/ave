@@ -215,4 +215,30 @@ class Table
     {
         return $this->perPage;
     }
+
+    /**
+     * Check if table has searchable columns
+     */
+    public function hasSearchableColumns(): bool
+    {
+        return !empty(array_filter($this->columns, fn($c) => $c->isSearchable()));
+    }
+
+    /**
+     * Check if table has bulk actions
+     */
+    public function hasBulkActions(): bool
+    {
+        return !empty($this->bulkActions);
+    }
+
+    /**
+     * Get table configuration as array (for JSON API)
+     *
+     * @return array
+     */
+    public function toArray(): array
+    {
+        return $this->get();
+    }
 }

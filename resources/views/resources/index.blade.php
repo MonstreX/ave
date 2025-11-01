@@ -125,7 +125,7 @@
         <div class="panel-body">
             <div class="resource-toolbar">
                 <span class="resource-note">
-                    Showing {{ $data->total() }} record{{ $data->total() === 1 ? '' : 's' }}
+                    Showing {{ $records->total() }} record{{ $records->total() === 1 ? '' : 's' }}
                 </span>
                 <form method="GET">
                     <div class="resource-search">
@@ -135,10 +135,10 @@
                             </span>
                             <input
                                 type="text"
-                                name="search"
-                                value="{{ request('search') }}"
+                                name="q"
+                                value="{{ request('q') }}"
                                 class="form-control"
-                                placeholder="Search..."
+                                placeholder="{{ $table->searchPlaceholder ?? 'Search...' }}"
                             >
                         </div>
                     </div>
@@ -152,7 +152,7 @@
                 <table class="table">
                     <thead>
                     <tr>
-                        @if(!empty($handlers))
+                        @if($table->hasBulkActions())
                             <th class="checkbox-column">
                                 <input type="checkbox" class="select-all-checkbox" id="select-all" />
                             </th>
@@ -161,12 +161,12 @@
                             <th>
                                 @if($column->isSortable())
                                     @php
-                                        $direction = request('direction', 'asc') === 'asc' ? 'desc' : 'asc';
+                                        $direction = request('dir', 'asc') === 'asc' ? 'desc' : 'asc';
                                     @endphp
-                                    <a href="?sort={{ $column->getName() }}&direction={{ $direction }}" class="ave-link">
+                                    <a href="?sort={{ $column->key() }}&dir={{ $direction }}" class="ave-link">
                                         {{ $column->getLabel() }}
-                                        @if(request('sort') === $column->getName())
-                                            <i class="voyager-angle-{{ request('direction', 'asc') === 'asc' ? 'up' : 'down' }}"></i>
+                                        @if(request('sort') === $column->key())
+                                            <i class="voyager-angle-{{ request('dir', 'asc') === 'asc' ? 'up' : 'down' }}"></i>
                                         @endif
                                     </a>
                                 @else
@@ -178,29 +178,31 @@
                     </tr>
                     </thead>
                     <tbody>
-                    @forelse($data as $item)
+                    @forelse($records as $item)
                         <tr class="resource-row" data-id="{{ $item->getKey() }}">
-                            @if(!empty($handlers))
+                            @if($table->hasBulkActions())
                                 <td class="checkbox-column">
                                     <input type="checkbox" class="row-selector" value="{{ $item->getKey() }}" />
                                 </td>
                             @endif
                             @foreach($table->getColumns() as $column)
-                                {!! $column->renderCell($item) !!}
+                                <td>
+                                    {{ $column->formatValue($item->{$column->key()}, $item) }}
+                                </td>
                             @endforeach
                             <td class="text-right">
                                 <div class="table-actions">
-                                    @if($resourceClass::canUpdate())
-                                        <a href="{{ route($routeBaseName . '.edit', ['record' => $item->getKey()]) }}" class="btn btn-sm btn-primary">
+                                    @if((new $resource())->can('update', auth()->user(), $item))
+                                        <a href="{{ route('ave.resource.edit', ['slug' => $slug, 'id' => $item->getKey()]) }}" class="btn btn-sm btn-primary">
                                             <i class="voyager-edit"></i> Edit
                                         </a>
                                     @endif
-                                    @if($resourceClass::canDelete())
-                                        <form action="{{ route($routeBaseName . '.destroy', ['record' => $item->getKey()]) }}" method="POST">
+                                    @if((new $resource())->can('delete', auth()->user(), $item))
+                                        <form action="{{ route('ave.resource.destroy', ['slug' => $slug, 'id' => $item->getKey()]) }}" method="POST" style="display:inline;">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" onclick="return confirm('Delete this record?')">
-                                                Delete
+                                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete this record?')">
+                                                <i class="voyager-trash"></i> Delete
                                             </button>
                                         </form>
                                     @endif
@@ -209,8 +211,8 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="{{ count($table->getColumns()) + 1 }}" class="text-center text-muted">
-                                No {{ strtolower($resourceClass::getLabel()) }} found.
+                            <td colspan="{{ count($table->getColumns()) + 2 }}" class="text-center text-muted">
+                                No {{ strtolower($resource::getLabel()) }} found.
                             </td>
                         </tr>
                     @endforelse
@@ -219,7 +221,7 @@
             </div>
 
             <div class="resource-pagination">
-                {{ $data->links() }}
+                {{ $records->links() }}
             </div>
         </div>
     </div>
