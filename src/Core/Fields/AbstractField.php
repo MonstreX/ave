@@ -184,18 +184,18 @@ abstract class AbstractField implements FormField
      * Render field to HTML
      *
      * This is the primary rendering method that:
-     * 1. Ensures field is prepared for display (if not already done)
+     * 1. Ensures field is prepared for display
      * 2. Determines the Blade template to use
-     * 3. Converts field to array for backward compatibility
-     * 4. Passes both object and array to template
+     * 3. Extracts error and context information for templates
+     * 4. Passes all necessary data to template
      *
-     * @param FormContext|null $context Optional form context for field preparation
+     * @param FormContext $context Form context for field preparation and data access
      * @return string Rendered HTML
      */
-    public function render(?FormContext $context = null): string
+    public function render(FormContext $context): string
     {
-        // Ensure field is prepared if context is provided
-        if ($context !== null && method_exists($this, 'prepareForDisplay')) {
+        // Ensure field is prepared for display
+        if (method_exists($this, 'prepareForDisplay')) {
             // Only prepare if value is not yet set
             if (is_null($this->value) && is_null($this->getValue())) {
                 $this->prepareForDisplay($context);
@@ -210,11 +210,18 @@ abstract class AbstractField implements FormField
         $fieldData = $this->toArray();
         $fieldData['value'] = $this->getValue();
 
-        // Render template with both object and array for flexibility
+        // Extract error information from context
+        $hasError = $context->hasError($this->key);
+        $errors = $context->getErrors($this->key);
+
+        // Render template with all necessary data
         return view($view, [
-            'field'   => $this,           // Field object for method calls
-            'context' => $context,        // FormContext for nested processing
-            ...$fieldData,                // Spread array for template variable compatibility
+            'field'      => $this,              // Field object for method calls
+            'context'    => $context,           // FormContext for nested processing
+            'hasError'   => $hasError,          // Error flag for CSS classes
+            'errors'     => $errors,            // Error messages array
+            'attributes' => '',                 // HTML attributes string (for compatibility)
+            ...$fieldData,                      // Spread array for variable compatibility
         ])->render();
     }
 }

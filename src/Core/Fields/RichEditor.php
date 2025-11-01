@@ -345,9 +345,20 @@ class RichEditor extends AbstractField
 
         $view = $this->view ?: 'ave::components.forms.rich-editor';
 
+        // Extract error information from context
+        $hasError = $context->hasError($this->key);
+        $errors = $context->getErrors($this->key);
+
+        // Get all field data as array
+        $fieldData = $this->toArray();
+
         return view($view, [
-            'field' => $this,
-            'context' => $context,
+            'field'      => $this,
+            'context'    => $context,
+            'hasError'   => $hasError,
+            'errors'     => $errors,
+            'attributes' => '',
+            ...$fieldData,
         ])->render();
     }
 }

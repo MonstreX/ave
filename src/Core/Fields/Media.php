@@ -488,9 +488,20 @@ class Media extends AbstractField
 
         $view = $this->view ?: 'ave::components.forms.media';
 
+        // Extract error information from context
+        $hasError = $context->hasError($this->key);
+        $errors = $context->getErrors($this->key);
+
+        // Get all field data as array (includes mediaItems, collection, etc.)
+        $fieldData = $this->toArray();
+
         return view($view, [
-            'field' => $this,
-            'context' => $context,
+            'field'      => $this,
+            'context'    => $context,
+            'hasError'   => $hasError,
+            'errors'     => $errors,
+            'attributes' => '',
+            ...$fieldData,
         ])->render();
     }
 

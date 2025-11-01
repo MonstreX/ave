@@ -254,6 +254,47 @@ class Fieldset extends AbstractField
 
         $view = $this->view ?: 'ave::components.forms.fieldset';
 
+        // Extract error information from context
+        $hasError = $context->hasError($this->key);
+        $errors = $context->getErrors($this->key);
+
+        // Get all field data as array
+        $fieldData = $this->toArray();
+
         return view($view, [
-            'field' => $this,
-            'context
+            'field'      => $this,
+            'context'    => $context,
+            'hasError'   => $hasError,
+            'errors'     => $errors,
+            'attributes' => '',
+            ...$fieldData,
+        ])->render();
+    }
+
+    public function getItemFields(int $index): array
+    {
+        return $this->itemInstances[$index]['fields'] ?? [];
+    }
+
+    public function getItemId(int $index): string
+    {
+        return $this->itemIds[$index] ?? 'item-' . $index;
+    }
+
+    public function getRowTitle(int $index): string
+    {
+        if (empty($this->rowTitleTemplate)) {
+            return "Элемент " . ($index + 1);
+        }
+
+        $itemData = $this->itemInstances[$index]['data'] ?? [];
+        $title = $this->rowTitleTemplate;
+        $title = str_replace('{index}', (string)($index + 1), $title);
+
+        foreach ($itemData as $key => $value) {
+            $title = str_replace('{' . $key . '}', (string)$value, $title);
+        }
+
+        return $title;
+    }
+}
