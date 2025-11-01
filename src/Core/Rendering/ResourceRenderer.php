@@ -2,75 +2,58 @@
 
 namespace Monstrex\Ave\Core\Rendering;
 
-use Monstrex\Ave\Core\Resource;
-use Illuminate\Pagination\Paginator;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Http\Request;
 
 class ResourceRenderer
 {
+    public function __construct(
+        protected ViewResolver $views
+    ) {}
+
     /**
      * Render resource index view
      *
-     * @param Resource $resource
-     * @param mixed $records Paginated records collection
-     * @param array $options Additional options
+     * @param string $resourceClass Resource class name
+     * @param mixed $table Table configuration
+     * @param LengthAwarePaginator $records Paginated records
+     * @param Request $request Current request
      * @return string Rendered HTML
      */
-    public function render(Resource $resource, $records, array $options = []): string
+    public function index(string $resourceClass, $table, LengthAwarePaginator $records, Request $request)
     {
-        $ctx = $options['context'] ?? request();
+        $slug = $resourceClass::$slug ?? strtolower(class_basename($resourceClass));
+        $view = $this->views->resolveResource($slug, 'index');
 
-        $data = [
-            'resourceClass' => $resource::class,
-            'routeBaseName' => 'ave.resources.' . $resource->slug(),
-            'table' => $resource->table($ctx),
-            'data' => $records,
-            'metrics' => $options['metrics'] ?? [],
-            'queryTags' => $options['queryTags'] ?? [],
-            'handlers' => $options['handlers'] ?? [],
-        ];
-
-        return view('ave::resources.index', $data)->render();
+        return view($view, [
+            'resource' => $resourceClass,
+            'slug'     => $slug,
+            'table'    => $table->get(),
+            'records'  => $records,
+            'request'  => $request,
+        ]);
     }
 
     /**
-     * Render resource create view
+     * Render resource form view (create/edit)
      *
-     * @param Resource $resource
-     * @param array $options
-     * @return string
+     * @param string $resourceClass Resource class name
+     * @param mixed $form Form configuration
+     * @param mixed $model Model instance or null
+     * @param Request $request Current request
+     * @return string Rendered HTML
      */
-    public function renderCreate(Resource $resource, array $options = []): string
+    public function form(string $resourceClass, $form, $model, Request $request)
     {
-        $ctx = $options['context'] ?? request();
+        $slug = $resourceClass::$slug ?? strtolower(class_basename($resourceClass));
+        $view = $this->views->resolveResource($slug, 'form');
 
-        $data = [
-            'resourceClass' => $resource::class,
-            'routeBaseName' => 'ave.resources.' . $resource->slug(),
-            'form' => $resource->form($ctx),
-        ];
-
-        return view('ave::resources.create', $data)->render();
-    }
-
-    /**
-     * Render resource edit view
-     *
-     * @param Resource $resource
-     * @param $model
-     * @param array $options
-     * @return string
-     */
-    public function renderEdit(Resource $resource, $model, array $options = []): string
-    {
-        $ctx = $options['context'] ?? request();
-
-        $data = [
-            'resourceClass' => $resource::class,
-            'routeBaseName' => 'ave.resources.' . $resource->slug(),
-            'form' => $resource->form($ctx),
-            'model' => $model,
-        ];
-
-        return view('ave::resources.edit', $data)->render();
+        return view($view, [
+            'resource' => $resourceClass,
+            'slug'     => $slug,
+            'form'     => $form->rows(),
+            'model'    => $model,
+            'request'  => $request,
+        ]);
     }
 }

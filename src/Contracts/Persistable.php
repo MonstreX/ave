@@ -2,32 +2,41 @@
 
 namespace Monstrex\Ave\Contracts;
 
-/**
- * Persistable Contract
- * Defines the interface for persistent models
- */
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\Request;
+use Monstrex\Ave\Core\Form;
+
 interface Persistable
 {
     /**
-     * Create a new model instance from data
+     * Create a new model instance from form data
      *
-     * @param array $data Raw data
-     * @return mixed Created model
+     * @param string $resourceClass Resource class name
+     * @param Form $form Form instance
+     * @param array $data Validated form data
+     * @param Request $request Current request
+     * @return Model Created model
      */
-    public static function create(array $data);
+    public function create(string $resourceClass, Form $form, array $data, Request $request): Model;
 
     /**
      * Update an existing model instance
      *
-     * @param array $data Raw data
-     * @return bool Success status
+     * @param string $resourceClass Resource class name
+     * @param Form $form Form instance
+     * @param Model $model Model to update
+     * @param array $data Validated form data
+     * @param Request $request Current request
+     * @return Model Updated model
      */
-    public function update(array $data): bool;
+    public function update(string $resourceClass, Form $form, Model $model, array $data, Request $request): Model;
 
     /**
-     * Delete the model instance
+     * Delete a model instance
      *
-     * @return bool Success status
+     * @param string $resourceClass Resource class name
+     * @param Model $model Model to delete
+     * @return void
      */
-    public function delete(): bool;
+    public function delete(string $resourceClass, Model $model): void;
 }
