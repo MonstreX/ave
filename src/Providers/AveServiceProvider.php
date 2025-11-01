@@ -3,14 +3,24 @@
 namespace Monstrex\Ave\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Cache;
+use Monstrex\Ave\Core\Registry\ResourceRegistry;
+use Monstrex\Ave\Core\Registry\PageRegistry;
+use Monstrex\Ave\Core\ResourceManager;
+use Monstrex\Ave\Core\PageManager;
+use Monstrex\Ave\Core\Rendering\ViewResolver;
+use Monstrex\Ave\Core\Rendering\ResourceRenderer;
+use Monstrex\Ave\Core\Validation\FormValidator;
+use Monstrex\Ave\Core\Persistence\ResourcePersistence;
+use Monstrex\Ave\Core\Discovery\AdminResourceDiscovery;
+use Monstrex\Ave\Core\Discovery\AdminPageDiscovery;
+use Monstrex\Ave\Console\Commands\CacheClearCommand;
 
 /**
  * AveServiceProvider Class
  *
  * Main service provider for the Ave admin panel package.
  * Registers all services, loads configuration, migrations, and views.
- *
- * NOTE: This is a minimal version for PHASE-0. Full registration happens in PHASE-9.
  */
 class AveServiceProvider extends ServiceProvider
 {
@@ -21,10 +31,18 @@ class AveServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        // Load config - will be created in PHASE-9
-        if (file_exists(__DIR__ . '/../../config/ave.php')) {
-            $this->mergeConfigFrom(__DIR__ . '/../../config/ave.php', 'ave');
-        }
+        // Register singletons
+        $this->app->singleton(ResourceRegistry::class);
+        $this->app->singleton(PageRegistry::class);
+        $this->app->singleton(ResourceManager::class);
+        $this->app->singleton(PageManager::class);
+        $this->app->singleton(ViewResolver::class);
+        $this->app->singleton(ResourceRenderer::class);
+        $this->app->singleton(FormValidator::class);
+        $this->app->singleton(ResourcePersistence::class);
+
+        // Merge config
+        $this->mergeConfigFrom(__DIR__ . '/../../config/ave.php', 'ave');
     }
 
     /**
@@ -34,17 +52,83 @@ class AveServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Minimal boot for PHASE-0
-        // Full implementation comes in PHASE-9 after all components are built
+        // Publish config
+        $this->publishes([
+            __DIR__ . '/../../config/ave.php' => config_path('ave.php'),
+        ], 'ave-config');
+
+        // Load views
+        $this->loadViewsFrom(__DIR__ . '/../../resources/views', 'ave');
+
+        // Load routes
+        $this->loadRoutesFrom(__DIR__ . '/../routes/admin.php');
+
+        // Register commands
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                CacheClearCommand::class,
+            ]);
+        }
+
+        // Discover and register resources/pages
+        $this->discoverAndRegister();
     }
 
     /**
-     * Register asset and config publishing
+     * Discover and register resources and pages with caching
      *
      * @return void
      */
-    protected function registerPublishing(): void
+    protected function discoverAndRegister(): void
     {
-        // Will be implemented in PHASE-9
+        $cacheEnabled = config('ave.cache_discovery', true);
+        $cacheTtl = config('ave.cache_ttl', 3600);
+
+        if ($cacheEnabled) {
+            $cached = Cache::remember('ave.discovery', $cacheTtl, function () {
+                return $this->performDiscovery();
+            });
+
+            $this->registerDiscovered($cached);
+        } else {
+            $discovered = $this->performDiscovery();
+            $this->registerDiscovered($discovered);
+        }
+    }
+
+    /**
+     * Perform discovery of resources and pages
+     *
+     * @return array Discovered classes
+     */
+    protected function performDiscovery(): array
+    {
+        $resourceDiscovery = $this->app->make(AdminResourceDiscovery::class);
+        $pageDiscovery = $this->app->make(AdminPageDiscovery::class);
+
+        return [
+            'resources' => $resourceDiscovery->discover(),
+            'pages' => $pageDiscovery->discover(),
+        ];
+    }
+
+    /**
+     * Register discovered resources and pages
+     *
+     * @param array $discovered Discovered classes
+     * @return void
+     */
+    protected function registerDiscovered(array $discovered): void
+    {
+        $resourceRegistry = $this->app->make(ResourceRegistry::class);
+        $pageRegistry = $this->app->make(PageRegistry::class);
+
+        foreach ($discovered['resources'] as $resourceClass) {
+            $resourceRegistry->register($resourceClass);
+        }
+
+        foreach ($discovered['pages'] as $pageClass) {
+            $pageRegistry->register($pageClass);
+        }
     }
 }

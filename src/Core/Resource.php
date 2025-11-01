@@ -5,12 +5,12 @@ namespace Monstrex\Ave\Core;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Contracts\Auth\Authenticatable;
+use Monstrex\Ave\Contracts\Authorizable;
 
 /**
  * Base Resource class for Ave v2
- * NOTE: In PHASE-8, will implement Authorizable contract
  */
-abstract class Resource
+abstract class Resource implements Authorizable
 {
     /** @var class-string<Model>|null */
     public static ?string $model = null;
@@ -78,21 +78,20 @@ abstract class Resource
 
     /**
      * Check if user can perform ability on this resource
-     * NOTE: In PHASE-8 this will be moved to Authorizable contract
      *
      * @param string $ability Action name (viewAny, view, create, update, delete)
      * @param Authenticatable|null $user Current user
      * @param mixed $model Model instance for singular checks (view, update, delete)
      * @return bool
      */
-    public function authorize(string $ability, ?Authenticatable $user = null, mixed $model = null): bool
+    public function can(string $ability, ?Authenticatable $user, mixed $model = null): bool
     {
-        if (!static::$policy) {
-            return true; // No policy = allowed
-        }
-
         if (!$user) {
             return false;
+        }
+
+        if (!static::$policy) {
+            return true; // No policy = allowed
         }
 
         return Gate::forUser($user)->allows($ability, $model ?? static::$model);

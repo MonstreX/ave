@@ -35,6 +35,14 @@ class Fieldset extends AbstractField
         return $this;
     }
 
+    /**
+     * Get fields in this fieldset
+     */
+    public function getFields(): array
+    {
+        return $this->schema;
+    }
+
     public function toArray(): array
     {
         return array_merge(parent::toArray(), [
