@@ -1,9 +1,15 @@
 {{-- resources/views/components/forms/media-field.blade.php --}}
+@php
+    $labelText = $label ?? $field->getLabel();
+    $helpText = ($help ?? null) ?: $field->getHelpText();
+    $isRequired = $required ?? $field->isRequired();
+@endphp
+
 <div class="form-field media-field @if($hasError) has-error @endif" data-field-name="{{ $key }}">
-    @if($label)
+    @if($labelText)
         <label for="{{ $key }}" class="form-label">
-            {{ $label }}
-            @if($required)
+            {{ $labelText }}
+            @if($isRequired)
                 <span class="required">*</span>
             @endif
         </label>
@@ -122,7 +128,7 @@
         </div>
     @endif
 
-    @if($helpText)
+    @if(!empty($helpText))
         <div class="help-text">{{ $helpText }}</div>
     @endif
 </div>

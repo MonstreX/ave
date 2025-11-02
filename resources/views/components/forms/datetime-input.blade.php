@@ -1,9 +1,17 @@
 {{-- Custom datetime field view --}}
+@php
+    $labelText = $label ?? $field->getLabel();
+    $helpText = ($help ?? null) ?: $field->getHelpText();
+    $isRequired = $required ?? $field->isRequired();
+    $isDisabled = $disabled ?? false;
+    $isReadonly = $readonly ?? false;
+@endphp
+
 <div class="form-field @if($hasError) has-error @endif">
-    @if($label)
+    @if($labelText)
         <label for="{{ $key }}" class="form-label">
-            {{ $label }}
-            @if($required)
+            {{ $labelText }}
+            @if($isRequired)
                 <span class="required">*</span>
             @endif
         </label>
@@ -14,9 +22,9 @@
         id="{{ $key }}"
         name="{{ $key }}"
         value="{{ $value ?? '' }}"
-        @if($required) required @endif
-        @if($disabled) disabled @endif
-        @if($readonly) readonly @endif
+        @if($isRequired) required @endif
+        @if($isDisabled) disabled @endif
+        @if($isReadonly) readonly @endif
         @if($placeholder) placeholder="{{ $placeholder }}" @endif
         class="form-control {{ $class ?? '' }}"
         {!! $attributes !!}
@@ -30,7 +38,7 @@
         </div>
     @endif
 
-    @if($helpText)
+    @if(!empty($helpText))
         <div class="help-text">{{ $helpText }}</div>
     @endif
 </div>

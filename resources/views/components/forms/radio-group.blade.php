@@ -1,15 +1,24 @@
 {{-- resources/views/components/forms/radio-group.blade.php --}}
+@php
+    $labelText = $label ?? $field->getLabel();
+    $helpText = ($help ?? null) ?: $field->getHelpText();
+    $isRequired = $required ?? $field->isRequired();
+    $isDisabled = $disabled ?? false;
+    $isReadonly = $readonly ?? false;
+    $isInline = $inline ?? false;
+@endphp
+
 <div class="form-field form-field-radio-group @if($hasError) has-error @endif">
-    @if($label)
+    @if($labelText)
         <label class="form-label">
-            {{ $label }}
-            @if($required)
+            {{ $labelText }}
+            @if($isRequired)
                 <span class="required">*</span>
             @endif
         </label>
     @endif
 
-    <div class="radio-group {{ $inline ? 'radio-group-inline' : '' }}">
+    <div class="radio-group {{ $isInline ? 'radio-group-inline' : '' }}">
         @foreach($options as $optionValue => $optionLabel)
             <label class="radio-label">
                 <input
@@ -17,9 +26,9 @@
                     name="{{ $key }}"
                     value="{{ $optionValue }}"
                     @if($optionValue == old($key, $value ?? '')) checked @endif
-                    @if($required) required @endif
-                    @if($disabled) disabled @endif
-                    @if($readonly) readonly @endif
+                    @if($isRequired) required @endif
+                    @if($isDisabled) disabled @endif
+                    @if($isReadonly) readonly @endif
                     class="radio-input {{ $class ?? '' }}"
                     {!! $attributes !!}
                 >
@@ -37,7 +46,7 @@
         </div>
     @endif
 
-    @if($helpText)
+    @if(!empty($helpText))
         <div class="help-text">{{ $helpText }}</div>
     @endif
 </div>

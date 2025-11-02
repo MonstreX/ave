@@ -1,9 +1,18 @@
 {{-- resources/views/components/forms/select.blade.php --}}
+@php
+    $labelText = $label ?? $field->getLabel();
+    $helpText = ($help ?? null) ?: $field->getHelpText();
+    $isRequired = $required ?? $field->isRequired();
+    $isDisabled = $disabled ?? false;
+    $isReadonly = $readonly ?? false;
+    $isMultiple = $multiple ?? false;
+@endphp
+
 <div class="form-field @if($hasError) has-error @endif">
-    @if($label)
+    @if($labelText)
         <label for="{{ $key }}" class="form-label">
-            {{ $label }}
-            @if($required)
+            {{ $labelText }}
+            @if($isRequired)
                 <span class="required">*</span>
             @endif
         </label>
@@ -11,11 +20,11 @@
 
     <select
         id="{{ $key }}"
-        name="{{ $key }}{{ $multiple ? '[]' : '' }}"
-        @if($multiple) multiple size="{{ $size }}" @endif
-        @if($required) required @endif
-        @if($disabled) disabled @endif
-        @if($readonly) readonly @endif
+        name="{{ $key }}{{ $isMultiple ? '[]' : '' }}"
+        @if($isMultiple) multiple size="{{ $size }}" @endif
+        @if($isRequired) required @endif
+        @if($isDisabled) disabled @endif
+        @if($isReadonly) readonly @endif
         class="form-control {{ $class ?? '' }}"
         {!! $attributes !!}
     >
@@ -41,7 +50,7 @@
         </div>
     @endif
 
-    @if($helpText)
+    @if(!empty($helpText))
         <div class="help-text">{{ $helpText }}</div>
     @endif
 </div>

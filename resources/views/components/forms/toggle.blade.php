@@ -1,9 +1,18 @@
 {{-- resources/views/components/forms/toggle.blade.php --}}
+@php
+    $labelText = $label ?? $field->getLabel();
+    $helpText = ($help ?? null) ?: $field->getHelpText();
+    $isRequired = $required ?? $field->isRequired();
+    $isDisabled = $disabled ?? false;
+    $isReadonly = $readonly ?? false;
+    $isChecked = $checked ?? ($value ?? false);
+@endphp
+
 <div class="form-field form-field-toggle @if($hasError) has-error @endif">
-    @if($label)
+    @if($labelText)
         <label class="form-label">
-            {{ $label }}
-            @if($required)
+            {{ $labelText }}
+            @if($isRequired)
                 <span class="required">*</span>
             @endif
         </label>
@@ -17,10 +26,10 @@
                 id="{{ $key }}"
                 name="{{ $key }}"
                 value="1"
-                @if($checked || old($key, $value ?? false)) checked @endif
-                @if($required) required @endif
-                @if($disabled) disabled @endif
-                @if($readonly) readonly @endif
+                @if($isChecked || old($key, false)) checked @endif
+                @if($isRequired) required @endif
+                @if($isDisabled) disabled @endif
+                @if($isReadonly) readonly @endif
                 class="toggle-input {{ $class ?? '' }}"
                 {!! $attributes !!}
             >
@@ -41,7 +50,7 @@
         </div>
     @endif
 
-    @if($helpText)
+    @if(!empty($helpText))
         <div class="help-text">{{ $helpText }}</div>
     @endif
 </div>

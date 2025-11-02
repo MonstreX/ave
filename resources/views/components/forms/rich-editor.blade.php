@@ -1,9 +1,19 @@
 {{-- resources/views/components/forms/rich-editor.blade.php --}}
+@php
+    $labelText = $label ?? $field->getLabel();
+    $helpText = ($help ?? null) ?: $field->getHelpText();
+    $isRequired = $required ?? $field->isRequired();
+    $isDisabled = $disabled ?? false;
+    $isReadonly = $readonly ?? false;
+    $editorHeight = $height ?? 400;
+    $editorValue = $value ?? $field->getValue();
+@endphp
+
 <div class="form-field @if($hasError) has-error @endif" data-field-type="rich-editor">
-    @if($label)
+    @if($labelText)
         <label for="{{ $key }}" class="form-label">
-            {{ $label }}
-            @if($required)
+            {{ $labelText }}
+            @if($isRequired)
                 <span class="required">*</span>
             @endif
         </label>
@@ -14,10 +24,10 @@
             id="{{ $key }}"
             name="{{ $key }}"
             data-editor="rich"
-            data-height="{{ $height ?? 400 }}"
-            @if($required) required @endif
-            @if($disabled) disabled @endif
-            @if($readonly) readonly @endif
+            data-height="{{ $editorHeight }}"
+            @if($isRequired) required @endif
+            @if($isDisabled) disabled @endif
+            @if($isReadonly) readonly @endif
             {!! $attributes !!}
         >{{ $value ?? '' }}</textarea>
     </div>
@@ -30,7 +40,7 @@
         </div>
     @endif
 
-    @if($helpText)
+    @if(!empty($helpText))
         <div class="help-text">{{ $helpText }}</div>
     @endif
 </div>

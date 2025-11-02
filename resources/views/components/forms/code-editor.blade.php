@@ -1,9 +1,17 @@
 {{-- resources/views/components/forms/code-editor.blade.php --}}
+@php
+    $labelText = $label ?? $field->getLabel();
+    $helpText = ($help ?? null) ?: $field->getHelpText();
+    $isRequired = $required ?? $field->isRequired();
+    $isDisabled = $disabled ?? false;
+    $isReadonly = $readonly ?? false;
+@endphp
+
 <div class="form-field @if($hasError) has-error @endif" data-field-type="code-editor">
-    @if($label)
+    @if($labelText)
         <label for="{{ $key }}" class="form-label">
-            {{ $label }}
-            @if($required)
+            {{ $labelText }}
+            @if($isRequired)
                 <span class="required">*</span>
             @endif
         </label>
@@ -22,9 +30,9 @@
             data-auto-complete="{{ $autoComplete ? 'true' : 'false' }}"
             data-tab-size="{{ $tabSize }}"
             style="display: none;"
-            @if($required) required @endif
-            @if($disabled) disabled @endif
-            @if($readonly) readonly @endif
+            @if($isRequired) required @endif
+            @if($isDisabled) disabled @endif
+            @if($isReadonly) readonly @endif
         >{{ is_array($value) ? json_encode($value, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) : ($value ?? '') }}</textarea>
 
         <!-- CodeMirror will be mounted here -->
@@ -39,7 +47,7 @@
         </div>
     @endif
 
-    @if($helpText)
+    @if(!empty($helpText))
         <div class="help-text">{{ $helpText }}</div>
     @endif
 </div>
