@@ -168,7 +168,7 @@ export default function initRichEditor(container = document) {
                     // Image dialog - only upload tab, no URL insert
                     filebrowser: {
                         ajax: {
-                            url: `/${adminPrefix}/upload-image`
+                            url: `/${adminPrefix}/media/upload`
                         }
                     }
                 });
