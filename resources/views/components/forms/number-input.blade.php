@@ -1,7 +1,7 @@
 {{-- resources/views/components/forms/number-input.blade.php --}}
 <div class="form-field @if($hasError) has-error @endif">
     @if($label)
-        <label for="{{ $name }}" class="form-label">
+        <label for="{{ $key }}" class="form-label">
             {{ $label }}
             @if($required)
                 <span class="required">*</span>
@@ -11,8 +11,8 @@
 
     <input
         type="number"
-        id="{{ $name }}"
-        name="{{ $name }}"
+        id="{{ $key }}"
+        name="{{ $key }}"
         value="{{ $value ?? '' }}"
         @if($min !== null) min="{{ $min }}" @endif
         @if($max !== null) max="{{ $max }}" @endif

@@ -1,7 +1,7 @@
 {{-- resources/views/components/forms/rich-editor.blade.php --}}
 <div class="form-field @if($hasError) has-error @endif" data-field-type="rich-editor">
     @if($label)
-        <label for="{{ $name }}" class="form-label">
+        <label for="{{ $key }}" class="form-label">
             {{ $label }}
             @if($required)
                 <span class="required">*</span>
@@ -11,8 +11,8 @@
 
     <div wire:ignore>
         <textarea
-            id="{{ $name }}"
-            name="{{ $name }}"
+            id="{{ $key }}"
+            name="{{ $key }}"
             data-editor="rich"
             data-height="{{ $height ?? 400 }}"
             @if($required) required @endif

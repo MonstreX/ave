@@ -1,7 +1,7 @@
 {{-- resources/views/components/forms/media-field.blade.php --}}
-<div class="form-field media-field @if($hasError) has-error @endif" data-field-name="{{ $name }}">
+<div class="form-field media-field @if($hasError) has-error @endif" data-field-name="{{ $key }}">
     @if($label)
-        <label for="{{ $name }}" class="form-label">
+        <label for="{{ $key }}" class="form-label">
             {{ $label }}
             @if($required)
                 <span class="required">*</span>
@@ -24,8 +24,8 @@
         {{-- Upload Area --}}
         <div class="media-upload-area" data-media-dropzone>
             <input type="file"
-                   id="{{ $name }}_file_input"
-                   name="{{ $name }}_files[]"
+                   id="{{ $key }}_file_input"
+                   name="{{ $key }}_files[]"
                    @if($multiple) multiple @endif
                    @if(!empty($accept)) accept="{{ $acceptString }}" @endif
                    class="media-file-input"
@@ -88,13 +88,13 @@
                     </div>
 
                     {{-- Hidden inputs for order and deletion tracking --}}
-                    <input type="hidden" name="{{ $name }}_order[]" value="{{ $media->id }}">
+                    <input type="hidden" name="{{ $key }}_order[]" value="{{ $media->id }}">
 
                     {{-- Hidden input with current props (for edit form pre-filling) --}}
                     @php
                         $currentProps = is_string($media->props) ? json_decode($media->props, true) : [];
                     @endphp
-                    <input type="hidden" name="{{ $name }}_props[{{ $media->id }}]" value="{{ json_encode($currentProps ?: []) }}">
+                    <input type="hidden" name="{{ $key }}_props[{{ $media->id }}]" value="{{ json_encode($currentProps ?: []) }}">
 
                     <div class="media-item-footer">
                         <div class="media-item-footer-line">
@@ -110,8 +110,8 @@
         </div>
 
         {{-- Hidden inputs for tracking changes --}}
-        <input type="hidden" name="{{ $name }}_uploaded" value="" data-uploaded-ids>
-        <input type="hidden" name="{{ $name }}_deleted" value="" data-deleted-ids>
+        <input type="hidden" name="{{ $key }}_uploaded" value="" data-uploaded-ids>
+        <input type="hidden" name="{{ $key }}_deleted" value="" data-deleted-ids>
     </div>
 
     @if(!empty($errors))
@@ -128,7 +128,7 @@
 </div>
 
 {{-- Template for dynamically added media items --}}
-<template id="media-item-template-{{ $name }}">
+<template id="media-item-template-{{ $key }}">
     <div class="media-item" data-media-id="">
         <div class="media-order"></div>
         <div class="media-preview @if($multiple) media-drag-handle @endif">
@@ -153,7 +153,7 @@
             </div>
         </div>
 
-        <input type="hidden" name="{{ $name }}_order[]" value="">
+        <input type="hidden" name="{{ $key }}_order[]" value="">
 
         <div class="media-item-footer">
             <div class="media-item-footer-line">

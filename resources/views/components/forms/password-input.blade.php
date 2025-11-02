@@ -1,7 +1,7 @@
 {{-- resources/views/components/forms/password-input.blade.php --}}
 <div class="form-field @if($hasError) has-error @endif">
     @if($label)
-        <label for="{{ $name }}" class="form-label">
+        <label for="{{ $key }}" class="form-label">
             {{ $label }}
             @if($required)
                 <span class="required">*</span>
@@ -12,8 +12,8 @@
     <div class="password-input-wrapper">
         <input
             type="password"
-            id="{{ $name }}"
-            name="{{ $name }}"
+            id="{{ $key }}"
+            name="{{ $key }}"
             value="{{ $value ?? '' }}"
             @if($required) required @endif
             @if($disabled) disabled @endif

@@ -1,7 +1,7 @@
 {{-- resources/views/components/forms/select.blade.php --}}
 <div class="form-field @if($hasError) has-error @endif">
     @if($label)
-        <label for="{{ $name }}" class="form-label">
+        <label for="{{ $key }}" class="form-label">
             {{ $label }}
             @if($required)
                 <span class="required">*</span>
@@ -10,8 +10,8 @@
     @endif
 
     <select
-        id="{{ $name }}"
-        name="{{ $name }}{{ $multiple ? '[]' : '' }}"
+        id="{{ $key }}"
+        name="{{ $key }}{{ $multiple ? '[]' : '' }}"
         @if($multiple) multiple size="{{ $size }}" @endif
         @if($required) required @endif
         @if($disabled) disabled @endif

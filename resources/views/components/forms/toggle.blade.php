@@ -11,13 +11,13 @@
 
     <div class="toggle-wrapper">
         <label class="toggle-label">
-            <input type="hidden" name="{{ $name }}" value="0">
+            <input type="hidden" name="{{ $key }}" value="0">
             <input
                 type="checkbox"
-                id="{{ $name }}"
-                name="{{ $name }}"
+                id="{{ $key }}"
+                name="{{ $key }}"
                 value="1"
-                @if($checked || old($name, $value ?? false)) checked @endif
+                @if($checked || old($key, $value ?? false)) checked @endif
                 @if($required) required @endif
                 @if($disabled) disabled @endif
                 @if($readonly) readonly @endif

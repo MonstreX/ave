@@ -14,9 +14,9 @@
             <label class="radio-label">
                 <input
                     type="radio"
-                    name="{{ $name }}"
+                    name="{{ $key }}"
                     value="{{ $optionValue }}"
-                    @if($optionValue == old($name, $value ?? '')) checked @endif
+                    @if($optionValue == old($key, $value ?? '')) checked @endif
                     @if($required) required @endif
                     @if($disabled) disabled @endif
                     @if($readonly) readonly @endif
