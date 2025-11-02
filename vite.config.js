@@ -12,7 +12,7 @@ export default defineConfig({
 
   build: {
     outDir: 'dist/.' +
-        'еб',
+    'еб',
     emptyOutDir: true,
     cssCodeSplit: false,
     // Disable chunk size warnings since we want large bundles

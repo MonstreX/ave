@@ -11,53 +11,11 @@
 @endphp
 
 @section('page_header')
-    <div class="page-header">
-        <h1 class="page-title">
-            <i class="{{ $isEdit ? 'voyager-edit' : 'voyager-plus' }}"></i>
-            {{ $titleLabel }} {{ $resource::getSingularLabel() }}
-        </h1>
-        <div class="page-header-actions">
-            <a href="{{ $cancelUrl }}" class="btn btn-secondary">
-                <i class="voyager-angle-left"></i>
-                <span>{{ __('Back') }}</span>
-            </a>
-        </div>
-    </div>
+    @include('ave::partials.form.toolbar')
 @endsection
 
 @section('content')
     <div class="page-content">
-        <div class="panel panel-bordered">
-            <div class="panel-body">
-                <form action="{{ $action }}" method="POST" enctype="multipart/form-data">
-                    @csrf
-                    @if($isEdit)
-                        @method('PUT')
-                    @endif
-
-                    @foreach($formLayout as $row)
-                        <div class="form-row">
-                            @foreach($row['columns'] as $column)
-                                <div class="form-column" style="grid-column: span {{ $column['span'] }}">
-                                    @foreach($column['fields'] as $field)
-                                        {!! $field->render($context) !!}
-                                    @endforeach
-                                </div>
-                            @endforeach
-                        </div>
-                    @endforeach
-
-                    <div class="form-actions">
-                        <a href="{{ $cancelUrl }}" class="btn btn-secondary">
-                            {{ __('Cancel') }}
-                        </a>
-                        <button type="submit" class="btn btn-primary">
-                            {{ $submitLabel }}
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
+        @include('ave::partials.form.body')
     </div>
 @endsection
-
