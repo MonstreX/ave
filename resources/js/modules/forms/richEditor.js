@@ -104,13 +104,21 @@ export default function initRichEditor(container = document) {
                             // Add model context if available (for binding image to model record)
                             if (modelType) {
                                 formData.append('model_type', modelType);
+                                console.log('[RichEditor] Model type:', modelType);
+                            } else {
+                                console.log('[RichEditor] No model type (create mode)');
                             }
                             if (modelId) {
                                 formData.append('model_id', modelId);
+                                console.log('[RichEditor] Model ID:', modelId);
                             }
                             if (fieldName) {
                                 formData.append('collection', fieldName);
+                                console.log('[RichEditor] Collection (field name):', fieldName);
                             }
+
+                            console.log('[RichEditor] Upload URL:', `/${adminPrefix}/media/upload`);
+                            console.log('[RichEditor] FormData keys:', Array.from(formData.keys()));
 
                             return formData;
                         },
@@ -146,7 +154,10 @@ export default function initRichEditor(container = document) {
                         },
 
                         defaultHandlerError: function (resp) {
-                            console.error('Image upload error:', resp);
+                            console.error('[RichEditor] Upload error response:', resp);
+                            console.error('[RichEditor] Status:', resp?.status);
+                            console.error('[RichEditor] Full response:', JSON.stringify(resp));
+
                             let message = 'Upload error';
 
                             if (resp && resp.message) {
@@ -155,11 +166,13 @@ export default function initRichEditor(container = document) {
                                 message = resp.data.message;
                             }
 
+                            console.error('[RichEditor] Error message:', message);
                             this.jodit.alert(message);
                         },
 
                         error: function (e) {
-                            console.error('Image upload error:', e);
+                            console.error('[RichEditor] Network error:', e);
+                            console.error('[RichEditor] Error stack:', e?.stack);
                             const message = (e && e.message) ? e.message : 'Upload error';
                             this.jodit.alert(message);
                         }
