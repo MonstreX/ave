@@ -1,2 +1,0 @@
-@include('ave::resources.form')
-
