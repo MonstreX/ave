@@ -4,6 +4,7 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Route;
 use Monstrex\Ave\Http\Controllers\ResourceController;
 use Monstrex\Ave\Http\Controllers\PageController;
+use Monstrex\Ave\Http\Controllers\MediaController;
 
 $prefix = config('ave.route_prefix', 'admin');
 $middleware = Arr::wrap(config('ave.middleware', ['web']));
@@ -48,4 +49,17 @@ Route::prefix($prefix)
         // Page routes
         Route::get('/page/{slug}', [PageController::class, 'show'])
             ->name('ave.page.show');
+
+        // Media routes
+        Route::post('/media/upload', [MediaController::class, 'upload'])
+            ->name('ave.media.upload');
+
+        Route::delete('/media/{id}', [MediaController::class, 'destroy'])
+            ->name('ave.media.destroy');
+
+        Route::post('/media/reorder', [MediaController::class, 'reorder'])
+            ->name('ave.media.reorder');
+
+        Route::post('/media/{id}/props', [MediaController::class, 'updateProps'])
+            ->name('ave.media.update-props');
     });

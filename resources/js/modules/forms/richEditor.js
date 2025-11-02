@@ -26,6 +26,12 @@ export default function initRichEditor(container = document) {
         if (editor.id) {
             const element = document.getElementById(editor.id);
             if(element){
+                // Find the closest form to get model context
+                const form = editor.closest('form');
+                const modelType = form ? form.dataset.modelType : null;
+                const modelId = form ? form.dataset.modelId : null;
+                const fieldName = editor.name; // Field name for collection
+
                 new Jodit(element, {
                     height: editor.dataset.height || 400,
 
@@ -52,7 +58,7 @@ export default function initRichEditor(container = document) {
 
                     // Uploader config for image button
                     uploader: {
-                        url: `/${adminPrefix}/upload-image`,
+                        url: `/${adminPrefix}/media/upload`,
                         format: 'json',
                         insertImageAsBase64URI: false,
 
@@ -94,6 +100,17 @@ export default function initRichEditor(container = document) {
 
                             // Add CSRF token
                             formData.append('_token', csrfToken);
+
+                            // Add model context if available (for binding image to model record)
+                            if (modelType) {
+                                formData.append('model_type', modelType);
+                            }
+                            if (modelId) {
+                                formData.append('model_id', modelId);
+                            }
+                            if (fieldName) {
+                                formData.append('collection', fieldName);
+                            }
 
                             return formData;
                         },

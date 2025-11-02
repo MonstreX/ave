@@ -1,6 +1,11 @@
 <div class="panel panel-bordered">
     <div class="panel-body">
-        <form action="{{ $action }}" method="POST" enctype="multipart/form-data">
+        <form action="{{ $action }}" method="POST" enctype="multipart/form-data"
+            @if($isEdit)
+                data-model-type="{{ get_class($model) }}"
+                data-model-id="{{ $model->getKey() }}"
+            @endif
+        >
             @csrf
             @if($isEdit)
                 @method('PUT')
