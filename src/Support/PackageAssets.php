@@ -18,7 +18,7 @@ class PackageAssets
     public static function migrations(): array
     {
         return [
-            self::path('migrations') => database_path('migrations'),
+            self::path('database/migrations') => database_path('migrations'),
         ];
     }
 

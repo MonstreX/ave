@@ -17,6 +17,7 @@ use Monstrex\Ave\Core\Discovery\AdminResourceDiscovery;
 use Monstrex\Ave\Core\Discovery\AdminPageDiscovery;
 use Monstrex\Ave\Console\Commands\CacheClearCommand;
 use Monstrex\Ave\View\Composers\SidebarComposer;
+use Monstrex\Ave\Support\PackageAssets;
 
 /**
  * AveServiceProvider Class
@@ -69,10 +70,7 @@ class AveServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Publish config
-        $this->publishes([
-            __DIR__ . '/../../config/ave.php' => config_path('ave.php'),
-        ], 'ave-config');
+        $this->registerPublishing();
 
         // Load views
         $this->loadViewsFrom(__DIR__ . '/../../resources/views', 'ave');
@@ -149,5 +147,56 @@ class AveServiceProvider extends ServiceProvider
         foreach ($discovered['pages'] as $slug => $pageClass) {
             $pageManager->register($pageClass, $slug);
         }
+    }
+
+    /**
+     * Register publishing of package assets, config, views, and migrations
+     *
+     * @return void
+     */
+    protected function registerPublishing(): void
+    {
+        if (! $this->app->runningInConsole()) {
+            return;
+        }
+
+        // Publish config
+        $this->publishes(PackageAssets::configs(), 'ave-config');
+
+        // Publish migrations
+        $this->publishes(PackageAssets::migrations(), 'ave-migrations');
+
+        // Publish views
+        $packagePath = __DIR__ . '/../../';
+        $this->publishes([
+            $packagePath . 'resources/views' => resource_path('views/vendor/ave'),
+        ], 'ave-views');
+
+        // Publish assets (dist folder)
+        $assetMappings = PackageAssets::assets();
+
+        if ($this->isVendorPublishCommand()) {
+            PackageAssets::cleanAssetTargets($assetMappings);
+        }
+
+        $this->publishes($assetMappings, 'ave-assets');
+    }
+
+    /**
+     * Check if the current command is vendor:publish
+     *
+     * @return bool
+     */
+    protected function isVendorPublishCommand(): bool
+    {
+        $arguments = $_SERVER['argv'] ?? [];
+
+        foreach ($arguments as $argument) {
+            if ($argument === 'vendor:publish') {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
