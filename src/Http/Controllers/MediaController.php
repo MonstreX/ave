@@ -36,9 +36,9 @@ class MediaController extends Controller
             $request->validate([
                 'files.*' => 'nullable|file|max:10240',
                 'image' => 'nullable|image|max:5120',
-                'model_type' => 'required|string',
-                'model_id' => 'required|integer',
-                'collection' => 'required|string|max:255',
+                'model_type' => 'nullable|string',
+                'model_id' => 'nullable|integer',
+                'collection' => 'nullable|string|max:255',
             ]);
 
             // Single image upload (RichEditor)
@@ -73,28 +73,37 @@ class MediaController extends Controller
             $modelId = $request->input('model_id');
             $collection = $request->input('collection');
 
-            // Load model
-            if (!class_exists($modelClass)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => "Model class not found: {$modelClass}",
-                ], 400);
-            }
+            // If model context provided, bind to model
+            if ($modelClass && $modelId) {
+                // Load model
+                if (!class_exists($modelClass)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => "Model class not found: {$modelClass}",
+                    ], 400);
+                }
 
-            $model = $modelClass::find($modelId);
-            if (!$model) {
-                return response()->json([
-                    'success' => false,
-                    'message' => "Model record not found: {$modelClass}#{$modelId}",
-                ], 404);
-            }
+                $model = $modelClass::find($modelId);
+                if (!$model) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => "Model record not found: {$modelClass}#{$modelId}",
+                    ], 404);
+                }
 
-            // Upload and bind to model
-            $mediaCollection = Media::add($file)
-                ->model($model)
-                ->collection($collection)
-                ->disk('public')
-                ->create();
+                // Upload and bind to model
+                $mediaCollection = Media::add($file)
+                    ->model($model)
+                    ->collection($collection ?: 'default')
+                    ->disk('public')
+                    ->create();
+            } else {
+                // Upload without model binding (for create forms, etc)
+                $mediaCollection = Media::add($file)
+                    ->collection($collection ?: 'default')
+                    ->disk('public')
+                    ->create();
+            }
 
             if ($mediaCollection->isEmpty()) {
                 return response()->json([
@@ -140,20 +149,23 @@ class MediaController extends Controller
             $modelId = $request->input('model_id');
             $collection = $request->input('collection');
 
-            // Load model
-            if (!class_exists($modelClass)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => "Model class not found: {$modelClass}",
-                ], 400);
-            }
+            // Load model if context provided
+            $model = null;
+            if ($modelClass && $modelId) {
+                if (!class_exists($modelClass)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => "Model class not found: {$modelClass}",
+                    ], 400);
+                }
 
-            $model = $modelClass::find($modelId);
-            if (!$model) {
-                return response()->json([
-                    'success' => false,
-                    'message' => "Model record not found: {$modelClass}#{$modelId}",
-                ], 404);
+                $model = $modelClass::find($modelId);
+                if (!$model) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => "Model record not found: {$modelClass}#{$modelId}",
+                    ], 404);
+                }
             }
 
             $uploadedMedia = [];
@@ -161,11 +173,20 @@ class MediaController extends Controller
             // Upload each file
             foreach ($request->file('files') as $file) {
                 try {
-                    $mediaCollection = Media::add($file)
-                        ->model($model)
-                        ->collection($collection)
-                        ->disk('public')
-                        ->create();
+                    if ($model) {
+                        // Bind to model if available
+                        $mediaCollection = Media::add($file)
+                            ->model($model)
+                            ->collection($collection ?: 'default')
+                            ->disk('public')
+                            ->create();
+                    } else {
+                        // Upload without model binding
+                        $mediaCollection = Media::add($file)
+                            ->collection($collection ?: 'default')
+                            ->disk('public')
+                            ->create();
+                    }
 
                     if ($mediaCollection->isEmpty()) {
                         throw new \Exception('Media creation returned empty collection');
