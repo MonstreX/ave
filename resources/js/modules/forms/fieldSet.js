@@ -1,5 +1,5 @@
 import Sortable from 'sortablejs';
-import { confirm } from '../ui/modals.js';
+import { confirm, alert as showAlert } from '../ui/modals.js';
 import { reinitFormComponents, reinitEditors } from './formReinit.js';
 import { aveEvents } from '../../core/EventBus.js';
 
@@ -216,8 +216,12 @@ export default function initFieldSet(root = document) {
 
             // Check min items limit
             const currentCount = itemsContainer.querySelectorAll('.fieldset-item').length;
-            if (minItems && currentCount <= minItems) {
-                alert(`Minimum ${minItems} items required`);
+            if (minItems > 0 && currentCount <= minItems) {
+                showAlert(`Minimum ${minItems} items required`, {
+                    title: 'Deletion Blocked',
+                    variant: 'warning',
+                    confirmText: 'OK'
+                });
                 return;
             }
 
