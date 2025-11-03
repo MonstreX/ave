@@ -76,8 +76,13 @@ class ResourcePersistence implements Persistable
                                   : \Monstrex\Ave\Core\FormContext::forCreate([], $request);
                 $field->beforeApply($request, $context);
 
+                // Get the prepared items from FieldSet after beforeApply processing
+                // This includes Media collection names stored in JSON
                 $incoming = $request->input($key, []);
-                $payload[$key] = $this->normalizeFieldsetValue($incoming);
+                $normalized = $this->normalizeFieldsetValue($incoming);
+
+                // Extract prepared value from field (which was set by beforeApply)
+                $payload[$key] = $field->extract($normalized);
                 continue;
             }
 
