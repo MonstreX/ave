@@ -347,6 +347,14 @@ class Fieldset extends AbstractField
                     $order = $this->parseIdList($request->input($fullFieldName.'_order', []));
                     $props = $this->normalisePropsInput($request->input($fullFieldName.'_props', []));
 
+                    \Log::info('FieldSet Media beforeApply', [
+                        'fullFieldName' => $fullFieldName,
+                        'collectionName' => $collectionName,
+                        'uploadedIds' => $uploadedIds,
+                        'order' => $order,
+                        'itemData_field' => $itemData[$fieldName] ?? null,
+                    ]);
+
                     if (!empty($itemData[$fieldName] ?? null) || !empty($uploadedIds) || !empty($order) || !empty($props)) {
                         $hasData = true;
                     }
@@ -368,6 +376,11 @@ class Fieldset extends AbstractField
 
                     // Store collection name in JSON instead of media data
                     $itemData[$fieldName] = $collectionName;
+
+                    \Log::info('FieldSet Media beforeApply after', [
+                        'collectionName_stored' => $itemData[$fieldName],
+                        'hasData' => $hasData,
+                    ]);
 
                     continue;
                 }
