@@ -70,6 +70,11 @@ class RichEditor extends AbstractField
     protected array $options = [];
 
     /**
+     * Preset class name or instance
+     */
+    protected ?string $presetClass = null;
+
+    /**
      * Placeholder text for empty editor
      */
     protected ?string $editorPlaceholder = null;
@@ -176,6 +181,20 @@ class RichEditor extends AbstractField
     }
 
     /**
+     * Apply a preset to this field
+     *
+     * Presets provide pre-configured feature sets and options.
+     * Can be overridden with features() and options() calls.
+     *
+     * @param string|object $preset Preset class name or instance
+     */
+    public function preset(string|object $preset): static
+    {
+        $this->presetClass = is_string($preset) ? $preset : $preset::class;
+        return $this;
+    }
+
+    /**
      * Set placeholder text
      */
     public function placeholder(string $text): static
@@ -275,6 +294,33 @@ class RichEditor extends AbstractField
     }
 
     /**
+     * Apply preset configuration if one is set
+     * Presets can be overridden by explicit features() or options() calls
+     */
+    protected function applyPreset(): void
+    {
+        if (!$this->presetClass) {
+            return;
+        }
+
+        $preset = new $this->presetClass();
+
+        // Apply preset features only if features not explicitly set
+        if ($this->features === null) {
+            $presetFeatures = $preset->features();
+            if ($presetFeatures !== null) {
+                $this->features(is_array($presetFeatures) ? $presetFeatures : $presetFeatures);
+            }
+        }
+
+        // Apply preset options (merge with existing)
+        $presetOptions = $preset->options();
+        if (!empty($presetOptions)) {
+            $this->options($presetOptions);
+        }
+    }
+
+    /**
      * Resolve final enabled feature set
      * If features is null, all defaults enabled
      * Otherwise, process tokens where '-' prefix disables features
@@ -314,6 +360,9 @@ class RichEditor extends AbstractField
      */
     public function getJsConfig(): array
     {
+        // Apply preset configuration first
+        $this->applyPreset();
+
         $enabled = array_flip($this->resolveFeatureSet());
 
         $config = [
