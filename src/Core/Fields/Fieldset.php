@@ -274,6 +274,12 @@ class Fieldset extends AbstractField
 
         // For Media field, save original name and item ID
         if ($field instanceof Media) {
+            // Save original field name before renaming
+            $originalNameProp = $reflection->getProperty('originalName');
+            $originalNameProp->setAccessible(true);
+            $originalNameProp->setValue($field, $originalName);
+
+            // Set item ID for stable collection naming
             $field->setFieldSetItemId($itemId);
         }
 
