@@ -33,15 +33,6 @@ class MediaController extends Controller
     public function upload(Request $request): JsonResponse
     {
         try {
-            \Log::debug('[MediaController] Upload request received', [
-                'has_image' => $request->hasFile('image'),
-                'has_files' => $request->hasFile('files'),
-                'model_type' => $request->input('model_type'),
-                'model_id' => $request->input('model_id'),
-                'collection' => $request->input('collection'),
-                'all_inputs' => $request->except(['image', 'files']),
-            ]);
-
             $request->validate([
                 'files.*' => 'nullable|file|max:10240',
                 'image' => 'nullable|image|max:5120',
@@ -50,16 +41,12 @@ class MediaController extends Controller
                 'collection' => 'nullable|string|max:255',
             ]);
 
-            \Log::debug('[MediaController] Validation passed');
-
             // Single image upload (RichEditor)
             if ($request->hasFile('image')) {
-                \Log::debug('[MediaController] Single image upload');
                 return $this->uploadSingleImage($request);
             }
 
             // Multiple files upload (Media field)
-            \Log::debug('[MediaController] Multiple files upload');
             return $this->uploadMultiple($request);
 
         } catch (ValidationException $e) {
@@ -105,21 +92,10 @@ class MediaController extends Controller
             $modelId = $request->input('model_id');
             $collection = $request->input('collection');
 
-            \Log::debug('[uploadSingleImage] Processing', [
-                'file_name' => $file->getClientOriginalName(),
-                'file_size' => $file->getSize(),
-                'model_class' => $modelClass,
-                'model_id' => $modelId,
-                'collection' => $collection,
-            ]);
-
             // If model context provided, bind to model
             if ($modelClass && $modelId) {
-                \Log::debug('[uploadSingleImage] Binding to model');
-
                 // Load model
                 if (!class_exists($modelClass)) {
-                    \Log::error('[uploadSingleImage] Model class not found', ['model_class' => $modelClass]);
                     return response()->json([
                         'success' => false,
                         'message' => "Model class not found: {$modelClass}",
@@ -128,14 +104,11 @@ class MediaController extends Controller
 
                 $model = $modelClass::find($modelId);
                 if (!$model) {
-                    \Log::error('[uploadSingleImage] Model record not found', ['model_class' => $modelClass, 'model_id' => $modelId]);
                     return response()->json([
                         'success' => false,
                         'message' => "Model record not found: {$modelClass}#{$modelId}",
                     ], 404);
                 }
-
-                \Log::debug('[uploadSingleImage] Creating media with model binding');
 
                 // Upload and bind to model
                 $mediaCollection = Media::add($file)
@@ -144,28 +117,15 @@ class MediaController extends Controller
                     ->disk('public')
                     ->create();
             } else {
-                \Log::debug('[uploadSingleImage] Creating media without model binding (create mode)');
-
                 // For create forms: save to temporary collection
                 // These will be migrated to actual model+collection when form is saved
                 $tempCollection = '__pending_' . ($collection ?: 'default');
-                \Log::debug('[uploadSingleImage] Using temporary collection', ['temp_collection' => $tempCollection]);
 
                 try {
-                    // Upload to temporary collection without model binding
-                    \Log::debug('[uploadSingleImage] Calling Media::add()', ['file' => $file->getClientOriginalName()]);
-
-                    $mediaBuilder = Media::add($file);
-                    \Log::debug('[uploadSingleImage] Media::add() returned');
-
-                    $mediaBuilder = $mediaBuilder->collection($tempCollection);
-                    \Log::debug('[uploadSingleImage] Temporary collection set', ['collection' => $tempCollection]);
-
-                    $mediaBuilder = $mediaBuilder->disk('public');
-                    \Log::debug('[uploadSingleImage] Disk set to public');
-
-                    $mediaCollection = $mediaBuilder->create();
-                    \Log::debug('[uploadSingleImage] Media created in temporary collection');
+                    $mediaCollection = Media::add($file)
+                        ->collection($tempCollection)
+                        ->disk('public')
+                        ->create();
                 } catch (\Exception $e) {
                     \Log::error('[uploadSingleImage] Error during media creation', [
                         'error' => $e->getMessage(),
@@ -176,7 +136,6 @@ class MediaController extends Controller
             }
 
             if ($mediaCollection->isEmpty()) {
-                \Log::error('[uploadSingleImage] Media collection is empty after creation');
                 return response()->json([
                     'success' => false,
                     'message' => 'Failed to create media entry',
@@ -184,7 +143,6 @@ class MediaController extends Controller
             }
 
             $media = $mediaCollection->first();
-            \Log::debug('[uploadSingleImage] Media created successfully', ['media_id' => $media->id, 'url' => $media->url()]);
 
             // Jodit response format
             return response()->json([
