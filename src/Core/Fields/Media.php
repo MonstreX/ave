@@ -362,7 +362,26 @@ class Media extends AbstractField
      */
     public function prepareForDisplay(FormContext $context): void
     {
-        $this->fillFromDataSource($context->dataSource());
+        // If value is already set (e.g., from fillFromDataSource in ResourceRenderer),
+        // and it's not empty, don't override it
+        $currentValue = $this->getValue();
+        if ($currentValue instanceof Collection && $currentValue->isNotEmpty()) {
+            return;
+        }
+        if (is_array($currentValue) && !empty($currentValue)) {
+            return;
+        }
+
+        $record = $context->record();
+
+        // If we have a model record, load media from it
+        if ($record && $record instanceof Model && $record->exists) {
+            $this->fillFromRecord($record);
+        }
+        // If still empty and not from model, try data source (for FieldSet and JSON)
+        if (empty($this->getValue())) {
+            $this->fillFromDataSource($context->dataSource());
+        }
     }
 
     /**
