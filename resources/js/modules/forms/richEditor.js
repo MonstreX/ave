@@ -32,7 +32,18 @@ export default function initRichEditor(container = document) {
                 const modelId = form ? form.dataset.modelId : null;
                 const fieldName = editor.name; // Field name for collection
 
-                new Jodit(element, {
+                // Parse preset config if provided
+                let presetConfig = {};
+                if (editor.dataset.config) {
+                    try {
+                        presetConfig = JSON.parse(editor.dataset.config);
+                    } catch (e) {
+                        console.error('Failed to parse editor config:', e);
+                    }
+                }
+
+                // Default configuration
+                const defaultConfig = {
                     height: editor.dataset.height || 400,
 
                     // Use Ace Editor for source mode with Monokai theme
@@ -167,7 +178,28 @@ export default function initRichEditor(container = document) {
                             url: `/${adminPrefix}/media/upload`
                         }
                     }
-                });
+                };
+
+                // Merge preset config on top of defaults
+                // Deep merge for nested objects like options
+                const finalConfig = {
+                    ...defaultConfig,
+                    ...presetConfig,
+                    sourceEditorNativeOptions: {
+                        ...defaultConfig.sourceEditorNativeOptions,
+                        ...(presetConfig.sourceEditorNativeOptions || {})
+                    },
+                    uploader: {
+                        ...defaultConfig.uploader,
+                        ...(presetConfig.uploader || {})
+                    },
+                    filebrowser: {
+                        ...defaultConfig.filebrowser,
+                        ...(presetConfig.filebrowser || {})
+                    }
+                };
+
+                new Jodit(element, finalConfig);
             }
         }
     });

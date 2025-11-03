@@ -309,7 +309,7 @@ class RichEditor extends AbstractField
         if ($this->features === null) {
             $presetFeatures = $preset->features();
             if ($presetFeatures !== null) {
-                $this->features(is_array($presetFeatures) ? $presetFeatures : $presetFeatures);
+                $this->features($presetFeatures);
             }
         }
 

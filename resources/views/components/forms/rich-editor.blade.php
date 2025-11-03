@@ -25,6 +25,7 @@
             name="{{ $key }}"
             data-editor="rich"
             data-height="{{ $editorHeight }}"
+            @if(!empty($jsConfig))data-config="{{ $jsConfig }}"@endif
             @if($isRequired) required @endif
             @if($isDisabled) disabled @endif
             @if($isReadonly) readonly @endif
