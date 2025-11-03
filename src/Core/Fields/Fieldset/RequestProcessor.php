@@ -41,13 +41,6 @@ class RequestProcessor
 
             $hasMeaningfulData = false;
 
-            logger()->info('[Fieldset][RequestProcessor] processing item', [
-                'fieldset' => $fieldsetKey,
-                'index' => $index,
-                'item_id' => $itemId,
-                'incoming' => $itemData,
-            ]);
-
             foreach ($this->fieldset->getChildSchema() as $schemaField) {
                 if (!$schemaField instanceof AbstractField) {
                     continue;
@@ -81,25 +74,6 @@ class RequestProcessor
 
                     $itemData[$fieldName] = $operation->collection;
 
-                    $metaKey = str_replace(['[', ']'], '_', "{$fieldsetKey}[{$index}][{$fieldName}]");
-                    $metaKey = preg_replace('/_+/', '_', $metaKey);
-                    $metaKey = trim($metaKey, '_');
-
-                    logger()->info('[Fieldset][RequestProcessor] media field processed', [
-                        'fieldset' => $fieldsetKey,
-                        'field' => $fieldName,
-                        'index' => $index,
-                        'item_id' => $itemId,
-                        'meta_key' => $metaKey,
-                        'operation_uploaded' => $operation->uploaded,
-                        'operation_deleted' => $operation->deleted,
-                        'operation_order' => $operation->order,
-                        'operation_props' => $operation->props,
-                        'remaining_media' => $remainingMedia,
-                        'has_meaningful_data' => $hasMeaningfulData,
-                        'stored_value' => $itemData[$fieldName],
-                    ]);
-
                     continue;
                 }
 
@@ -114,29 +88,11 @@ class RequestProcessor
             }
 
             if (!$hasMeaningfulData) {
-                logger()->info('[Fieldset][RequestProcessor] skipping empty item', [
-                    'fieldset' => $fieldsetKey,
-                    'index' => $index,
-                    'item_id' => $itemId,
-                ]);
                 continue;
             }
 
-            logger()->info('[Fieldset][RequestProcessor] item accepted', [
-                'fieldset' => $fieldsetKey,
-                'index' => $index,
-                'item_id' => $itemId,
-                'prepared_item' => $itemData,
-            ]);
-
             $processedItems[] = $itemData;
         }
-
-        logger()->info('[Fieldset][RequestProcessor] result', [
-            'fieldset' => $fieldsetKey,
-            'items_count' => count($processedItems),
-            'deferred_count' => count($deferred),
-        ]);
 
         return new ProcessResult($processedItems, $deferred);
     }

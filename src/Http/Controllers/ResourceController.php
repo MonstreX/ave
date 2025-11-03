@@ -9,9 +9,8 @@ use Monstrex\Ave\Core\Validation\FormValidator;
 use Monstrex\Ave\Core\Persistence\ResourcePersistence;
 use Monstrex\Ave\Core\Rendering\ResourceRenderer;
 use Monstrex\Ave\Core\Query\TableQueryBuilder;
+use Monstrex\Ave\Core\FormContext;
 use Monstrex\Ave\Exceptions\ResourceException;
-use Monstrex\Ave\Core\Form;
-use Monstrex\Ave\Core\Fields\Fieldset;
 
 /**
  * Controller for managing resources (CRUD operations)
@@ -117,29 +116,11 @@ class ResourceController extends Controller
         }
 
         $form = $resourceClass::form($request);
-        $this->sanitizeFieldsetInput($form, $request);
-        logger()->info('[ResourceController][store] incoming payload', [
-            'slug' => $slug,
-            'payload' => $request->all(),
-        ]);
-        $rules = $this->validator->rulesFromForm($form, $resourceClass, $request, mode: 'create');
-        logger()->info('[ResourceController][store] rules before validate', [
-            'slug' => $slug,
-            'rules' => $rules,
-        ]);
+        $context = FormContext::forCreate([], $request);
+        $rules = $this->validator->rulesFromForm($form, $resourceClass, $request, mode: 'create', model: null, context: $context);
+        $data = $request->validate($rules);
 
-        try {
-            $data = $request->validate($rules);
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            logger()->error('[ResourceController][store] validation failed', [
-                'slug' => $slug,
-                'errors' => $e->errors(),
-            ]);
-
-            throw $e;
-        }
-
-        $model = $this->persistence->create($resourceClass, $form, $data, $request);
+        $model = $this->persistence->create($resourceClass, $form, $data, $request, $context);
 
         return redirect()
             ->route('ave.resource.index', ['slug' => $slug])
@@ -215,32 +196,11 @@ class ResourceController extends Controller
         }
 
         $form = $resourceClass::form($request);
-        $this->sanitizeFieldsetInput($form, $request);
-        logger()->info('[ResourceController][update] incoming payload', [
-            'slug' => $slug,
-            'id' => $id,
-            'payload' => $request->all(),
-        ]);
-        $rules = $this->validator->rulesFromForm($form, $resourceClass, $request, mode: 'edit', model: $model);
-        logger()->info('[ResourceController][update] rules before validate', [
-            'slug' => $slug,
-            'id' => $id,
-            'rules' => $rules,
-        ]);
+        $context = FormContext::forEdit($model, [], $request);
+        $rules = $this->validator->rulesFromForm($form, $resourceClass, $request, mode: 'edit', model: $model, context: $context);
+        $data = $request->validate($rules);
 
-        try {
-            $data = $request->validate($rules);
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            logger()->error('[ResourceController][update] validation failed', [
-                'slug' => $slug,
-                'id' => $id,
-                'errors' => $e->errors(),
-            ]);
-
-            throw $e;
-        }
-
-        $this->persistence->update($resourceClass, $form, $model, $data, $request);
+        $this->persistence->update($resourceClass, $form, $model, $data, $request, $context);
 
         return redirect()
             ->route('ave.resource.index', ['slug' => $slug])
@@ -389,39 +349,4 @@ class ResourceController extends Controller
         ]);
     }
 
-    protected function sanitizeFieldsetInput(Form $form, Request $request): void
-    {
-        foreach ($form->getAllFields() as $field) {
-            if (!$field instanceof Fieldset) {
-                continue;
-            }
-
-            $key = $field->key();
-            $raw = $request->input($key);
-
-            if (!is_array($raw)) {
-                continue;
-            }
-
-            $sanitized = [];
-            foreach ($raw as $index => $item) {
-                if (!is_array($item)) {
-                    continue;
-                }
-
-                if (!is_numeric($index)) {
-                    logger()->info('[ResourceController] dropping placeholder Fieldset item', [
-                        'fieldset' => $key,
-                        'placeholder_key' => $index,
-                        'data' => $item,
-                    ]);
-                    continue;
-                }
-
-                $sanitized[] = $item;
-            }
-
-            $request->merge([$key => $sanitized]);
-        }
-    }
 }

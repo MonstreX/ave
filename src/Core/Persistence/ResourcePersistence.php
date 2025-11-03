@@ -5,9 +5,10 @@ namespace Monstrex\Ave\Core\Persistence;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Monstrex\Ave\Contracts\HandlesPersistence;
 use Monstrex\Ave\Contracts\Persistable;
-use Monstrex\Ave\Core\Fields\Fieldset;
 use Monstrex\Ave\Core\Form;
+use Monstrex\Ave\Core\FormContext;
 use Monstrex\Ave\Events\ResourceCreated;
 use Monstrex\Ave\Events\ResourceCreating;
 use Monstrex\Ave\Events\ResourceDeleted;
@@ -17,18 +18,19 @@ use Monstrex\Ave\Events\ResourceUpdating;
 
 class ResourcePersistence implements Persistable
 {
-    public function create(string $resourceClass, Form $form, array $data, Request $request): Model
+    public function create(string $resourceClass, Form $form, array $data, Request $request, FormContext $context): Model
     {
-        return DB::transaction(function () use ($resourceClass, $form, $data, $request) {
+        return DB::transaction(function () use ($resourceClass, $form, $data, $request, $context) {
             event(new ResourceCreating($resourceClass, $data));
 
-            $payload = $this->mergeFormData($form, null, $data, $request);
+            $payload = $this->mergeFormData($form, null, $data, $request, $context);
 
             $modelClass = $resourceClass::$model;
             $model = $modelClass::create($payload);
 
             $this->syncRelations($resourceClass, $model, $data, $request);
-            $this->executeDeferredFieldsetActions($form, $model);
+            $context->setRecord($model);
+            $context->runDeferredActions($model);
 
             event(new ResourceCreated($resourceClass, $model));
 
@@ -36,17 +38,18 @@ class ResourcePersistence implements Persistable
         });
     }
 
-    public function update(string $resourceClass, Form $form, Model $model, array $data, Request $request): Model
+    public function update(string $resourceClass, Form $form, Model $model, array $data, Request $request, FormContext $context): Model
     {
-        return DB::transaction(function () use ($resourceClass, $form, $model, $data, $request) {
+        return DB::transaction(function () use ($resourceClass, $form, $model, $data, $request, $context) {
             event(new ResourceUpdating($resourceClass, $model, $data));
 
-            $payload = $this->mergeFormData($form, $model, $data, $request);
+            $payload = $this->mergeFormData($form, $model, $data, $request, $context);
 
             $model->update($payload);
 
             $this->syncRelations($resourceClass, $model, $data, $request);
-            $this->executeDeferredFieldsetActions($form, $model);
+            $context->setRecord($model);
+            $context->runDeferredActions($model);
 
             event(new ResourceUpdated($resourceClass, $model));
 
@@ -65,54 +68,29 @@ class ResourcePersistence implements Persistable
         });
     }
 
-    protected function mergeFormData(Form $form, ?Model $model, array $data, Request $request): array
+    protected function mergeFormData(Form $form, ?Model $model, array $data, Request $request, FormContext $context): array
     {
         $payload = [];
 
         foreach ($form->getAllFields() as $field) {
             $key = $field->key();
+            $value = $data[$key] ?? $request->input($key);
 
-            if ($field instanceof Fieldset) {
-                // CRITICAL: Call beforeApply for FieldSet to handle nested Media fields
-                $context = $model ? \Monstrex\Ave\Core\FormContext::forEdit($model, [], $request)
-                                  : \Monstrex\Ave\Core\FormContext::forCreate([], $request);
+            if ($field instanceof HandlesPersistence) {
+                $result = $field->prepareForSave($value, $request, $context);
+                $payload[$key] = $result->value();
 
-                $field->beforeApply($request, $context);
-
-                // Get the prepared items from FieldSet after beforeApply processing
-                // This includes Media collection names stored in JSON
-                $incoming = $request->input($key, []);
-                $normalized = $this->normalizeFieldsetValue($incoming);
-
-                // Extract prepared value from field (which was set by beforeApply)
-                $payload[$key] = $field->extract($normalized);
+                foreach ($result->deferredActions() as $action) {
+                    $context->registerDeferredAction($action);
+                }
 
                 continue;
             }
 
-            $value = $data[$key] ?? $request->input($key);
             $payload[$key] = $field->extract($value);
         }
 
         return $payload;
-    }
-
-    protected function normalizeFieldsetValue(mixed $value): array
-    {
-        if (!is_array($value)) {
-            return [];
-        }
-
-        return array_values(array_filter($value, 'is_array'));
-    }
-
-    private function executeDeferredFieldsetActions(Form $form, Model $model): void
-    {
-        foreach ($form->getAllFields() as $field) {
-            if ($field instanceof Fieldset) {
-                $field->runDeferredActions($model);
-            }
-        }
     }
 
     protected function syncRelations(string $resourceClass, Model $model, array $data, Request $request): void

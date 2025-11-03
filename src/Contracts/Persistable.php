@@ -5,6 +5,7 @@ namespace Monstrex\Ave\Contracts;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Monstrex\Ave\Core\Form;
+use Monstrex\Ave\Core\FormContext;
 
 interface Persistable
 {
@@ -17,7 +18,7 @@ interface Persistable
      * @param Request $request Current request
      * @return Model Created model
      */
-    public function create(string $resourceClass, Form $form, array $data, Request $request): Model;
+    public function create(string $resourceClass, Form $form, array $data, Request $request, FormContext $context): Model;
 
     /**
      * Update an existing model instance
@@ -29,7 +30,7 @@ interface Persistable
      * @param Request $request Current request
      * @return Model Updated model
      */
-    public function update(string $resourceClass, Form $form, Model $model, array $data, Request $request): Model;
+    public function update(string $resourceClass, Form $form, Model $model, array $data, Request $request, FormContext $context): Model;
 
     /**
      * Delete a model instance

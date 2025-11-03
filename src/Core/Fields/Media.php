@@ -6,7 +6,10 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
+use Monstrex\Ave\Contracts\HandlesPersistence;
+use Monstrex\Ave\Contracts\ProvidesValidationRules;
 use Monstrex\Ave\Core\DataSources\DataSourceInterface;
+use Monstrex\Ave\Core\Fields\FieldPersistenceResult;
 use Monstrex\Ave\Core\FormContext;
 
 /**
@@ -22,7 +25,7 @@ use Monstrex\Ave\Core\FormContext;
  * - Usage inside FieldSet (nested media fields)
  * - Database or JSON storage
  */
-class Media extends AbstractField
+class Media extends AbstractField implements ProvidesValidationRules, HandlesPersistence
 {
     /**
      * Collection for storing files
@@ -388,13 +391,12 @@ class Media extends AbstractField
     /**
      * Processing before apply
      */
-    public function beforeApply(Request $request, FormContext $context): void
+    public function prepareForSave(mixed $value, Request $request, FormContext $context): FieldPersistenceResult
     {
         $this->pendingMediaPayload = [];
 
-        // FieldSet handles nested media fields on its own
         if ($this->isNestedInFieldSet()) {
-            return;
+            return FieldPersistenceResult::make($value);
         }
 
         $metaKey = $this->buildMetaKey($this->key);
@@ -405,7 +407,6 @@ class Media extends AbstractField
 
         $record = $context->record();
 
-        // Delete media marked for deletion
         if (!empty($deletedIds) && $record && $record->exists) {
             $record->media()
                 ->where('collection_name', $this->collection)
@@ -414,7 +415,7 @@ class Media extends AbstractField
         }
 
         if (empty($uploadedIds) && empty($order) && empty($props)) {
-            return;
+            return FieldPersistenceResult::make($value);
         }
 
         $payload = [
@@ -425,9 +426,8 @@ class Media extends AbstractField
 
         $this->pendingMediaPayload = $payload;
 
-        // Schedule operations to run after record is saved
-        if (method_exists($this, 'afterRecordSaved')) {
-            $this->afterRecordSaved($context, function (Model $savedRecord, FormContext $savedContext) use ($payload) {
+        $deferred = [
+            function (Model $savedRecord) use ($payload): void {
                 if (!empty($payload['uploaded'])) {
                     $this->attachMedia($savedRecord, $this->collection, $payload['uploaded']);
                 }
@@ -439,8 +439,10 @@ class Media extends AbstractField
                 if (!empty($payload['props'])) {
                     $this->syncMediaProps($savedRecord, $this->collection, $payload['props']);
                 }
-            });
-        }
+            },
+        ];
+
+        return FieldPersistenceResult::make($value, $deferred);
     }
 
     /**
@@ -465,6 +467,21 @@ class Media extends AbstractField
         }
 
         return $rules;
+    }
+
+    public function buildValidationRules(): array
+    {
+        $rules = $this->getRules();
+
+        if ($this->isRequired()) {
+            if (!in_array('required', $rules, true)) {
+                $rules[] = 'required';
+            }
+        } elseif (!in_array('nullable', $rules, true)) {
+            $rules[] = 'nullable';
+        }
+
+        return [$this->key() => implode('|', array_filter($rules))];
     }
 
     /**

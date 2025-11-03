@@ -4,9 +4,11 @@ namespace Monstrex\Ave\Core\Validation;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
+use Monstrex\Ave\Contracts\HandlesFormRequest;
+use Monstrex\Ave\Contracts\ProvidesValidationRules;
 use Monstrex\Ave\Core\Fields\AbstractField;
-use Monstrex\Ave\Core\Fields\Fieldset;
 use Monstrex\Ave\Core\Form;
+use Monstrex\Ave\Core\FormContext;
 
 /**
  * Builds Laravel validation rules from form definition.
@@ -21,20 +23,24 @@ class FormValidator
         string $resourceClass,
         Request $request,
         string $mode = 'create',
-        ?Model $model = null
+        ?Model $model = null,
+        ?FormContext $context = null
     ): array {
-        $rules = [];
-
-        logger()->info('[FormValidator] building rules', [
-            'resource' => $resourceClass,
-            'mode' => $mode,
-            'payload_keys' => array_keys($request->all()),
-            'fieldset_input' => $request->input(),
-        ]);
+        $context ??= $model
+            ? FormContext::forEdit($model, [], $request)
+            : FormContext::forCreate([], $request);
 
         foreach ($form->getAllFields() as $field) {
-            if ($field instanceof Fieldset) {
-                $rules += $this->fieldsetRules($field);
+            if ($field instanceof HandlesFormRequest) {
+                $field->prepareRequest($request, $context);
+            }
+        }
+
+        $rules = [];
+
+        foreach ($form->getAllFields() as $field) {
+            if ($field instanceof ProvidesValidationRules) {
+                $rules = array_merge($rules, $field->buildValidationRules());
                 continue;
             }
 
@@ -43,29 +49,6 @@ class FormValidator
 
         if ($mode === 'edit' && $model) {
             $rules = $this->adjustUniqueRulesForEdit($rules, $model);
-        }
-
-        logger()->info('[FormValidator] rules compiled', [
-            'rules' => $rules,
-        ]);
-
-        return $rules;
-    }
-
-    protected function fieldsetRules(Fieldset $fieldset): array
-    {
-        $rules = [];
-
-        $fieldsetKey = $fieldset->key();
-        $rules = $this->appendFieldRules($rules, $fieldset, $fieldsetKey, $this->fieldsetBaseRules($fieldset));
-
-        foreach ($fieldset->getChildSchema() as $nestedField) {
-            if (!$nestedField instanceof AbstractField) {
-                continue;
-            }
-
-            $nestedKey = sprintf('%s.*.%s', $fieldsetKey, $nestedField->key());
-            $rules = $this->appendFieldRules($rules, $nestedField, $nestedKey);
         }
 
         return $rules;
@@ -83,44 +66,10 @@ class FormValidator
         $fieldRules = $baseRules ?? $field->getRules();
 
         if (empty($fieldRules) && !$field->isRequired()) {
-            logger()->info('[FormValidator] skip empty rules', [
-                'field' => $field->key(),
-                'key' => $key,
-            ]);
             return $rules;
         }
 
         $rules[$key] = $this->formatRules($fieldRules, $field->isRequired());
-
-        logger()->info('[FormValidator] append rules', [
-            'field' => $field->key(),
-            'key' => $key,
-            'rules' => $rules[$key],
-        ]);
-
-        return $rules;
-    }
-
-    /**
-     * Ensure base rules for Fieldset include array/min/max constraints.
-     *
-     * @return array<int,string>
-     */
-    protected function fieldsetBaseRules(Fieldset $fieldset): array
-    {
-        $rules = $fieldset->getRules();
-
-        if (!in_array('array', $rules, true)) {
-            $rules[] = 'array';
-        }
-
-        if (($min = $fieldset->getMinItems()) !== null) {
-            $rules[] = 'min:' . $min;
-        }
-
-        if (($max = $fieldset->getMaxItems()) !== null) {
-            $rules[] = 'max:' . $max;
-        }
 
         return $rules;
     }

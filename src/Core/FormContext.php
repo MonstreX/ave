@@ -2,6 +2,7 @@
 
 namespace Monstrex\Ave\Core;
 
+use Closure;
 use Illuminate\Contracts\Support\MessageBag;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
@@ -33,6 +34,9 @@ class FormContext
     protected ViewErrorBag $errors;
 
     protected ?DataSourceInterface $dataSource = null;
+
+    /** @var array<int,Closure> */
+    protected array $deferredActions = [];
 
     /**
      * @param  array<string,mixed>  $oldInput
@@ -148,6 +152,26 @@ class FormContext
     public function record(): ?Model
     {
         return $this->record;
+    }
+
+    public function setRecord(?Model $record): void
+    {
+        $this->record = $record;
+        $this->dataSource = $record ? new ModelDataSource($record) : null;
+    }
+
+    public function registerDeferredAction(Closure $action): void
+    {
+        $this->deferredActions[] = $action;
+    }
+
+    public function runDeferredActions(Model $record): void
+    {
+        foreach ($this->deferredActions as $action) {
+            $action($record);
+        }
+
+        $this->deferredActions = [];
     }
 
     /**

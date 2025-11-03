@@ -36,22 +36,6 @@ class MediaManager
         $order = $this->parseIdList($rawOrder);
         $props = $this->normalisePropsInput($rawProps);
 
-        logger()->debug('[Fieldset][MediaManager] collectOperation', [
-            'fieldset' => $fieldsetKey,
-            'field' => $fieldName,
-            'index' => $index,
-            'item_id' => $itemId,
-            'meta_key' => $metaKey,
-            'raw_uploaded' => $rawUploaded,
-            'raw_deleted' => $rawDeleted,
-            'raw_order' => $rawOrder,
-            'raw_props' => $rawProps,
-            'parsed_uploaded' => $uploaded,
-            'parsed_deleted' => $deleted,
-            'parsed_order' => $order,
-            'parsed_props' => $props,
-        ]);
-
         return new MediaOperation(
             $collectionName,
             $uploaded,

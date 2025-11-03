@@ -2,11 +2,13 @@
 
 namespace Monstrex\Ave\Core\Fields;
 
-use Closure;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
+use Monstrex\Ave\Contracts\HandlesFormRequest;
+use Monstrex\Ave\Contracts\HandlesPersistence;
+use Monstrex\Ave\Contracts\ProvidesValidationRules;
 use Monstrex\Ave\Core\DataSources\DataSourceInterface;
 use Monstrex\Ave\Core\FormContext;
+use Monstrex\Ave\Core\Fields\FieldPersistenceResult;
 use Monstrex\Ave\Core\Fields\Fieldset\Item;
 use Monstrex\Ave\Core\Fields\Fieldset\ItemFactory;
 use Monstrex\Ave\Core\Fields\Fieldset\MediaManager;
@@ -21,7 +23,7 @@ use Monstrex\Ave\Core\Fields\Fieldset\RequestProcessor;
  * - nested media fields that keep deterministic collection names
  * - ability to remove items together with their media payloads
  */
-class Fieldset extends AbstractField
+class Fieldset extends AbstractField implements HandlesFormRequest, ProvidesValidationRules, HandlesPersistence
 {
     /** @var array<int,AbstractField> */
     protected array $childSchema = [];
@@ -53,9 +55,6 @@ class Fieldset extends AbstractField
     /** @var array<int,mixed> */
     private array $templateFields = [];
 
-    /** @var array<int,Closure> */
-    private array $deferredActions = [];
-
     private ?Renderer $renderer = null;
     private ?RequestProcessor $requestProcessor = null;
     private ?ItemFactory $itemFactory = null;
@@ -84,6 +83,79 @@ class Fieldset extends AbstractField
     public function getChildSchema(): array
     {
         return $this->childSchema;
+    }
+
+    public function prepareRequest(Request $request, FormContext $context): void
+    {
+        $raw = $request->input($this->key, []);
+
+        if (!is_array($raw)) {
+            $request->merge([$this->key => []]);
+            return;
+        }
+
+        $sanitized = [];
+        foreach ($raw as $index => $item) {
+            if (!is_array($item)) {
+                continue;
+            }
+
+            if (!is_numeric($index)) {
+                continue;
+            }
+
+            $sanitized[] = $item;
+        }
+
+        $request->merge([$this->key => array_values($sanitized)]);
+    }
+
+    public function buildValidationRules(): array
+    {
+        $rules = [];
+
+        $baseRules = $this->getRules();
+        if (!in_array('array', $baseRules, true)) {
+            $baseRules[] = 'array';
+        }
+
+        if ($this->minItems > 0) {
+            $baseRules[] = 'min:' . $this->minItems;
+        }
+
+        if ($this->maxItems !== null) {
+            $baseRules[] = 'max:' . $this->maxItems;
+        }
+
+        $rules[$this->key()] = $this->formatRulesForValidation($baseRules, $this->isRequired());
+
+        foreach ($this->childSchema as $child) {
+            if (!$child instanceof AbstractField) {
+                continue;
+            }
+
+            $childRules = $child->getRules();
+            if (empty($childRules) && !$child->isRequired()) {
+                continue;
+            }
+
+            $rules[sprintf('%s.*.%s', $this->key(), $child->key())] = $this->formatRulesForValidation(
+                $childRules,
+                $child->isRequired()
+            );
+        }
+
+        return $rules;
+    }
+
+    public function prepareForSave(mixed $value, Request $request, FormContext $context): FieldPersistenceResult
+    {
+        $this->preparedItems = [];
+
+        $result = $this->requestProcessor()->process($request, $context);
+        $this->preparedItems = $result->items();
+
+        return FieldPersistenceResult::make($this->preparedItems, $result->deferredActions());
     }
 
     public function sortable(bool $sortable = true): static
@@ -180,17 +252,6 @@ class Fieldset extends AbstractField
         );
 
         $this->templateFields = $result->templateFields();
-    }
-
-    public function beforeApply(Request $request, FormContext $context): void
-    {
-        $this->preparedItems = [];
-        $this->deferredActions = [];
-
-        $result = $this->requestProcessor()->process($request, $context);
-
-        $this->preparedItems = $result->items();
-        $this->deferredActions = $result->deferredActions();
     }
 
     public function applyToDataSource(DataSourceInterface $source, mixed $value): void
@@ -315,13 +376,22 @@ class Fieldset extends AbstractField
     /**
      * Execute queued media operations once the record is persisted.
      */
-    public function runDeferredActions(Model $record): void
+    /**
+     * Normalize validation rule set taking required/nullable into account.
+     */
+    private function formatRulesForValidation(array $rules, bool $required): string
     {
-        foreach ($this->deferredActions as $action) {
-            $action($record);
+        $rules = array_values(array_filter($rules));
+
+        if ($required) {
+            if (!in_array('required', $rules, true)) {
+                array_unshift($rules, 'required');
+            }
+        } elseif (!in_array('nullable', $rules, true)) {
+            array_unshift($rules, 'nullable');
         }
 
-        $this->deferredActions = [];
+        return implode('|', $rules);
     }
 
     /**
