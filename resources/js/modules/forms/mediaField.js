@@ -13,6 +13,20 @@ function humanFileSize(bytes, decimals = 1) {
     return (bytes / Math.pow(1024, factor)).toFixed(decimals) + sizes[factor];
 }
 
+// Store all media field containers for later reference
+const mediaContainers = new Map();
+
+export function updateAllMediaHiddenInputs() {
+    mediaContainers.forEach((data) => {
+        if (data.uploadedIdsInput) {
+            data.uploadedIdsInput.value = data.uploadedIds.join(',');
+        }
+        if (data.deletedIdsInput) {
+            data.deletedIdsInput.value = data.deletedIds.join(',');
+        }
+    });
+}
+
 export default function initMediaFields(root = document) {
     root.querySelectorAll('.media-field-container').forEach((container) => {
         // Skip if already initialized
@@ -41,6 +55,15 @@ export default function initMediaFields(root = document) {
 
         const uploadedIds = [];
         const deletedIds = [];
+
+        // Store reference for later use
+        mediaContainers.set(fieldName, {
+            uploadedIds,
+            deletedIds,
+            uploadedIdsInput,
+            deletedIdsInput,
+            fieldName
+        });
 
         // Click to upload
         uploadArea?.addEventListener('click', (e) => {
