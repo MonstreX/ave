@@ -204,7 +204,7 @@ class Fieldset extends AbstractField
         $this->itemInstances = [];
         $this->itemIds = [];
 
-        $record = $context->getRecord();
+        $record = $context->record();
 
         foreach (array_values($items) as $index => $itemData) {
             $itemData = is_array($itemData) ? $itemData : [];
@@ -298,7 +298,7 @@ class Fieldset extends AbstractField
         $items = array_filter($rawItems, 'is_array');
         $items = array_values($items);
 
-        $record = $context->getRecord();
+        $record = $context->record();
 
         foreach ($items as $index => &$itemData) {
             if (isset($itemData['_id'])) {
