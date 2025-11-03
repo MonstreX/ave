@@ -74,15 +74,35 @@ class ResourcePersistence implements Persistable
                 // CRITICAL: Call beforeApply for FieldSet to handle nested Media fields
                 $context = $model ? \Monstrex\Ave\Core\FormContext::forEdit($model, [], $request)
                                   : \Monstrex\Ave\Core\FormContext::forCreate([], $request);
+
+                \Log::info('FieldSet beforeApply START', [
+                    'fieldset_key' => $key,
+                    'has_model' => $model ? true : false,
+                    'request_data' => $request->input($key, []),
+                ]);
+
                 $field->beforeApply($request, $context);
+
+                \Log::info('FieldSet beforeApply END', [
+                    'fieldset_key' => $key,
+                ]);
 
                 // Get the prepared items from FieldSet after beforeApply processing
                 // This includes Media collection names stored in JSON
                 $incoming = $request->input($key, []);
                 $normalized = $this->normalizeFieldsetValue($incoming);
 
+                \Log::info('FieldSet normalized', [
+                    'normalized' => $normalized,
+                ]);
+
                 // Extract prepared value from field (which was set by beforeApply)
                 $payload[$key] = $field->extract($normalized);
+
+                \Log::info('FieldSet payload', [
+                    'payload' => $payload[$key],
+                ]);
+
                 continue;
             }
 
