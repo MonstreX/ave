@@ -26,7 +26,7 @@ class CodeEditor extends AbstractField
 
     /**
      * Programming language for syntax highlighting
-     * Supported: html, css, javascript, json, xml, php, python, sql, etc.
+     * Supported: html, css, javascript, json, xml
      */
     protected string $language = 'html';
 
@@ -66,7 +66,7 @@ class CodeEditor extends AbstractField
 
     /**
      * Set programming language
-     * Examples: 'html', 'css', 'javascript', 'json', 'xml', 'php', 'python', 'sql'
+     * Supported: 'html', 'css', 'javascript', 'json', 'xml'
      */
     public function language(string $language): static
     {
