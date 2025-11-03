@@ -73,8 +73,20 @@ class MediaController extends Controller
         } catch (\Exception $e) {
             \Log::error('[MediaController] Upload error', [
                 'error' => $e->getMessage(),
+                'class' => get_class($e),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
                 'trace' => $e->getTraceAsString(),
             ]);
+
+            // Also try to get any previous exception
+            if ($e->getPrevious()) {
+                \Log::error('[MediaController] Previous exception', [
+                    'error' => $e->getPrevious()->getMessage(),
+                    'trace' => $e->getPrevious()->getTraceAsString(),
+                ]);
+            }
+
             return response()->json([
                 'success' => false,
                 'message' => 'Upload failed: ' . $e->getMessage(),
@@ -134,11 +146,33 @@ class MediaController extends Controller
             } else {
                 \Log::debug('[uploadSingleImage] Creating media without model binding (create mode)');
 
-                // Upload without model binding (for create forms, etc)
-                $mediaCollection = Media::add($file)
-                    ->collection($collection ?: 'default')
-                    ->disk('public')
-                    ->create();
+                // For create forms: save to temporary collection
+                // These will be migrated to actual model+collection when form is saved
+                $tempCollection = '__pending_' . ($collection ?: 'default');
+                \Log::debug('[uploadSingleImage] Using temporary collection', ['temp_collection' => $tempCollection]);
+
+                try {
+                    // Upload to temporary collection without model binding
+                    \Log::debug('[uploadSingleImage] Calling Media::add()', ['file' => $file->getClientOriginalName()]);
+
+                    $mediaBuilder = Media::add($file);
+                    \Log::debug('[uploadSingleImage] Media::add() returned');
+
+                    $mediaBuilder = $mediaBuilder->collection($tempCollection);
+                    \Log::debug('[uploadSingleImage] Temporary collection set', ['collection' => $tempCollection]);
+
+                    $mediaBuilder = $mediaBuilder->disk('public');
+                    \Log::debug('[uploadSingleImage] Disk set to public');
+
+                    $mediaCollection = $mediaBuilder->create();
+                    \Log::debug('[uploadSingleImage] Media created in temporary collection');
+                } catch (\Exception $e) {
+                    \Log::error('[uploadSingleImage] Error during media creation', [
+                        'error' => $e->getMessage(),
+                        'trace' => $e->getTraceAsString(),
+                    ]);
+                    throw $e;
+                }
             }
 
             if ($mediaCollection->isEmpty()) {

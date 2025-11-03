@@ -18,6 +18,7 @@ use Monstrex\Ave\Core\Discovery\AdminPageDiscovery;
 use Monstrex\Ave\Console\Commands\CacheClearCommand;
 use Monstrex\Ave\View\Composers\SidebarComposer;
 use Monstrex\Ave\Support\PackageAssets;
+use Monstrex\Ave\Media\MediaStorage;
 
 /**
  * AveServiceProvider Class
@@ -58,6 +59,11 @@ class AveServiceProvider extends ServiceProvider
         $this->app->singleton(ResourceRenderer::class);
         $this->app->singleton(FormValidator::class);
         $this->app->singleton(ResourcePersistence::class);
+
+        // Register Media Storage service
+        $this->app->singleton('media-storage', function ($app) {
+            return new MediaStorage();
+        });
 
         // Merge config
         $this->mergeConfigFrom(__DIR__ . '/../../config/ave.php', 'ave');
