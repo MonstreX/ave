@@ -474,6 +474,8 @@ class Media extends AbstractField
             'imageConversions' => $this->imageConversions,
             'uploadUrl' => route('ave.media.upload'),
             'propNames' => $this->propNames,
+            'modelType' => null, // Will be populated in render()
+            'modelId' => null,   // Will be populated in render()
         ]);
     }
 
@@ -494,6 +496,11 @@ class Media extends AbstractField
 
         // Get all field data as array (includes mediaItems, collection, etc.)
         $fieldData = $this->toArray();
+
+        // Add model information for media operations
+        $record = $context->record();
+        $fieldData['modelType'] = $record ? get_class($record) : null;
+        $fieldData['modelId'] = $record?->id ?? null;
 
         return view($view, [
             'field'      => $this,

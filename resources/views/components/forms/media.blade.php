@@ -3,7 +3,7 @@
     @if($label)
         <label for="{{ $key }}" class="form-label">
             {{ $label }}
-            @if($isRequired)
+            @if($required)
                 <span class="required">*</span>
             @endif
         </label>
@@ -122,8 +122,8 @@
         </div>
     @endif
 
-    @if($helpText)
-        <div class="help-text">{{ $helpText }}</div>
+    @if($help)
+        <div class="help-text">{{ $help }}</div>
     @endif
 </div>
 
