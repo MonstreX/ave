@@ -8,6 +8,7 @@ use Monstrex\Ave\Core\Forms\FormContext;
  * RichEditor Field - input field for WYSIWYG HTML content editing
  *
  * Adaptation of v1 RichEditor for v2 using Jodit Editor.
+ *
  * Features:
  * - Visual HTML editing (WYSIWYG)
  * - Source code view with Ace Editor
@@ -16,8 +17,19 @@ use Monstrex\Ave\Core\Forms\FormContext;
  * - Lists (ul, ol)
  * - Headings (h1-h6)
  * - Links and tables
- * - Various toolbar presets (minimal, basic, full)
  * - Customizable height
+ *
+ * Configuration uses a token-based feature system:
+ * - By default, all features are enabled
+ * - Use features() method to enable/disable specific features
+ * - Use enable()/disable() for convenient feature toggling
+ * - Use options() for arbitrary Jodit JS config
+ *
+ * Example:
+ *   RichEditor::make('content')
+ *       ->height(500)
+ *       ->features(['-code', 'hr'])  // disable code, enable hr
+ *       ->options(['upload.endpoint' => '/upload'])
  */
 class RichEditor extends AbstractField
 {
@@ -47,39 +59,15 @@ class RichEditor extends AbstractField
     protected ?int $maxLength = null;
 
     /**
-     * Whether to allow inline styles
+     * Feature tokens (null = all enabled by default)
+     * Format: ['feature1', '-feature2'] where '-' prefix disables
      */
-    protected bool $allowInlineStyles = true;
+    protected ?array $features = null;
 
     /**
-     * Whether to allow image uploads
+     * Arbitrary options for Jodit JS config (dot-notation friendly)
      */
-    protected bool $allowImageUpload = true;
-
-    /**
-     * Whether to allow table creation
-     */
-    protected bool $allowTables = true;
-
-    /**
-     * Whether to allow list usage
-     */
-    protected bool $allowLists = true;
-
-    /**
-     * Whether to allow link creation
-     */
-    protected bool $allowLinks = true;
-
-    /**
-     * Whether to allow blockquote usage
-     */
-    protected bool $allowBlockquote = true;
-
-    /**
-     * Whether to allow code/pre usage
-     */
-    protected bool $allowCode = true;
+    protected array $options = [];
 
     /**
      * Placeholder text for empty editor
@@ -127,65 +115,63 @@ class RichEditor extends AbstractField
     }
 
     /**
-     * Allow/disallow inline styles
+     * Set feature tokens to enable/disable capabilities
+     *
+     * @param array|string|null $tokens Token list (e.g., ['images', 'tables', '-code'])
+     *                                  or comma-separated string ('images, tables, -code')
+     *                                  Prefix '-' disables a feature
+     *                                  null means keep all defaults (all enabled)
      */
-    public function allowInlineStyles(bool $allow = true): static
+    public function features(array|string|null $tokens): static
     {
-        $this->allowInlineStyles = $allow;
+        if ($tokens === null) {
+            $this->features = null;
+            return $this;
+        }
+
+        $list = is_string($tokens)
+            ? array_filter(array_map('trim', preg_split('/[,\s]+/u', $tokens)))
+            : array_values(array_filter($tokens, fn($t) => $t !== null && $t !== ''));
+
+        $this->features = $list ?: null;
         return $this;
     }
 
     /**
-     * Allow/disallow image uploads
+     * Enable specific feature tokens
+     *
+     * @param array|string $tokens Token names or comma-separated string
      */
-    public function allowImageUpload(bool $allow = true): static
+    public function enable(array|string $tokens): static
     {
-        $this->allowImageUpload = $allow;
+        $add = is_array($tokens) ? $tokens : preg_split('/[,\s]+/', (string)$tokens);
+        $add = array_map(fn($t) => ltrim((string)$t, '+-'), $add);
+        $this->features = array_values(array_unique(array_merge($this->features ?? [], $add)));
         return $this;
     }
 
     /**
-     * Allow/disallow tables
+     * Disable specific feature tokens
+     *
+     * @param array|string $tokens Token names or comma-separated string
      */
-    public function allowTables(bool $allow = true): static
+    public function disable(array|string $tokens): static
     {
-        $this->allowTables = $allow;
+        $del = is_array($tokens) ? $tokens : preg_split('/[,\s]+/', (string)$tokens);
+        $del = array_map(fn($t) => '-' . ltrim((string)$t, '+-'), $del);
+        $this->features = array_values(array_unique(array_merge($this->features ?? [], $del)));
         return $this;
     }
 
     /**
-     * Allow/disallow lists
+     * Set arbitrary options for Jodit JS config
+     * Supports dot-notation (e.g., 'upload.endpoint')
+     *
+     * @param array $options Options to merge into JS config
      */
-    public function allowLists(bool $allow = true): static
+    public function options(array $options): static
     {
-        $this->allowLists = $allow;
-        return $this;
-    }
-
-    /**
-     * Allow/disallow links
-     */
-    public function allowLinks(bool $allow = true): static
-    {
-        $this->allowLinks = $allow;
-        return $this;
-    }
-
-    /**
-     * Allow/disallow blockquote
-     */
-    public function allowBlockquote(bool $allow = true): static
-    {
-        $this->allowBlockquote = $allow;
-        return $this;
-    }
-
-    /**
-     * Allow/disallow code/pre
-     */
-    public function allowCode(bool $allow = true): static
-    {
-        $this->allowCode = $allow;
+        $this->options = array_replace_recursive($this->options, $options);
         return $this;
     }
 
@@ -239,33 +225,139 @@ class RichEditor extends AbstractField
     }
 
     /**
+     * Default feature set (all enabled by default)
+     */
+    protected function defaultFeatures(): array
+    {
+        return [
+            'headings', 'paragraph', 'bold', 'italic', 'underline', 'strike',
+            'lists', 'links', 'images', 'tables', 'blockquote', 'code',
+            'inline-styles', 'undo', 'redo', 'source', 'font', 'fontsize', 'brush', 'hr',
+        ];
+    }
+
+    /**
+     * Map Jodit buttons to feature tokens
+     */
+    protected function buttonFeatureMap(): array
+    {
+        return [
+            // formatting
+            'bold' => 'bold', 'italic' => 'italic', 'underline' => 'underline',
+            'strikethrough' => 'strike', 'paragraph' => 'paragraph',
+            'h1' => 'headings', 'h2' => 'headings', 'h3' => 'headings',
+            'h4' => 'headings', 'h5' => 'headings', 'h6' => 'headings',
+            'font' => 'font', 'fontsize' => 'fontsize', 'brush' => 'brush',
+            // lists
+            'ul' => 'lists', 'ol' => 'lists',
+            // inserts
+            'link' => 'links', 'image' => 'images', 'table' => 'tables', 'hr' => 'hr',
+            // blocks
+            'blockquote' => 'blockquote', 'code' => 'code',
+            // misc
+            'undo' => 'undo', 'redo' => 'redo', 'source' => 'source',
+        ];
+    }
+
+    /**
+     * Map disabled feature tokens to Jodit plugin IDs to disable
+     */
+    protected function featureToPlugins(string $feature): array
+    {
+        return match ($feature) {
+            'images'     => ['image'],
+            'tables'     => ['table'],
+            'links'      => ['link'],
+            'lists'      => ['ul', 'ol'],
+            'code'       => ['source'],
+            default      => [],
+        };
+    }
+
+    /**
+     * Resolve final enabled feature set
+     * If features is null, all defaults enabled
+     * Otherwise, process tokens where '-' prefix disables features
+     */
+    protected function resolveFeatureSet(): array
+    {
+        $enabled = array_fill_keys($this->defaultFeatures(), true);
+
+        if ($this->features === null) {
+            return array_keys(array_filter($enabled));
+        }
+
+        foreach ($this->features as $tokRaw) {
+            $tok = (string)$tokRaw;
+            if ($tok === '') {
+                continue;
+            }
+
+            $off = str_starts_with($tok, '-');
+            $name = ltrim($tok, '+-');
+
+            if (!array_key_exists($name, $enabled)) {
+                if (!$off) {
+                    $enabled[$name] = true;
+                }
+                continue;
+            }
+
+            $enabled[$name] = !$off;
+        }
+
+        return array_keys(array_filter($enabled));
+    }
+
+    /**
      * Get configuration for JavaScript
      */
     public function getJsConfig(): array
     {
+        $enabled = array_flip($this->resolveFeatureSet());
+
         $config = [
             'height' => $this->height,
-            'theme' => 'default',
-            'allowInlineStyles' => $this->allowInlineStyles,
-            'allowImageUpload' => $this->allowImageUpload,
-            'allowTables' => $this->allowTables,
-            'allowLists' => $this->allowLists,
-            'allowLinks' => $this->allowLinks,
-            'allowBlockquote' => $this->allowBlockquote,
-            'allowCode' => $this->allowCode,
+            'theme'  => 'default',
+            'showCharsCounter' => false,
+            'showWordsCounter' => false,
+            'showXPathInStatusbar' => false,
         ];
 
-        // Disable features if not allowed
-        if (!$this->allowTables) {
-            $config['disablePlugins'] = array_merge($config['disablePlugins'] ?? [], ['table']);
+        // Get toolbar buttons and filter by features
+        $buttons = $this->getToolbarButtons();
+        $buttons = $this->filterButtonsByFeatures($buttons, $enabled);
+        $config['buttons'] = $buttons;
+
+        // Build disabled plugins list from disabled features
+        $disabled = [];
+        foreach ($this->defaultFeatures() as $feat) {
+            if (!isset($enabled[$feat])) {
+                $disabled = array_merge($disabled, $this->featureToPlugins($feat));
+            }
         }
 
-        if (!$this->allowImageUpload) {
-            $config['disablePlugins'] = array_merge($config['disablePlugins'] ?? [], ['image']);
+        if (!empty($disabled)) {
+            $config['disablePlugins'] = array_values(array_unique($disabled));
         }
 
-        // Apply toolbar preset
-        $config['buttons'] = $this->getToolbarButtons();
+        // Inline styles policy
+        $config['allowInlineStyles'] = isset($enabled['inline-styles']);
+
+        // Max length guard
+        if ($this->maxLength) {
+            $config['maxCharacters'] = $this->maxLength;
+        }
+
+        // Placeholder
+        if ($this->editorPlaceholder) {
+            $config['placeholder'] = $this->editorPlaceholder;
+        }
+
+        // Merge user options on top
+        if (!empty($this->options)) {
+            $config = array_replace_recursive($config, $this->options);
+        }
 
         return $config;
     }
@@ -275,15 +367,15 @@ class RichEditor extends AbstractField
      */
     protected function getToolbarButtons(): array
     {
-        $buttons = match ($this->toolbar) {
+        return match ($this->toolbar) {
             'minimal' => [
-                'bold', 'italic', 'ul', 'ol'
+                'bold', 'italic', 'ul', 'ol',
             ],
             'basic' => [
                 'bold', 'italic', 'underline', 'strikethrough', '|',
                 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', '|',
                 'ul', 'ol', '|',
-                'link', 'image'
+                'link', 'image',
             ],
             'full' => [
                 'bold', 'italic', 'underline', 'strikethrough', '|',
@@ -293,12 +385,58 @@ class RichEditor extends AbstractField
                 'link', 'image', 'table', '|',
                 'blockquote', 'code', '|',
                 'undo', 'redo', '|',
-                'source'
+                'source',
             ],
-            default => ['source']
+            default => ['source'],
         };
+    }
 
-        return $buttons;
+    /**
+     * Filter toolbar buttons by enabled features
+     * Removes buttons whose features are disabled
+     * Keeps separators '|' unless consecutive or at edges
+     */
+    protected function filterButtonsByFeatures(array $buttons, array $enabledLookup): array
+    {
+        $map = $this->buttonFeatureMap();
+        $out = [];
+
+        foreach ($buttons as $btn) {
+            if ($btn === '|') {
+                $out[] = $btn;
+                continue;
+            }
+
+            $feature = $map[$btn] ?? null;
+
+            if ($feature === null) {
+                $out[] = $btn;
+                continue;
+            }
+
+            if (isset($enabledLookup[$feature])) {
+                $out[] = $btn;
+            }
+        }
+
+        // Collapse consecutive separators
+        $out = array_values(array_filter($out, function($v, $i) use ($out) {
+            if ($v !== '|') {
+                return true;
+            }
+
+            return ($i > 0 && $out[$i - 1] !== '|') && ($i < count($out) - 1 && $out[$i + 1] !== '|');
+        }, ARRAY_FILTER_USE_BOTH));
+
+        // Trim leading/trailing separators
+        while (!empty($out) && $out[0] === '|') {
+            array_shift($out);
+        }
+        while (!empty($out) && end($out) === '|') {
+            array_pop($out);
+        }
+
+        return $out;
     }
 
     /**
