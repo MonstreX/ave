@@ -243,7 +243,7 @@ export default function initMediaFields(root = document) {
 
             if (isImage) {
                 const img = item.querySelector('.media-image');
-                img.src = media.preview_url;
+                img.src = media.url || media.preview_url;
                 img.alt = media.file_name;
                 img.style.display = 'block';
             } else {
