@@ -71,6 +71,11 @@ class ResourcePersistence implements Persistable
             $key = $field->key();
 
             if ($field instanceof Fieldset) {
+                // CRITICAL: Call beforeApply for FieldSet to handle nested Media fields
+                $context = $model ? \Monstrex\Ave\Core\FormContext::forEdit($model, [], $request)
+                                  : \Monstrex\Ave\Core\FormContext::forCreate([], $request);
+                $field->beforeApply($request, $context);
+
                 $incoming = $request->input($key, []);
                 $payload[$key] = $this->normalizeFieldsetValue($incoming);
                 continue;

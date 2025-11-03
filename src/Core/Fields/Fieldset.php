@@ -231,23 +231,9 @@ class Fieldset extends AbstractField
                     $originalFieldName = $fieldDefinition->getKey();
                     $collectionName = $itemData[$originalFieldName] ?? null;
 
-                    \Log::info('FieldSet Media Loading Debug', [
-                        'fieldset_name' => $this->key,
-                        'field_name' => $originalFieldName,
-                        'collection_name' => $collectionName,
-                        'itemData_keys' => array_keys($itemData),
-                        'itemData' => $itemData,
-                    ]);
-
                     if ($collectionName && is_string($collectionName)) {
                         $field->setCollectionNameOverride($collectionName);
                         $field->fillFromCollectionName($record, $collectionName);
-
-                        $mediaLoaded = $field->getValue();
-                        \Log::info('FieldSet Media After Load', [
-                            'media_count' => $mediaLoaded ? count($mediaLoaded) : 0,
-                            'media_ids' => $mediaLoaded ? $mediaLoaded->pluck('id')->toArray() : [],
-                        ]);
                     }
                 }
 
@@ -347,14 +333,6 @@ class Fieldset extends AbstractField
                     $order = $this->parseIdList($request->input($fullFieldName.'_order', []));
                     $props = $this->normalisePropsInput($request->input($fullFieldName.'_props', []));
 
-                    \Log::info('FieldSet Media beforeApply', [
-                        'fullFieldName' => $fullFieldName,
-                        'collectionName' => $collectionName,
-                        'uploadedIds' => $uploadedIds,
-                        'order' => $order,
-                        'itemData_field' => $itemData[$fieldName] ?? null,
-                    ]);
-
                     if (!empty($itemData[$fieldName] ?? null) || !empty($uploadedIds) || !empty($order) || !empty($props)) {
                         $hasData = true;
                     }
@@ -376,11 +354,6 @@ class Fieldset extends AbstractField
 
                     // Store collection name in JSON instead of media data
                     $itemData[$fieldName] = $collectionName;
-
-                    \Log::info('FieldSet Media beforeApply after', [
-                        'collectionName_stored' => $itemData[$fieldName],
-                        'hasData' => $hasData,
-                    ]);
 
                     continue;
                 }
