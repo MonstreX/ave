@@ -447,13 +447,13 @@ class Media extends AbstractField
     }
 
     /**
-     * Convert to array для Blade шаблона
+     * Convert to array for Blade template
      */
     public function toArray(): array
     {
         $mediaItems = $this->getValue() ?? collect();
 
-        // Если это не коллекция, преобразовать
+        // If it is not a collection, convert
         if (!$mediaItems instanceof Collection) {
             $mediaItems = collect($mediaItems);
         }
@@ -506,7 +506,7 @@ class Media extends AbstractField
     }
 
     /**
-     * Parse ID list из строки или массива
+     * Parse ID list from string or array
      */
     private function parseIdList(mixed $value): array
     {
@@ -533,7 +533,7 @@ class Media extends AbstractField
     }
 
     /**
-     * Нормализовать входные свойства медиа
+     * Normalize media input properties
      */
     private function normalisePropsInput(mixed $input): array
     {
@@ -564,7 +564,7 @@ class Media extends AbstractField
     }
 
     /**
-     * Присоединить загруженные медиа файлы к записи
+     * Attach uploaded media files to record
      */
     private function attachMedia(Model $record, string $collectionName, array $mediaIds): void
     {
@@ -572,7 +572,7 @@ class Media extends AbstractField
             return;
         }
 
-        // Получить модель Media из приложения
+        // Get Media model from application
         $mediaModel = app(config('ave.media_model', 'Monstrex\Ave\Models\Media'));
 
         $mediaModel::whereIn('id', $mediaIds)->update([
@@ -583,7 +583,7 @@ class Media extends AbstractField
     }
 
     /**
-     * Синхронизировать порядок медиа файлов
+     * Synchronize media file order
      */
     private function syncMediaOrder(Model $record, string $collectionName, array $orderedIds): void
     {
@@ -613,7 +613,7 @@ class Media extends AbstractField
     }
 
     /**
-     * Синхронизировать свойства медиа файлов
+     * Synchronize media file properties
      */
     private function syncMediaProps(Model $record, string $collectionName, array $props): void
     {
