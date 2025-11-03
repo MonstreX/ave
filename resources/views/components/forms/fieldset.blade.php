@@ -94,7 +94,9 @@
                         @endif
 
                         <div class="fieldset-item-content">
-                            <div class="fieldset-item-header">
+                            <div class="fieldset-item-header"
+                                 data-head-title-field="{{ $field->getHeadTitle() }}"
+                                 data-head-preview-field="{{ $field->getHeadPreview() }}">
                                 @if(!empty($collapsible))
                                     <button type="button" class="btn-fieldset-collapse" data-action="collapse" title="Expand/Collapse">
                                         <svg class="icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -103,6 +105,14 @@
                                     </button>
                                 @endif
                                 <span class="fieldset-item-number">{{ $index + 1 }}</span>
+
+                                @if($field->getHeadPreview())
+                                    <div class="fieldset-item-preview" data-item-preview></div>
+                                @endif
+
+                                @if($field->getHeadTitle())
+                                    <span class="fieldset-item-title" data-item-title></span>
+                                @endif
 
                                 <button type="button" class="btn-fieldset-delete" data-action="delete" title="Delete">
                                     <svg class="icon" width="18" height="18" viewBox="0 0 16 16" fill="none">
@@ -140,3 +150,66 @@
         <div class="help-text">{{ $helpText }}</div>
     @endif
 </div>
+
+{{-- Template for new items --}}
+<template id="fieldset-template-{{ $key ?? 'fieldset' }}">
+    @php
+        $templateFields = $field?->prepareTemplateFields() ?? [];
+    @endphp
+    <div class="fieldset-item{{ !empty($collapsed) ? ' collapsed' : '' }}" data-item-index="__INDEX__">
+        @if(!empty($sortable))
+            <div class="fieldset-drag-handle" title="Drag to reorder">
+                <svg class="icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <circle cx="6" cy="4" r="1" fill="currentColor"/>
+                    <circle cx="10" cy="4" r="1" fill="currentColor"/>
+                    <circle cx="6" cy="8" r="1" fill="currentColor"/>
+                    <circle cx="10" cy="8" r="1" fill="currentColor"/>
+                    <circle cx="6" cy="12" r="1" fill="currentColor"/>
+                    <circle cx="10" cy="12" r="1" fill="currentColor"/>
+                </svg>
+            </div>
+        @endif
+
+        <div class="fieldset-item-content">
+            <div class="fieldset-item-header"
+                 data-head-title-field="{{ $field->getHeadTitle() }}"
+                 data-head-preview-field="{{ $field->getHeadPreview() }}">
+                @if(!empty($collapsible))
+                    <button type="button" class="btn-fieldset-collapse" data-action="collapse" title="Expand/Collapse">
+                        <svg class="icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                @endif
+                <span class="fieldset-item-number"></span>
+
+                @if($field->getHeadPreview())
+                    <div class="fieldset-item-preview" data-item-preview></div>
+                @endif
+
+                @if($field->getHeadTitle())
+                    <span class="fieldset-item-title" data-item-title></span>
+                @endif
+
+                <button type="button" class="btn-fieldset-delete" data-action="delete" title="Delete">
+                    <svg class="icon" width="18" height="18" viewBox="0 0 16 16" fill="none">
+                        <path d="M2 4h12M5.5 4V2.5A1.5 1.5 0 0 1 7 1h2a1.5 1.5 0 0 1 1.5 1.5V4m2 0v10a1.5 1.5 0 0 1-1.5 1.5h-7A1.5 1.5 0 0 1 2.5 14V4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        <path d="M6.5 7v4M9.5 7v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="fieldset-item-fields">
+                {{-- Hidden field to store unique item ID (value will be set by JS) --}}
+                <input type="hidden" name="{{ $key ?? 'fieldset' }}[__INDEX__][_id]" value="" data-field-id>
+
+                {{-- Template fields with __INDEX__ placeholder --}}
+                @if(!empty($templateFields))
+                    @foreach($templateFields as $templateField)
+                        {!! $templateField->render($context) !!}
+                    @endforeach
+                @endif
+            </div>
+        </div>
+    </div>
+</template>
