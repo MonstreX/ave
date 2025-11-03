@@ -2,69 +2,64 @@
 
 namespace Monstrex\Ave\Core\Fields;
 
+use Closure;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
-use Monstrex\Ave\Core\DataSources\ArrayDataSource;
 use Monstrex\Ave\Core\DataSources\DataSourceInterface;
 use Monstrex\Ave\Core\FormContext;
-use Monstrex\Ave\Models\Media as MediaModel;
+use Monstrex\Ave\Core\Fields\Fieldset\Item;
+use Monstrex\Ave\Core\Fields\Fieldset\ItemFactory;
+use Monstrex\Ave\Core\Fields\Fieldset\MediaManager;
+use Monstrex\Ave\Core\Fields\Fieldset\Renderer;
+use Monstrex\Ave\Core\Fields\Fieldset\RequestProcessor;
 
 /**
- * FieldSet - Multiple sets of fields stored in a single JSON column
+ * Fieldset - repeatable group of fields stored within a single JSON column.
  *
- * Allows creating repeatable field groups (like Filament's Repeater)
- * All data is stored in one JSON field in the database.
- *
- * Features:
- * - Repeatable field groups with schema definition
- * - Drag-and-drop sorting (when enabled)
- * - Collapsible items
- * - Min/Max items validation
- * - Integration with Media fields inside fieldset items
- * - Image preview in headers
- * - JSON storage with media collection binding
- *
- * Example:
- * Fieldset::make('features')
- *     ->schema([
- *         TextInput::make('title'),
- *         Textarea::make('description'),
- *         Media::make('icon'),
- *     ])
- *     ->sortable()
- *     ->minItems(1)
- *     ->maxItems(10)
- *     ->headTitle('title')
- *     ->headPreview('icon');
+ * This is an evolution of the Ave v1 FieldSet with the same behavioural contract:
+ * - repeatable items with stable IDs for drag-and-drop
+ * - nested media fields that keep deterministic collection names
+ * - ability to remove items together with their media payloads
  */
 class Fieldset extends AbstractField
 {
-    /** @var array<AbstractField> */
+    /** @var array<int,AbstractField> */
     protected array $childSchema = [];
 
-    protected array $itemInstances = [];
-
-    protected array $itemIds = [];
-
     protected bool $sortable = true;
-
     protected bool $collapsible = false;
-
     protected bool $collapsed = false;
 
     protected int $minItems = 0;
-
     protected ?int $maxItems = null;
 
     protected string $addButtonLabel = 'Add Item';
-
     protected string $deleteButtonLabel = 'Delete';
-
     protected ?string $headTitle = null;
-
     protected ?string $headPreview = null;
 
+    /** @var array<int,array<string,mixed>> */
     protected array $preparedItems = [];
+
+    /** @var array<int,Item> */
+    private array $items = [];
+
+    /** @var array<int,array<string,mixed>> */
+    private array $itemInstances = [];
+
+    /** @var array<int,int> */
+    private array $itemIds = [];
+
+    /** @var array<int,mixed> */
+    private array $templateFields = [];
+
+    /** @var array<int,Closure> */
+    private array $deferredActions = [];
+
+    private ?Renderer $renderer = null;
+    private ?RequestProcessor $requestProcessor = null;
+    private ?ItemFactory $itemFactory = null;
+    private ?MediaManager $mediaManager = null;
 
     public static function make(string $key): static
     {
@@ -74,70 +69,58 @@ class Fieldset extends AbstractField
     }
 
     /**
-     * Define the schema of fields for each item
-     *
-     * @param  array<AbstractField>  $fields
+     * @param  array<int,AbstractField>  $fields
      */
     public function schema(array $fields): static
     {
         $this->childSchema = $fields;
+
         return $this;
     }
 
     /**
-     * @return array<AbstractField>
+     * @return array<int,AbstractField>
      */
     public function getChildSchema(): array
     {
         return $this->childSchema;
     }
 
-    /**
-     * Enable/disable drag-and-drop sorting
-     */
     public function sortable(bool $sortable = true): static
     {
         $this->sortable = $sortable;
+
         return $this;
     }
 
-    /**
-     * Enable collapsible items
-     */
     public function collapsible(bool $collapsible = true): static
     {
         $this->collapsible = $collapsible;
+
         return $this;
     }
 
-    /**
-     * Set items collapsed by default
-     * Automatically enables collapsible
-     */
     public function collapsed(bool $collapsed = true): static
     {
         $this->collapsed = $collapsed;
         if ($collapsed) {
             $this->collapsible = true;
         }
+
         return $this;
     }
 
-    /**
-     * Set minimum number of items
-     */
     public function minItems(int $min): static
     {
         $this->minItems = $min;
+
         return $this;
     }
 
-    /**
-     * Set maximum number of items
-     */
     public function maxItems(int $max): static
     {
         $this->maxItems = $max;
+
         return $this;
     }
 
@@ -151,260 +134,77 @@ class Fieldset extends AbstractField
         return $this->maxItems;
     }
 
-    /**
-     * Customize "Add" button label
-     */
     public function addButtonLabel(string $label): static
     {
         $this->addButtonLabel = $label;
+
         return $this;
     }
 
-    /**
-     * Customize "Delete" button label
-     */
     public function deleteButtonLabel(string $label): static
     {
         $this->deleteButtonLabel = $label;
+
         return $this;
     }
 
-    /**
-     * Set field name for title in header
-     */
     public function headTitle(string $fieldName): static
     {
         $this->headTitle = $fieldName;
+
         return $this;
     }
 
-    /**
-     * Set field name for preview image in header
-     */
     public function headPreview(string $fieldName): static
     {
         $this->headPreview = $fieldName;
+
         return $this;
     }
 
-    /**
-     * Prepare FieldSet for display
-     *
-     * Loads JSON data from model and creates field instances for each item
-     */
     public function prepareForDisplay(FormContext $context): void
     {
-        $dataSource = $context->dataSource();
-        $items = $dataSource ? $dataSource->get($this->key) : [];
+        $result = $this->renderer()->render($this, $context);
 
-        if (!is_array($items)) {
-            $items = [];
-        }
+        $this->items = $result->items();
+        $this->itemIds = $result->itemIds();
 
-        $this->itemInstances = [];
-        $this->itemIds = [];
+        $this->itemInstances = array_map(
+            static fn (Item $item): array => [
+                'id' => 'item-' . $item->id,
+                'index' => $item->index,
+                'fields' => $item->fields,
+                'data' => $item->data,
+            ],
+            $this->items
+        );
 
-        $record = $context->record();
-
-        foreach (array_values($items) as $index => $itemData) {
-            $itemData = is_array($itemData) ? $itemData : [];
-
-            // Get or generate unique ID for this item
-            $itemId = isset($itemData['_id']) ? (int) $itemData['_id'] : ($index + 1);
-            $this->itemIds[$index] = $itemId;
-
-            $itemFields = [];
-
-            // Clone schema fields for this item
-            foreach ($this->childSchema as $fieldDefinition) {
-                $field = clone $fieldDefinition;
-
-                // Rename field for array structure
-                $this->renameFieldForItem($field, $index, $itemId);
-
-                // Create data source for this item
-                $itemDataSource = new ArrayDataSource($itemData);
-                $field->fillFromDataSource($itemDataSource);
-
-                // For Media field, set collection name from JSON BEFORE rendering
-                if ($field instanceof Media && $record) {
-                    $originalFieldName = $fieldDefinition->getKey();
-                    $collectionName = $itemData[$originalFieldName] ?? null;
-
-                    if ($collectionName && is_string($collectionName)) {
-                        $field->setCollectionNameOverride($collectionName);
-                        $field->fillFromCollectionName($record, $collectionName);
-                    }
-                }
-
-                // Skip prepareForDisplay for Media fields - they're already populated
-                // via fillFromCollectionName() above
-                if (!($field instanceof Media) && method_exists($field, 'prepareForDisplay')) {
-                    $field->prepareForDisplay(FormContext::forData($itemData));
-                }
-
-                $itemFields[] = $field;
-            }
-
-            $this->itemInstances[$index] = [
-                'id' => 'item-' . $itemId,
-                'index' => $index,
-                'fields' => $itemFields,
-                'data' => $itemData,
-            ];
-        }
+        $this->templateFields = $result->templateFields();
     }
 
-    /**
-     * Rename field for specific item index
-     *
-     * Changes "title" to "features[0][title]" for HTML form rendering
-     *
-     * @param  AbstractField  $field  Field to rename
-     * @param  int  $index  Item index (position in array)
-     * @param  int  $itemId  Unique item ID (stable across sorting)
-     */
-    private function renameFieldForItem(AbstractField $field, int $index, int $itemId): void
-    {
-        $reflection = new \ReflectionClass($field);
-        $property = $reflection->getProperty('key');
-        $property->setAccessible(true);
-
-        $originalName = $property->getValue($field);
-
-        // For Media field, save original name and item ID
-        if ($field instanceof Media) {
-            // Save original field name before renaming
-            $originalNameProp = $reflection->getProperty('originalName');
-            $originalNameProp->setAccessible(true);
-            $originalNameProp->setValue($field, $originalName);
-
-            // Set item ID for stable collection naming
-            $field->setFieldSetItemId($itemId);
-        }
-
-        $newName = "{$this->key}[{$index}][{$originalName}]";
-        $property->setValue($field, $newName);
-    }
-
-    /**
-     * Save FieldSet data to model
-     *
-     * Collects all items from request and saves as array.
-     * Laravel automatically encodes to JSON if field is cast as 'array'.
-     */
     public function beforeApply(Request $request, FormContext $context): void
     {
         $this->preparedItems = [];
+        $this->deferredActions = [];
 
-        $rawItems = $request->input($this->key, []);
+        $result = $this->requestProcessor()->process($request, $context);
 
-        if (!is_array($rawItems)) {
-            $rawItems = [];
-        }
-
-        $items = array_filter($rawItems, 'is_array');
-        $items = array_values($items);
-
-        $record = $context->record();
-
-        foreach ($items as $index => &$itemData) {
-            if (isset($itemData['_id'])) {
-                $itemData['_id'] = (int) $itemData['_id'];
-            }
-
-            $itemId = $itemData['_id'] ?? ($index + 1);
-            $hasData = false;
-            $mediaPayloads = [];
-
-            foreach ($this->childSchema as $schemaField) {
-                if (!$schemaField instanceof AbstractField) {
-                    continue;
-                }
-
-                $fieldName = $schemaField->getKey();
-
-                if ($schemaField instanceof Media) {
-                    $fullFieldName = "{$this->key}[{$index}][{$fieldName}]";
-                    $collectionName = "{$this->key}_{$itemId}_{$fieldName}";
-
-                    $uploadedIds = $this->parseIdList($request->input($fullFieldName.'_uploaded', []));
-                    $deletedIds = $this->parseIdList($request->input($fullFieldName.'_deleted', []));
-                    $order = $this->parseIdList($request->input($fullFieldName.'_order', []));
-                    $props = $this->normalisePropsInput($request->input($fullFieldName.'_props', []));
-
-                    if (!empty($itemData[$fieldName] ?? null) || !empty($uploadedIds) || !empty($order) || !empty($props)) {
-                        $hasData = true;
-                    }
-
-                    // Delete media if requested
-                    if (!empty($deletedIds) && $record && $record->exists) {
-                        $record->media()
-                            ->where('collection_name', $collectionName)
-                            ->whereIn('id', $deletedIds)
-                            ->delete();
-                    }
-
-                    $mediaPayloads[] = [
-                        'collection' => $collectionName,
-                        'uploaded' => $uploadedIds,
-                        'order' => $order,
-                        'props' => $props,
-                    ];
-
-                    // Store collection name in JSON instead of media data
-                    $itemData[$fieldName] = $collectionName;
-
-                    continue;
-                }
-
-                if ($fieldName === '_id') {
-                    continue;
-                }
-
-                $value = $itemData[$fieldName] ?? null;
-
-                if ($this->valueIsMeaningful($value)) {
-                    $hasData = true;
-                }
-            }
-
-            // Remove empty items
-            if (!$hasData) {
-                unset($items[$index]);
-                continue;
-            }
-
-            // Handle media attachments after record is saved
-            foreach ($mediaPayloads as $payload) {
-                if (empty($payload['uploaded']) && empty($payload['order']) && empty($payload['props'])) {
-                    continue;
-                }
-
-                if ($record && $record->exists) {
-                    $collectionName = $payload['collection'];
-
-                    if (!empty($payload['uploaded'])) {
-                        $this->attachMedia($record, $collectionName, $payload['uploaded']);
-                    }
-
-                    if (!empty($payload['order'])) {
-                        $this->syncMediaOrder($record, $collectionName, $payload['order']);
-                    }
-
-                    if (!empty($payload['props'])) {
-                        $this->syncMediaProps($record, $collectionName, $payload['props']);
-                    }
-                }
-            }
-        }
-
-        $this->preparedItems = array_values($items);
+        $this->preparedItems = $result->items();
+        $this->deferredActions = $result->deferredActions();
     }
 
     public function applyToDataSource(DataSourceInterface $source, mixed $value): void
     {
         $source->set($this->key, $this->preparedItems ?: []);
+    }
+
+    public function extract(mixed $raw): mixed
+    {
+        if (!empty($this->preparedItems)) {
+            return $this->preparedItems;
+        }
+
+        return $this->normalizeRawItems($raw);
     }
 
     public function toArray(): array
@@ -453,14 +253,13 @@ class Fieldset extends AbstractField
             $this->prepareForDisplay($context);
         }
 
-        $view = $this->view ?: 'ave::components.forms.fieldset';
-        $errors = $context->getErrors($this->key);
+        $view = $this->view ?? 'ave::components.forms.fieldset';
 
         return view($view, [
             'field' => $this,
             'context' => $context,
-            'hasError' => !empty($errors),
-            'errors' => $errors,
+            'hasError' => $context->hasError($this->key),
+            'errors' => $context->getErrors($this->key),
             'attributes' => '',
             ...$this->toArray(),
         ])->render();
@@ -502,44 +301,33 @@ class Fieldset extends AbstractField
     }
 
     /**
-     * Prepare template fields for JavaScript item creation
-     *
-     * @return array<AbstractField>
+     * @return array<int,mixed>
      */
     public function prepareTemplateFields(): array
     {
-        $templateFields = [];
-
-        foreach ($this->childSchema as $component) {
-            $clone = clone $component;
-
-            if ($clone instanceof AbstractField) {
-                $reflection = new \ReflectionClass($clone);
-                $property = $reflection->getProperty('key');
-                $property->setAccessible(true);
-
-                $originalName = $property->getValue($clone);
-                $templateName = "{$this->key}[__INDEX__][{$originalName}]";
-                $property->setValue($clone, $templateName);
-
-                // For Media field, set collection name pattern with __INDEX__ placeholder
-                if ($clone instanceof Media) {
-                    $collectionPattern = "{$this->key}___INDEX___{$originalName}";
-
-                    // Set via reflection to ensure it sticks
-                    $overrideProperty = $reflection->getProperty('collectionNameOverride');
-                    $overrideProperty->setAccessible(true);
-                    $overrideProperty->setValue($clone, $collectionPattern);
-                }
-            }
-
-            $templateFields[] = $clone;
+        if (empty($this->templateFields)) {
+            $this->templateFields = $this->itemFactory()->makeTemplateFields();
         }
 
-        return $templateFields;
+        return $this->templateFields;
     }
 
-    private function valueIsMeaningful(mixed $value): bool
+    /**
+     * Execute queued media operations once the record is persisted.
+     */
+    public function runDeferredActions(Model $record): void
+    {
+        foreach ($this->deferredActions as $action) {
+            $action($record);
+        }
+
+        $this->deferredActions = [];
+    }
+
+    /**
+     * Helper reused across request processing for checking empty values.
+     */
+    public function valueIsMeaningful(mixed $value): bool
     {
         if (is_array($value)) {
             return !empty($value);
@@ -553,126 +341,47 @@ class Fieldset extends AbstractField
     }
 
     /**
-     * @return array<int>
+     * @return array<int,mixed>
      */
-    private function parseIdList(mixed $value): array
+    private function normalizeRawItems(mixed $raw): array
     {
-        if (is_string($value)) {
-            if (trim($value) === '') {
-                return [];
-            }
-
-            $value = array_map('trim', explode(',', $value));
-        }
-
-        if (!is_array($value)) {
+        if (!is_array($raw)) {
             return [];
         }
 
-        $ids = [];
-        foreach ($value as $entry) {
-            if ($entry === null || $entry === '') {
-                continue;
-            }
-            $ids[] = (int) $entry;
-        }
-
-        return array_values(array_unique(array_filter($ids, fn (int $id) => $id > 0)));
+        return array_values(array_filter($raw, 'is_array'));
     }
 
     /**
-     * @return array<int,array<string,mixed>>
+     * Fieldset manages its children internally, so it reports only itself.
+     *
+     * @return array<int,$this>
      */
-    private function normalisePropsInput(mixed $input): array
+    public function flattenFields(): array
     {
-        if (!is_array($input)) {
-            return [];
-        }
-
-        $result = [];
-        foreach ($input as $key => $value) {
-            $id = (int) $key;
-            if ($id <= 0) {
-                continue;
-            }
-
-            if (is_string($value)) {
-                $decoded = json_decode($value, true);
-                $value = is_array($decoded) ? $decoded : [];
-            }
-
-            if (!is_array($value)) {
-                continue;
-            }
-
-            $result[$id] = $value;
-        }
-
-        return $result;
+        return [$this];
     }
 
-    private function attachMedia(Model $record, string $collectionName, array $mediaIds): void
+    private function renderer(): Renderer
     {
-        if (empty($mediaIds)) {
-            return;
-        }
-
-        MediaModel::whereIn('id', $mediaIds)->update([
-            'model_type' => get_class($record),
-            'model_id' => $record->getKey(),
-            'collection_name' => $collectionName,
-        ]);
+        return $this->renderer ??= new Renderer($this->itemFactory());
     }
 
-    private function syncMediaOrder(Model $record, string $collectionName, array $orderedIds): void
+    private function requestProcessor(): RequestProcessor
     {
-        if (empty($orderedIds)) {
-            return;
-        }
-
-        $mediaItems = MediaModel::where('model_type', get_class($record))
-            ->where('model_id', $record->getKey())
-            ->where('collection_name', $collectionName)
-            ->whereIn('id', $orderedIds)
-            ->get()
-            ->keyBy('id');
-
-        foreach ($orderedIds as $index => $mediaId) {
-            $media = $mediaItems->get($mediaId);
-            if (!$media) {
-                continue;
-            }
-
-            $media->order = $index;
-            $media->save();
-        }
+        return $this->requestProcessor ??= new RequestProcessor(
+            $this,
+            $this->mediaManager()
+        );
     }
 
-    /**
-     * @param  array<int,array<string,mixed>>  $props
-     */
-    private function syncMediaProps(Model $record, string $collectionName, array $props): void
+    private function itemFactory(): ItemFactory
     {
-        if (empty($props)) {
-            return;
-        }
+        return $this->itemFactory ??= new ItemFactory($this);
+    }
 
-        $mediaItems = MediaModel::where('model_type', get_class($record))
-            ->where('model_id', $record->getKey())
-            ->where('collection_name', $collectionName)
-            ->whereIn('id', array_keys($props))
-            ->get()
-            ->keyBy('id');
-
-        foreach ($props as $mediaId => $values) {
-            $media = $mediaItems->get($mediaId);
-            if (!$media) {
-                continue;
-            }
-
-            $currentProps = json_decode($media->props, true) ?? [];
-            $media->props = json_encode(array_merge($currentProps, $values));
-            $media->save();
-        }
+    private function mediaManager(): MediaManager
+    {
+        return $this->mediaManager ??= new MediaManager();
     }
 }

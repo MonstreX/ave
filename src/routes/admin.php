@@ -54,6 +54,9 @@ Route::prefix($prefix)
         Route::post('/media/upload', [MediaController::class, 'upload'])
             ->name('ave.media.upload');
 
+        Route::delete('/media/collection', [MediaController::class, 'destroyCollection'])
+            ->name('ave.media.destroy-collection');
+
         Route::delete('/media/{id}', [MediaController::class, 'destroy'])
             ->name('ave.media.destroy');
 

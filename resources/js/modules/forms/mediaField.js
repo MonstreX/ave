@@ -16,6 +16,17 @@ function humanFileSize(bytes, decimals = 1) {
 // Store all media field containers for later reference
 const mediaContainers = new Map();
 
+const computeMetaKey = (value) => {
+    if (!value) {
+        return '';
+    }
+
+    return value
+        .replace(/[\\[\\]]+/g, '_')
+        .replace(/_+/g, '_')
+        .replace(/^_|_$/g, '');
+};
+
 export function updateAllMediaHiddenInputs() {
     mediaContainers.forEach((data) => {
         if (data.uploadedIdsInput) {
@@ -45,6 +56,8 @@ export default function initMediaFields(root = document) {
         const modelType = container.dataset.modelType || '';
         const modelId = container.dataset.modelId || '';
         const fieldName = container.closest('[data-field-name]')?.dataset.fieldName || 'media';
+        let metaKey = computeMetaKey(container.dataset.metaKey || fieldName);
+        container.dataset.metaKey = metaKey;
         const propNames = JSON.parse(container.dataset.propNames || '[]');
 
         const uploadArea = container.querySelector('[data-media-dropzone]');
@@ -55,14 +68,16 @@ export default function initMediaFields(root = document) {
 
         const uploadedIds = [];
         const deletedIds = [];
+        const containerKey = metaKey || fieldName;
 
         // Store reference for later use
-        mediaContainers.set(fieldName, {
+        mediaContainers.set(containerKey, {
             uploadedIds,
             deletedIds,
             uploadedIdsInput,
             deletedIdsInput,
-            fieldName
+            fieldName,
+            metaKey
         });
 
         // Click to upload
@@ -404,7 +419,7 @@ export default function initMediaFields(root = document) {
             const fileName = mediaItem?.querySelector('.media-filename')?.textContent || 'Media';
 
             // Get current props from hidden input
-            const propsInput = mediaItem.querySelector(`input[name$="_props[${mediaId}]"]`);
+            const propsInput = mediaItem.querySelector(`input[data-media-props="true"][data-props-id="${mediaId}"]`);
             const currentProps = propsInput ? JSON.parse(propsInput.value || '{}') : {};
 
             // Generate form fields dynamically from propNames
@@ -477,13 +492,20 @@ export default function initMediaFields(root = document) {
                     }
 
                     // Store props in hidden input for future edits
-                    let propsInput = mediaItem.querySelector(`input[name$="_props[${mediaId}]"]`);
-                    if (!propsInput) {
-                        propsInput = document.createElement('input');
-                        propsInput.type = 'hidden';
-                        propsInput.name = `${fieldName}_props[${mediaId}]`;
-                        mediaItem.appendChild(propsInput);
-                    }
+            const currentMetaKey = container.dataset.metaKey || metaKey || computeMetaKey(fieldName);
+            let propsInput = mediaItem.querySelector(`input[data-media-props="true"][data-props-id="${mediaId}"]`);
+            if (!propsInput) {
+                propsInput = document.createElement('input');
+                propsInput.type = 'hidden';
+                propsInput.name = `__media_props[${currentMetaKey}][${mediaId}]`;
+                propsInput.setAttribute('data-media-props', 'true');
+                propsInput.setAttribute('data-props-id', mediaId);
+                mediaItem.appendChild(propsInput);
+            } else {
+                propsInput.name = `__media_props[${currentMetaKey}][${mediaId}]`;
+                propsInput.setAttribute('data-media-props', 'true');
+                propsInput.setAttribute('data-props-id', mediaId);
+            }
                     propsInput.value = JSON.stringify(data.media.props);
 
                     showToast('success', data.message || 'Properties saved successfully');

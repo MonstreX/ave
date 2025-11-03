@@ -28,6 +28,17 @@ export default function initFieldSet(root = document) {
             return;
         }
 
+        const computeMetaKey = (value) => {
+            if (!value) {
+                return '';
+            }
+
+            return value
+                .replace(/[\\[\\]]+/g, '_')
+                .replace(/_+/g, '_')
+                .replace(/^_|_$/g, '');
+        };
+
         // Track current item index for naming new items
         let itemIndex = itemsContainer.querySelectorAll('.fieldset-item').length;
         let sortableInstance = null;
@@ -104,6 +115,20 @@ export default function initFieldSet(root = document) {
                     field.name = field.name.replace(/__INDEX__/g, itemIndex);
                 });
 
+                // Replace __INDEX__ in data-field-name attributes so nested scripts resolve real indexes
+                addedItem.querySelectorAll('[data-field-name]').forEach(element => {
+                    const currentName = element.dataset.fieldName;
+                    if (!currentName || !currentName.includes('__INDEX__')) {
+                        return;
+                    }
+                    element.dataset.fieldName = currentName.replace(/__INDEX__/g, itemIndex);
+                });
+
+                // Replace __INDEX__ in media item template IDs inside this item
+                addedItem.querySelectorAll('[id*="__INDEX__"]').forEach(element => {
+                    element.id = element.id.replace(/__INDEX__/g, itemIndex);
+                });
+
                 // Set _id field
                 const idInput = addedItem.querySelector(`input[name="${fieldName}[${itemIndex}][_id]"]`);
                 if (idInput) {
@@ -114,6 +139,8 @@ export default function initFieldSet(root = document) {
                 // MUST be done BEFORE reinitFormComponents()
                 addedItem.querySelectorAll('.media-field-container').forEach(mediaContainer => {
                     const collection = mediaContainer.dataset.collection;
+                    const metaTemplate = mediaContainer.dataset.metaKey;
+                    const fieldsetFieldName = mediaContainer.closest('[data-field-name]')?.dataset.fieldName || '';
 
                     if (collection && collection.includes('__INDEX__')) {
                         // Replace __INDEX__ with itemId in collection name
@@ -123,6 +150,41 @@ export default function initFieldSet(root = document) {
 
                         // Reset initialization flag so MediaField reinits with correct collection
                         mediaContainer.dataset.initialized = 'false';
+                    }
+
+                    let resolvedMetaBase = '';
+
+                    if (metaTemplate && metaTemplate.includes('__INDEX__')) {
+                        resolvedMetaBase = metaTemplate.replace(/__INDEX__/g, itemIndex);
+                    } else if (fieldsetFieldName) {
+                        resolvedMetaBase = fieldsetFieldName;
+                    }
+
+                    if (resolvedMetaBase) {
+                        const resolvedMetaKey = computeMetaKey(resolvedMetaBase);
+                        mediaContainer.dataset.metaKey = resolvedMetaKey;
+
+                        const uploadedInput = mediaContainer.querySelector('[data-uploaded-ids]');
+                        if (uploadedInput) {
+                            uploadedInput.name = `__media_uploaded[${resolvedMetaKey}]`;
+                        }
+
+                        const deletedInput = mediaContainer.querySelector('[data-deleted-ids]');
+                        if (deletedInput) {
+                            deletedInput.name = `__media_deleted[${resolvedMetaKey}]`;
+                        }
+
+                        mediaContainer.querySelectorAll('input[name^="__media_order["]').forEach(orderInput => {
+                            orderInput.name = `__media_order[${resolvedMetaKey}][]`;
+                        });
+
+                        mediaContainer.querySelectorAll('input[data-media-props="true"]').forEach(propsInput => {
+                            const mediaId = propsInput.getAttribute('data-props-id');
+                            if (!mediaId) {
+                                return;
+                            }
+                            propsInput.name = `__media_props[${resolvedMetaKey}][${mediaId}]`;
+                        });
                     }
                 });
 
@@ -438,6 +500,11 @@ async function deleteMediaCollection(collectionName, modelType, modelId, uploadU
                 model_id: modelId
             })
         });
+
+        if (!response.ok) {
+            const text = await response.text();
+            throw new Error(text || `HTTP ${response.status}`);
+        }
 
         return response.json();
     } catch (error) {

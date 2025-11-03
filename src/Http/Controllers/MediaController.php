@@ -290,6 +290,43 @@ class MediaController extends Controller
     }
 
     /**
+     * Delete entire media collection (used by Fieldset item removal)
+     */
+    public function destroyCollection(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'collection' => 'required|string',
+            'model_type' => 'required|string',
+            'model_id' => 'required|integer',
+        ]);
+
+        if (!class_exists($data['model_type'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Model class not found: ' . $data['model_type'],
+            ], 400);
+        }
+
+        $deleted = 0;
+
+        MediaModel::query()
+            ->where('collection_name', $data['collection'])
+            ->where('model_type', $data['model_type'])
+            ->where('model_id', $data['model_id'])
+            ->chunkById(100, static function ($items) use (&$deleted) {
+                foreach ($items as $media) {
+                    $media->delete();
+                    $deleted++;
+                }
+            });
+
+        return response()->json([
+            'success' => true,
+            'deleted' => $deleted,
+        ]);
+    }
+
+    /**
      * Reorder media items
      */
     public function reorder(Request $request): JsonResponse

@@ -25,6 +25,13 @@ class FormValidator
     ): array {
         $rules = [];
 
+        logger()->info('[FormValidator] building rules', [
+            'resource' => $resourceClass,
+            'mode' => $mode,
+            'payload_keys' => array_keys($request->all()),
+            'fieldset_input' => $request->input(),
+        ]);
+
         foreach ($form->getAllFields() as $field) {
             if ($field instanceof Fieldset) {
                 $rules += $this->fieldsetRules($field);
@@ -37,6 +44,10 @@ class FormValidator
         if ($mode === 'edit' && $model) {
             $rules = $this->adjustUniqueRulesForEdit($rules, $model);
         }
+
+        logger()->info('[FormValidator] rules compiled', [
+            'rules' => $rules,
+        ]);
 
         return $rules;
     }
@@ -72,10 +83,20 @@ class FormValidator
         $fieldRules = $baseRules ?? $field->getRules();
 
         if (empty($fieldRules) && !$field->isRequired()) {
+            logger()->info('[FormValidator] skip empty rules', [
+                'field' => $field->key(),
+                'key' => $key,
+            ]);
             return $rules;
         }
 
         $rules[$key] = $this->formatRules($fieldRules, $field->isRequired());
+
+        logger()->info('[FormValidator] append rules', [
+            'field' => $field->key(),
+            'key' => $key,
+            'rules' => $rules[$key],
+        ]);
 
         return $rules;
     }

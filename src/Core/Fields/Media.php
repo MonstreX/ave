@@ -4,6 +4,7 @@ namespace Monstrex\Ave\Core\Fields;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Monstrex\Ave\Core\DataSources\DataSourceInterface;
 use Monstrex\Ave\Core\FormContext;
@@ -396,10 +397,11 @@ class Media extends AbstractField
             return;
         }
 
-        $uploadedIds = $this->parseIdList($request->input($this->key . '_uploaded', []));
-        $deletedIds = $this->parseIdList($request->input($this->key . '_deleted', []));
-        $order = $this->parseIdList($request->input($this->key . '_order', []));
-        $props = $this->normalisePropsInput($request->input($this->key . '_props', []));
+        $metaKey = $this->buildMetaKey($this->key);
+        $uploadedIds = $this->parseIdList(Arr::get($request->input('__media_uploaded', []), $metaKey, []));
+        $deletedIds = $this->parseIdList(Arr::get($request->input('__media_deleted', []), $metaKey, []));
+        $order = $this->parseIdList(Arr::get($request->input('__media_order', []), $metaKey, []));
+        $props = $this->normalisePropsInput(Arr::get($request->input('__media_props', []), $metaKey, []));
 
         $record = $context->record();
 
@@ -495,6 +497,7 @@ class Media extends AbstractField
             'propNames' => $this->propNames,
             'modelType' => null, // Will be populated in render()
             'modelId' => null,   // Will be populated in render()
+            'metaKey' => $this->buildMetaKey($this->key),
         ]);
     }
 
@@ -667,5 +670,13 @@ class Media extends AbstractField
             $media->props = json_encode(array_merge($currentProps, $values));
             $media->save();
         }
+    }
+
+    protected function buildMetaKey(string $key): string
+    {
+        $metaKey = str_replace(['[', ']'], '_', $key);
+        $metaKey = preg_replace('/_+/', '_', $metaKey);
+
+        return trim($metaKey, '_');
     }
 }

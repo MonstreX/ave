@@ -28,6 +28,7 @@ class ResourcePersistence implements Persistable
             $model = $modelClass::create($payload);
 
             $this->syncRelations($resourceClass, $model, $data, $request);
+            $this->executeDeferredFieldsetActions($form, $model);
 
             event(new ResourceCreated($resourceClass, $model));
 
@@ -45,6 +46,7 @@ class ResourcePersistence implements Persistable
             $model->update($payload);
 
             $this->syncRelations($resourceClass, $model, $data, $request);
+            $this->executeDeferredFieldsetActions($form, $model);
 
             event(new ResourceUpdated($resourceClass, $model));
 
@@ -102,6 +104,15 @@ class ResourcePersistence implements Persistable
         }
 
         return array_values(array_filter($value, 'is_array'));
+    }
+
+    private function executeDeferredFieldsetActions(Form $form, Model $model): void
+    {
+        foreach ($form->getAllFields() as $field) {
+            if ($field instanceof Fieldset) {
+                $field->runDeferredActions($model);
+            }
+        }
     }
 
     protected function syncRelations(string $resourceClass, Model $model, array $data, Request $request): void
