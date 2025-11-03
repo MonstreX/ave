@@ -2,7 +2,7 @@
 
 namespace Monstrex\Ave\Core\Fields;
 
-use Monstrex\Ave\Core\Forms\FormContext;
+use Monstrex\Ave\Core\FormContext;
 
 /**
  * CodeEditor Field - input field for code editing with syntax highlighting

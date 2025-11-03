@@ -2,7 +2,7 @@
 
 namespace Monstrex\Ave\Core\Fields;
 
-use Monstrex\Ave\Core\Forms\FormContext;
+use Monstrex\Ave\Core\FormContext;
 
 /**
  * RichEditor Field - input field for WYSIWYG HTML content editing

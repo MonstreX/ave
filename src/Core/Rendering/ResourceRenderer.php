@@ -4,7 +4,7 @@ namespace Monstrex\Ave\Core\Rendering;
 
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
-use Monstrex\Ave\Core\Forms\FormContext;
+use Monstrex\Ave\Core\FormContext;
 
 class ResourceRenderer
 {

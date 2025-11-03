@@ -3,7 +3,7 @@
 namespace Monstrex\Ave\Core\Components;
 
 use InvalidArgumentException;
-use Monstrex\Ave\Core\Forms\FormContext;
+use Monstrex\Ave\Core\FormContext;
 
 /**
  * Tabs component - renders Bootstrap tabs with multiple Tab children

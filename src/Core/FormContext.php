@@ -1,6 +1,6 @@
 <?php
 
-namespace Monstrex\Ave\Core\Forms;
+namespace Monstrex\Ave\Core;
 
 use Illuminate\Contracts\Support\MessageBag;
 use Illuminate\Database\Eloquent\Model;

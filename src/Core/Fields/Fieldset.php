@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Monstrex\Ave\Core\DataSources\ArrayDataSource;
 use Monstrex\Ave\Core\DataSources\DataSourceInterface;
-use Monstrex\Ave\Core\Forms\FormContext;
+use Monstrex\Ave\Core\FormContext;
 use Monstrex\Ave\Models\Media as MediaModel;
 
 /**

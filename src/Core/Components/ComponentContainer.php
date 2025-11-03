@@ -3,7 +3,7 @@
 namespace Monstrex\Ave\Core\Components;
 
 use Monstrex\Ave\Core\Components\Concerns\HasComponents;
-use Monstrex\Ave\Core\Forms\FormContext;
+use Monstrex\Ave\Core\FormContext;
 
 /**
  * Base class for container components that hold other components

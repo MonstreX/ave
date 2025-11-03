@@ -6,7 +6,7 @@ use Illuminate\Support\Str;
 use Monstrex\Ave\Contracts\FormField;
 use Monstrex\Ave\Core\DataSources\DataSourceInterface;
 use Monstrex\Ave\Core\DataSources\ModelDataSource;
-use Monstrex\Ave\Core\Forms\FormContext;
+use Monstrex\Ave\Core\FormContext;
 
 abstract class AbstractField implements FormField
 {

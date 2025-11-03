@@ -3,7 +3,7 @@
 namespace Monstrex\Ave\Core\Components;
 
 use Illuminate\Support\Str;
-use Monstrex\Ave\Core\Forms\FormContext;
+use Monstrex\Ave\Core\FormContext;
 
 /**
  * Tab component - individual tab inside Tabs container

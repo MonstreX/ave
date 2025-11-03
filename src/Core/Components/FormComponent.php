@@ -3,8 +3,8 @@
 namespace Monstrex\Ave\Core\Components;
 
 use Illuminate\Http\Request;
-use Monstrex\Ave\Core\Forms\Form;
-use Monstrex\Ave\Core\Forms\FormContext;
+use Monstrex\Ave\Core\Form;
+use Monstrex\Ave\Core\FormContext;
 
 /**
  * Base class for form layout components

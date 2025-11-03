@@ -2,7 +2,7 @@
 
 namespace Monstrex\Ave\Core\Components;
 
-use Monstrex\Ave\Core\Forms\FormContext;
+use Monstrex\Ave\Core\FormContext;
 
 /**
  * Panel component - styled container with title and description
