@@ -66,6 +66,7 @@ function initializeEditor(textarea) {
     const config = {
         language: textarea.dataset.language || 'html',
         height: parseInt(textarea.dataset.height || '400', 10),
+        autoHeight: textarea.dataset.autoHeight === 'true',
         theme: textarea.dataset.theme || 'light',
         lineNumbers: textarea.dataset.lineNumbers !== 'false',
         codeFolding: textarea.dataset.codeFolding !== 'false',
@@ -75,7 +76,15 @@ function initializeEditor(textarea) {
     // Create editor div
     const editorDiv = document.createElement('div');
     editorDiv.style.width = '100%';
-    editorDiv.style.height = `${config.height}px`;
+
+    // Set height (auto or fixed)
+    if (config.autoHeight) {
+        editorDiv.style.height = 'auto';
+        editorDiv.style.minHeight = `${Math.max(config.height, 200)}px`;
+    } else {
+        editorDiv.style.height = `${Math.max(config.height, 50)}px`;
+    }
+
     editorTarget.appendChild(editorDiv);
 
     // Initialize Ace editor
@@ -85,7 +94,8 @@ function initializeEditor(textarea) {
     editor.setValue(textarea.value || '', -1); // -1 moves cursor to start
 
     // Configure editor
-    editor.setTheme(getAceTheme(config.theme));
+    const aceTheme = getAceTheme(config.theme);
+    editor.setTheme(aceTheme);
     editor.session.setMode(getAceMode(config.language));
     editor.setShowPrintMargin(false);
     editor.renderer.setShowGutter(config.lineNumbers);
@@ -103,13 +113,30 @@ function initializeEditor(textarea) {
         editor.session.setFoldStyle('markbegin');
     }
 
-    // Note: Autocomplete requires ace-builds/src-noconflict/ext-language_tools
-    // Disabled for now to avoid errors
+    // Auto-height: adjust height based on content
+    if (config.autoHeight) {
+        const updateHeight = () => {
+            const lines = editor.session.getLength();
+            const lineHeight = editor.renderer.lineHeight;
+            const newHeight = Math.max(lines * lineHeight + 5, Math.max(config.height, 200));
+            editorDiv.style.height = newHeight + 'px';
+            editor.resize();
+        };
 
-    // Sync content back to textarea on change
-    editor.session.on('change', function() {
-        textarea.value = editor.getValue();
-    });
+        // Update on content change
+        editor.session.on('change', () => {
+            textarea.value = editor.getValue();
+            updateHeight();
+        });
+
+        // Initial height
+        updateHeight();
+    } else {
+        // Sync content back to textarea on change (fixed height)
+        editor.session.on('change', function() {
+            textarea.value = editor.getValue();
+        });
+    }
 
     // Store editor instance on textarea element
     textarea._codeEditor = editor;

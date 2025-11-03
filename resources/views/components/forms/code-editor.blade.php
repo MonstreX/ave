@@ -25,6 +25,7 @@
             data-language="{{ $language }}"
             data-height="{{ $height }}"
             data-theme="{{ $theme }}"
+            data-auto-height="{{ $autoHeight ? 'true' : 'false' }}"
             data-line-numbers="{{ $lineNumbers ? 'true' : 'false' }}"
             data-code-folding="{{ $codeFolding ? 'true' : 'false' }}"
             data-auto-complete="{{ $autoComplete ? 'true' : 'false' }}"

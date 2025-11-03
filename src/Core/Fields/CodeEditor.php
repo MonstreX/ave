@@ -56,6 +56,11 @@ class CodeEditor extends AbstractField
     protected int $tabSize = 2;
 
     /**
+     * Whether to use auto-height based on content
+     */
+    protected bool $autoHeight = false;
+
+    /**
      * Set editor height
      */
     public function height(int $height): static
@@ -76,10 +81,13 @@ class CodeEditor extends AbstractField
 
     /**
      * Set editor theme
+     * Supported: 'light', 'dark', 'monokai'
      */
     public function theme(string $theme): static
     {
-        $this->theme = in_array($theme, ['light', 'dark']) ? $theme : 'light';
+        // Accept any theme name - Ace will handle it or fall back to default
+        // Supported: light, dark, monokai (mapped in JavaScript)
+        $this->theme = $theme;
         return $this;
     }
 
@@ -116,6 +124,15 @@ class CodeEditor extends AbstractField
     public function tabSize(int $size): static
     {
         $this->tabSize = max(1, min(8, $size)); // Minimum 1, maximum 8
+        return $this;
+    }
+
+    /**
+     * Enable/disable auto-height based on content
+     */
+    public function autoHeight(bool $enabled = true): static
+    {
+        $this->autoHeight = $enabled;
         return $this;
     }
 
@@ -176,6 +193,14 @@ class CodeEditor extends AbstractField
     }
 
     /**
+     * Check if auto-height is enabled
+     */
+    public function hasAutoHeight(): bool
+    {
+        return $this->autoHeight;
+    }
+
+    /**
      * Prepare for display
      */
     public function prepareForDisplay(FormContext $context): void
@@ -205,6 +230,7 @@ class CodeEditor extends AbstractField
             'codeFolding' => $this->hasCodeFolding(),
             'autoComplete' => $this->hasAutoComplete(),
             'tabSize' => $this->getTabSize(),
+            'autoHeight' => $this->hasAutoHeight(),
             'value' => $value,
         ]);
     }
