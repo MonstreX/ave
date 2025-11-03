@@ -237,7 +237,9 @@ class Fieldset extends AbstractField
                     }
                 }
 
-                if (method_exists($field, 'prepareForDisplay')) {
+                // Skip prepareForDisplay for Media fields - they're already populated
+                // via fillFromCollectionName() above
+                if (!($field instanceof Media) && method_exists($field, 'prepareForDisplay')) {
                     $field->prepareForDisplay(FormContext::forData($itemData));
                 }
 
@@ -514,8 +516,14 @@ class Fieldset extends AbstractField
                 $templateName = "{$this->key}[__INDEX__][{$originalName}]";
                 $property->setValue($clone, $templateName);
 
+                // For Media field, set collection name pattern with __INDEX__ placeholder
                 if ($clone instanceof Media) {
-                    $clone->setFieldSetItemId(0);
+                    $collectionPattern = "{$this->key}___INDEX___{$originalName}";
+
+                    // Set via reflection to ensure it sticks
+                    $overrideProperty = $reflection->getProperty('collectionNameOverride');
+                    $overrideProperty->setAccessible(true);
+                    $overrideProperty->setValue($clone, $collectionPattern);
                 }
             }
 
