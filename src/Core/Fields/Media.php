@@ -9,88 +9,88 @@ use Monstrex\Ave\Core\DataSources\DataSourceInterface;
 use Monstrex\Ave\Core\Forms\FormContext;
 
 /**
- * Media Field - поле для работы с файлами и изображениями
+ * Media Field - input field for managing files and images
  *
- * Адаптация v1 MediaField для v2 с поддержкой:
- * - Загрузки файлов (единичной или множественной)
- * - Drag & drop загрузки
- * - Предпросмотра изображений
- * - Сортировки (drag-to-reorder)
- * - Удаления файлов
- * - Редактирования свойств медиа (название, alt, описание)
- * - Работы внутри FieldSet (вложенные медиа поля)
- * - Хранения в базе данных или JSON
+ * Adaptation of v1 MediaField for v2 with support for:
+ * - Single and multiple file uploads
+ * - Drag & drop uploads
+ * - Image previews
+ * - Sorting (drag-to-reorder)
+ * - File deletion
+ * - Media property editing (title, alt, description)
+ * - Usage inside FieldSet (nested media fields)
+ * - Database or JSON storage
  */
 class Media extends AbstractField
 {
     /**
-     * Коллекция для хранения файлов
-     * Используется для группировки медиа по типам (gallery, hero, icon и т.д.)
+     * Collection for storing files
+     * Used to group media by types (gallery, hero, icon, etc.)
      */
     protected string $collection = 'default';
 
     /**
-     * Позволить загружать несколько файлов
+     * Whether to allow multiple file uploads
      */
     protected bool $multiple = false;
 
     /**
-     * Максимальное количество файлов
+     * Maximum number of files
      */
     protected ?int $maxFiles = null;
 
     /**
-     * MIME типы, которые допустимы для загрузки
+     * MIME types allowed for upload
      */
     protected array $accept = [];
 
     /**
-     * Максимальный размер одного файла в KB
+     * Maximum file size in KB
      */
     protected ?int $maxFileSize = null;
 
     /**
-     * Показывать ли предпросмотр изображений в сетке
+     * Whether to show image previews in grid
      */
     protected bool $showPreview = true;
 
     /**
-     * Преобразования изображений (ширина, высота, формат и т.д.)
+     * Image transformations (width, height, format, etc.)
      */
     protected array $imageConversions = [];
 
     /**
-     * Количество колонок в сетке медиа (1-12)
+     * Number of columns in media grid (1-12)
      */
     protected int $columns = 6;
 
     /**
-     * Свойства медиа, доступные для редактирования (название, alt, описание и т.д.)
+     * Media properties available for editing (title, alt, description, etc.)
      */
     protected array $propNames = [];
 
     /**
-     * Исходное имя поля (до переименования в FieldSet)
+     * Original field name (before FieldSet renaming)
      */
     protected ?string $originalName = null;
 
     /**
-     * ID элемента FieldSet (если поле находится внутри FieldSet)
+     * FieldSet item ID (if field is inside FieldSet)
      */
     protected ?int $fieldSetItemId = null;
 
     /**
-     * Override имени коллекции (из JSON FieldSet)
+     * Collection name override (from FieldSet JSON)
      */
     protected ?string $collectionNameOverride = null;
 
     /**
-     * Ожидающие медиа операции (загрузка, удаление, переупорядочивание)
+     * Pending media operations (uploads, deletions, reordering)
      */
     protected array $pendingMediaPayload = [];
 
     /**
-     * Установить коллекцию для группировки медиа
+     * Set collection for grouping media
      */
     public function collection(string $collection): static
     {
@@ -99,7 +99,7 @@ class Media extends AbstractField
     }
 
     /**
-     * Включить/отключить загрузку нескольких файлов
+     * Enable/disable multiple file uploads
      */
     public function multiple(bool $multiple = true, ?int $maxFiles = null): static
     {
@@ -109,7 +109,7 @@ class Media extends AbstractField
     }
 
     /**
-     * Установить допустимые MIME типы
+     * Set allowed MIME types
      */
     public function accept(array $mimeTypes): static
     {
@@ -118,7 +118,7 @@ class Media extends AbstractField
     }
 
     /**
-     * Быстро установить для изображений
+     * Quick set for images
      */
     public function acceptImages(): static
     {
@@ -127,7 +127,7 @@ class Media extends AbstractField
     }
 
     /**
-     * Быстро установить для документов
+     * Quick set for documents
      */
     public function acceptDocuments(): static
     {
@@ -142,7 +142,7 @@ class Media extends AbstractField
     }
 
     /**
-     * Установить максимальный размер файла в KB
+     * Set maximum file size in KB
      */
     public function maxFileSize(int $sizeInKB): static
     {
@@ -151,7 +151,7 @@ class Media extends AbstractField
     }
 
     /**
-     * Установить максимальное количество файлов
+     * Set maximum number of files
      */
     public function maxFiles(int $count): static
     {
@@ -160,7 +160,7 @@ class Media extends AbstractField
     }
 
     /**
-     * Показывать/скрывать предпросмотр изображений
+     * Show/hide image previews
      */
     public function preview(bool $show = true): static
     {
@@ -169,8 +169,8 @@ class Media extends AbstractField
     }
 
     /**
-     * Установить преобразования изображений
-     * Например: ['thumbnail' => ['width' => 150, 'height' => 150], 'medium' => ['width' => 500]]
+     * Set image transformations
+     * Example: ['thumbnail' => ['width' => 150, 'height' => 150], 'medium' => ['width' => 500]]
      */
     public function conversions(array $conversions): static
     {
@@ -179,7 +179,7 @@ class Media extends AbstractField
     }
 
     /**
-     * Установить количество колонок в сетке (1-12)
+     * Set grid columns count (1-12)
      */
     public function columns(int $columns): static
     {
@@ -188,8 +188,8 @@ class Media extends AbstractField
     }
 
     /**
-     * Определить свойства медиа для редактирования
-     * Например: 'title', 'alt', 'description'
+     * Define media properties for editing
+     * Example: 'title', 'alt', 'description'
      */
     public function props(string ...$propNames): static
     {
@@ -198,7 +198,7 @@ class Media extends AbstractField
     }
 
     /**
-     * Получить исходное имя поля (до FieldSet переименования)
+     * Get original field name (before FieldSet renaming)
      */
     public function getOriginalName(): string
     {
@@ -206,7 +206,7 @@ class Media extends AbstractField
     }
 
     /**
-     * Установить ID элемента FieldSet (для генерации стабильных имён коллекций)
+     * Set FieldSet item ID (for generating stable collection names)
      */
     public function setFieldSetItemId(int $itemId): void
     {
@@ -214,7 +214,7 @@ class Media extends AbstractField
     }
 
     /**
-     * Переопределить имя коллекции (используется при загрузке из JSON FieldSet)
+     * Override collection name (used when loading from FieldSet JSON)
      */
     public function setCollectionNameOverride(string $collectionName): void
     {
@@ -222,7 +222,7 @@ class Media extends AbstractField
     }
 
     /**
-     * Проверить, находится ли поле внутри FieldSet
+     * Check if field is inside FieldSet
      */
     protected function isNestedInFieldSet(): bool
     {
@@ -230,7 +230,7 @@ class Media extends AbstractField
     }
 
     /**
-     * Получить коллекцию
+     * Get collection
      */
     public function getCollection(): string
     {
@@ -238,7 +238,7 @@ class Media extends AbstractField
     }
 
     /**
-     * Проверить, множественный ли загруз
+     * Check if multiple upload
      */
     public function isMultiple(): bool
     {
@@ -246,7 +246,7 @@ class Media extends AbstractField
     }
 
     /**
-     * Получить допустимые MIME типы
+     * Get allowed MIME types
      */
     public function getAccept(): array
     {
@@ -254,7 +254,7 @@ class Media extends AbstractField
     }
 
     /**
-     * Получить строку Accept для input[type=file]
+     * Get Accept string for input[type=file]
      */
     public function getAcceptString(): string
     {
@@ -262,7 +262,7 @@ class Media extends AbstractField
     }
 
     /**
-     * Получить максимальный размер файла
+     * Get maximum file size
      */
     public function getMaxFileSize(): ?int
     {
@@ -270,7 +270,7 @@ class Media extends AbstractField
     }
 
     /**
-     * Получить максимальное количество файлов
+     * Get maximum number of files
      */
     public function getMaxFiles(): ?int
     {
@@ -278,7 +278,7 @@ class Media extends AbstractField
     }
 
     /**
-     * Показывать ли предпросмотр
+     * Show preview
      */
     public function showsPreview(): bool
     {
@@ -286,7 +286,7 @@ class Media extends AbstractField
     }
 
     /**
-     * Получить количество колонок в сетке
+     * Get grid columns count
      */
     public function getColumns(): int
     {
@@ -294,12 +294,12 @@ class Media extends AbstractField
     }
 
     /**
-     * Разрешить реальное имя коллекции
+     * Resolve actual collection name
      *
-     * Приоритет:
-     * 1. Override из JSON FieldSet (при загрузке существующих данных)
-     * 2. Сгенерировать из fieldSetItemId (при создании/сохранении)
-     * 3. Использовать свойство collection по умолчанию
+     * Priority:
+     * 1. Override from FieldSet JSON (when loading existing data)
+     * 2. Generate from fieldSetItemId (when creating/saving)
+     * 3. Use default collection property
      */
     protected function resolveCollectionName(): string
     {
@@ -317,7 +317,7 @@ class Media extends AbstractField
     }
 
     /**
-     * Заполнить поле из Eloquent модели
+     * Fill field from Eloquent model
      */
     public function fillFromRecord(Model $record): void
     {
@@ -330,8 +330,8 @@ class Media extends AbstractField
     }
 
     /**
-     * Заполнить поле медиа из конкретной коллекции
-     * Используется когда Media находится внутри FieldSet и имя коллекции хранится в JSON
+     * Fill media field from specific collection
+     * Used when Media is inside FieldSet and collection name is stored in JSON
      */
     public function fillFromCollectionName(Model $record, string $collectionName): void
     {
@@ -344,7 +344,7 @@ class Media extends AbstractField
     }
 
     /**
-     * Заполнить из источника данных (для FieldSet и JSON)
+     * Fill from data source (for FieldSet and JSON)
      */
     public function fillFromDataSource(DataSourceInterface $source): void
     {
@@ -358,7 +358,7 @@ class Media extends AbstractField
     }
 
     /**
-     * Подготовить к отображению
+     * Prepare for display
      */
     public function prepareForDisplay(FormContext $context): void
     {
@@ -366,13 +366,13 @@ class Media extends AbstractField
     }
 
     /**
-     * Обработка перед применением
+     * Processing before apply
      */
     public function beforeApply(Request $request, FormContext $context): void
     {
         $this->pendingMediaPayload = [];
 
-        // FieldSet обрабатывает вложенные медиа поля самостоятельно
+        // FieldSet handles nested media fields on its own
         if ($this->isNestedInFieldSet()) {
             return;
         }
@@ -384,7 +384,7 @@ class Media extends AbstractField
 
         $record = $context->record();
 
-        // Удалить помеченные для удаления медиа файлы
+        // Delete media marked for deletion
         if (!empty($deletedIds) && $record && $record->exists) {
             $record->media()
                 ->where('collection_name', $this->collection)
@@ -404,7 +404,7 @@ class Media extends AbstractField
 
         $this->pendingMediaPayload = $payload;
 
-        // Запланировать операции на выполнение после сохранения записи
+        // Schedule operations to run after record is saved
         if (method_exists($this, 'afterRecordSaved')) {
             $this->afterRecordSaved($context, function (Model $savedRecord, FormContext $savedContext) use ($payload) {
                 if (!empty($payload['uploaded'])) {
@@ -423,7 +423,7 @@ class Media extends AbstractField
     }
 
     /**
-     * Применить к источнику данных
+     * Apply to data source
      */
     public function applyToDataSource(DataSourceInterface $source, mixed $value): void
     {
@@ -433,7 +433,7 @@ class Media extends AbstractField
     }
 
     /**
-     * Разрешить правила валидации
+     * Get validation rules
      */
     public function getRules(): array
     {
@@ -447,7 +447,7 @@ class Media extends AbstractField
     }
 
     /**
-     * Преобразовать в массив для Blade шаблона
+     * Convert to array для Blade шаблона
      */
     public function toArray(): array
     {
@@ -478,7 +478,7 @@ class Media extends AbstractField
     }
 
     /**
-     * Отобразить поле
+     * Render field
      */
     public function render(FormContext $context): string
     {
@@ -506,7 +506,7 @@ class Media extends AbstractField
     }
 
     /**
-     * Парсить список ID из строки или массива
+     * Parse ID list из строки или массива
      */
     private function parseIdList(mixed $value): array
     {

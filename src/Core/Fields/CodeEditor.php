@@ -5,68 +5,68 @@ namespace Monstrex\Ave\Core\Fields;
 use Monstrex\Ave\Core\Forms\FormContext;
 
 /**
- * CodeEditor Field - поле для редактирования кода с синтаксическим подсвечиванием
+ * CodeEditor Field - input field for code editing with syntax highlighting
  *
- * Адаптация v1 CodeEditor для v2 с использованием Ace Editor.
- * Поддерживает:
- * - Синтаксическое подсвечивание (HTML, CSS, JavaScript, JSON, XML и др.)
- * - Нумерацию строк
- * - Свёртывание кода (code folding)
- * - Автодополнение
- * - Light и Dark темы
- * - Конфигурируемую высоту
- * - Множественное редактирование
+ * Adaptation of v1 CodeEditor for v2 using Ace Editor.
+ * Features:
+ * - Syntax highlighting (HTML, CSS, JavaScript, JSON, XML, etc.)
+ * - Line numbering
+ * - Code folding
+ * - Auto-completion
+ * - Light and Dark themes
+ * - Configurable height
+ * - Multi-cursor editing
  */
 class CodeEditor extends AbstractField
 {
     /**
-     * Высота редактора в пикселях
+     * Editor height in pixels
      */
     protected int $height = 400;
 
     /**
-     * Язык программирования для синтаксического подсвечивания
-     * Поддерживаемые: html, css, javascript, json, xml, php, python, sql и др.
+     * Programming language for syntax highlighting
+     * Supported: html, css, javascript, json, xml, php, python, sql, etc.
      */
     protected string $language = 'html';
 
     /**
-     * Тема редактора (light или dark)
+     * Editor theme (light or dark)
      */
     protected string $theme = 'light';
 
     /**
-     * Показывать ли номера строк
+     * Whether to show line numbers
      */
     protected bool $lineNumbers = true;
 
     /**
-     * Включить ли свёртывание кода
+     * Whether to enable code folding
      */
     protected bool $codeFolding = true;
 
     /**
-     * Включить ли автодополнение
+     * Whether to enable auto-completion
      */
     protected bool $autoComplete = true;
 
     /**
-     * Размер табуляции в пробелах
+     * Tab size in spaces
      */
     protected int $tabSize = 2;
 
     /**
-     * Установить высоту редактора
+     * Set editor height
      */
     public function height(int $height): static
     {
-        $this->height = max(200, $height); // Минимум 200px
+        $this->height = max(200, $height); // Minimum 200px
         return $this;
     }
 
     /**
-     * Установить язык программирования
-     * Примеры: 'html', 'css', 'javascript', 'json', 'xml', 'php', 'python', 'sql'
+     * Set programming language
+     * Examples: 'html', 'css', 'javascript', 'json', 'xml', 'php', 'python', 'sql'
      */
     public function language(string $language): static
     {
@@ -75,7 +75,7 @@ class CodeEditor extends AbstractField
     }
 
     /**
-     * Установить тему редактора
+     * Set editor theme
      */
     public function theme(string $theme): static
     {
@@ -84,7 +84,7 @@ class CodeEditor extends AbstractField
     }
 
     /**
-     * Показывать/скрывать номера строк
+     * Show/hide line numbers
      */
     public function lineNumbers(bool $enabled = true): static
     {
@@ -93,7 +93,7 @@ class CodeEditor extends AbstractField
     }
 
     /**
-     * Включить/отключить свёртывание кода
+     * Enable/disable code folding
      */
     public function codeFolding(bool $enabled = true): static
     {
@@ -102,7 +102,7 @@ class CodeEditor extends AbstractField
     }
 
     /**
-     * Включить/отключить автодополнение
+     * Enable/disable auto-completion
      */
     public function autoComplete(bool $enabled = true): static
     {
@@ -111,16 +111,16 @@ class CodeEditor extends AbstractField
     }
 
     /**
-     * Установить размер табуляции
+     * Set tab size
      */
     public function tabSize(int $size): static
     {
-        $this->tabSize = max(1, min(8, $size)); // Минимум 1, максимум 8
+        $this->tabSize = max(1, min(8, $size)); // Minimum 1, maximum 8
         return $this;
     }
 
     /**
-     * Получить высоту редактора
+     * Get editor height
      */
     public function getHeight(): int
     {
@@ -128,7 +128,7 @@ class CodeEditor extends AbstractField
     }
 
     /**
-     * Получить язык программирования
+     * Get programming language
      */
     public function getLanguage(): string
     {
@@ -136,7 +136,7 @@ class CodeEditor extends AbstractField
     }
 
     /**
-     * Получить тему редактора
+     * Get editor theme
      */
     public function getTheme(): string
     {
@@ -144,7 +144,7 @@ class CodeEditor extends AbstractField
     }
 
     /**
-     * Проверить, показывать ли номера строк
+     * Check if line numbers are shown
      */
     public function hasLineNumbers(): bool
     {
@@ -152,7 +152,7 @@ class CodeEditor extends AbstractField
     }
 
     /**
-     * Проверить, включено ли свёртывание кода
+     * Check if code folding is enabled
      */
     public function hasCodeFolding(): bool
     {
@@ -160,7 +160,7 @@ class CodeEditor extends AbstractField
     }
 
     /**
-     * Проверить, включено ли автодополнение
+     * Check if auto-completion is enabled
      */
     public function hasAutoComplete(): bool
     {
@@ -168,7 +168,7 @@ class CodeEditor extends AbstractField
     }
 
     /**
-     * Получить размер табуляции
+     * Get tab size
      */
     public function getTabSize(): int
     {
@@ -176,22 +176,22 @@ class CodeEditor extends AbstractField
     }
 
     /**
-     * Подготовить для отображения
+     * Prepare for display
      */
     public function prepareForDisplay(FormContext $context): void
     {
-        // Заполнить значение из источника данных
+        // Fill value from data source
         $this->fillFromDataSource($context->dataSource());
     }
 
     /**
-     * Преобразовать в массив для Blade шаблона
+     * Convert to array for Blade template
      */
     public function toArray(): array
     {
         $value = $this->getValue() ?? '';
 
-        // Если это массив, преобразовать в JSON для отображения
+        // If it's an array, convert to JSON for display
         if (is_array($value)) {
             $value = json_encode($value, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
         }
@@ -210,7 +210,7 @@ class CodeEditor extends AbstractField
     }
 
     /**
-     * Отобразить поле
+     * Render field
      */
     public function render(FormContext $context): string
     {

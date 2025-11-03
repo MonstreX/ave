@@ -5,30 +5,30 @@ namespace Monstrex\Ave\Core\Fields;
 use Monstrex\Ave\Core\Forms\FormContext;
 
 /**
- * RichEditor Field - поле для визуального редактирования HTML контента (WYSIWYG)
+ * RichEditor Field - input field for WYSIWYG HTML content editing
  *
- * Адаптация v1 RichEditor для v2 с использованием Jodit Editor.
- * Поддерживает:
+ * Adaptation of v1 RichEditor for v2 using Jodit Editor.
+ * Features:
  * - Visual HTML editing (WYSIWYG)
- * - Source code view с Ace Editor
- * - Загрузка изображений
- * - Форматирование текста (bold, italic, underline, strikethrough)
- * - Списки (ul, ol)
- * - Заголовки (h1-h6)
- * - Ссылки и таблицы
- * - Различные пресеты toolbar (minimal, basic, full)
- * - Настраиваемая высота
+ * - Source code view with Ace Editor
+ * - Image uploads
+ * - Text formatting (bold, italic, underline, strikethrough)
+ * - Lists (ul, ol)
+ * - Headings (h1-h6)
+ * - Links and tables
+ * - Various toolbar presets (minimal, basic, full)
+ * - Customizable height
  */
 class RichEditor extends AbstractField
 {
     /**
-     * Высота редактора в пикселях
+     * Editor height in pixels
      */
     protected int $height = 400;
 
     /**
-     * Пресет toolbar
-     * Поддерживаемые значения: 'minimal', 'basic', 'full'
+     * Toolbar preset
+     * Supported values: 'minimal', 'basic', 'full'
      *
      * minimal: bold, italic, lists
      * basic: headings, bold, italic, link, lists
@@ -37,68 +37,68 @@ class RichEditor extends AbstractField
     protected string $toolbar = 'full';
 
     /**
-     * Показывать ли меню бар
+     * Whether to show menu bar
      */
     protected bool $showMenuBar = true;
 
     /**
-     * Максимальная длина HTML содержимого в символах
+     * Maximum length of HTML content in characters
      */
     protected ?int $maxLength = null;
 
     /**
-     * Позволить ли использование inline стилей
+     * Whether to allow inline styles
      */
     protected bool $allowInlineStyles = true;
 
     /**
-     * Позволить ли загрузку изображений
+     * Whether to allow image uploads
      */
     protected bool $allowImageUpload = true;
 
     /**
-     * Позволить ли создание таблиц
+     * Whether to allow table creation
      */
     protected bool $allowTables = true;
 
     /**
-     * Позволить ли использование списков
+     * Whether to allow list usage
      */
     protected bool $allowLists = true;
 
     /**
-     * Позволить ли создание ссылок
+     * Whether to allow link creation
      */
     protected bool $allowLinks = true;
 
     /**
-     * Позволить ли использование blockquote
+     * Whether to allow blockquote usage
      */
     protected bool $allowBlockquote = true;
 
     /**
-     * Позволить ли использование кода/pre
+     * Whether to allow code/pre usage
      */
     protected bool $allowCode = true;
 
     /**
-     * Placeholder текст для пустого редактора
+     * Placeholder text for empty editor
      */
     protected ?string $editorPlaceholder = null;
 
     /**
-     * Установить высоту редактора в пикселях
+     * Set editor height in pixels
      */
     public function height(int $height): static
     {
-        $this->height = max(200, $height); // Минимум 200px
+        $this->height = max(200, $height); // Minimum 200px
         return $this;
     }
 
     /**
-     * Установить пресет toolbar
+     * Set toolbar preset
      *
-     * @param string $toolbar 'minimal', 'basic', или 'full'
+     * @param string $toolbar 'minimal', 'basic', or 'full'
      */
     public function toolbar(string $toolbar): static
     {
@@ -109,7 +109,7 @@ class RichEditor extends AbstractField
     }
 
     /**
-     * Показывать/скрывать меню bar
+     * Show/hide menu bar
      */
     public function showMenuBar(bool $show = true): static
     {
@@ -118,16 +118,16 @@ class RichEditor extends AbstractField
     }
 
     /**
-     * Установить максимальную длину контента в символах
+     * Set maximum content length in characters
      */
     public function maxLength(int $length): static
     {
-        $this->maxLength = max(100, $length); // Минимум 100 символов
+        $this->maxLength = max(100, $length); // Minimum 100 characters
         return $this;
     }
 
     /**
-     * Позволить/запретить inline стили
+     * Allow/disallow inline styles
      */
     public function allowInlineStyles(bool $allow = true): static
     {
@@ -136,7 +136,7 @@ class RichEditor extends AbstractField
     }
 
     /**
-     * Позволить/запретить загрузку изображений
+     * Allow/disallow image uploads
      */
     public function allowImageUpload(bool $allow = true): static
     {
@@ -145,7 +145,7 @@ class RichEditor extends AbstractField
     }
 
     /**
-     * Позволить/запретить таблицы
+     * Allow/disallow tables
      */
     public function allowTables(bool $allow = true): static
     {
@@ -154,7 +154,7 @@ class RichEditor extends AbstractField
     }
 
     /**
-     * Позволить/запретить списки
+     * Allow/disallow lists
      */
     public function allowLists(bool $allow = true): static
     {
@@ -163,7 +163,7 @@ class RichEditor extends AbstractField
     }
 
     /**
-     * Позволить/запретить ссылки
+     * Allow/disallow links
      */
     public function allowLinks(bool $allow = true): static
     {
@@ -172,7 +172,7 @@ class RichEditor extends AbstractField
     }
 
     /**
-     * Позволить/запретить blockquote
+     * Allow/disallow blockquote
      */
     public function allowBlockquote(bool $allow = true): static
     {
@@ -181,7 +181,7 @@ class RichEditor extends AbstractField
     }
 
     /**
-     * Позволить/запретить код/pre
+     * Allow/disallow code/pre
      */
     public function allowCode(bool $allow = true): static
     {
@@ -190,7 +190,7 @@ class RichEditor extends AbstractField
     }
 
     /**
-     * Установить placeholder текст
+     * Set placeholder text
      */
     public function placeholder(string $text): static
     {
@@ -199,7 +199,7 @@ class RichEditor extends AbstractField
     }
 
     /**
-     * Получить высоту редактора
+     * Get editor height
      */
     public function getHeight(): int
     {
@@ -207,7 +207,7 @@ class RichEditor extends AbstractField
     }
 
     /**
-     * Получить пресет toolbar
+     * Get toolbar preset
      */
     public function getToolbar(): string
     {
@@ -215,7 +215,7 @@ class RichEditor extends AbstractField
     }
 
     /**
-     * Проверить, показывается ли меню bar
+     * Check if menu bar is shown
      */
     public function hasMenuBar(): bool
     {
@@ -223,7 +223,7 @@ class RichEditor extends AbstractField
     }
 
     /**
-     * Получить максимальную длину контента
+     * Get maximum content length
      */
     public function getMaxLength(): ?int
     {
@@ -231,7 +231,7 @@ class RichEditor extends AbstractField
     }
 
     /**
-     * Получить placeholder текст
+     * Get placeholder text
      */
     public function getPlaceholder(): ?string
     {
@@ -239,7 +239,7 @@ class RichEditor extends AbstractField
     }
 
     /**
-     * Получить конфигурацию для JavaScript
+     * Get configuration for JavaScript
      */
     public function getJsConfig(): array
     {
@@ -255,7 +255,7 @@ class RichEditor extends AbstractField
             'allowCode' => $this->allowCode,
         ];
 
-        // Отключить функции если не разрешены
+        // Disable features if not allowed
         if (!$this->allowTables) {
             $config['disablePlugins'] = array_merge($config['disablePlugins'] ?? [], ['table']);
         }
@@ -264,14 +264,14 @@ class RichEditor extends AbstractField
             $config['disablePlugins'] = array_merge($config['disablePlugins'] ?? [], ['image']);
         }
 
-        // Применить пресет toolbar
+        // Apply toolbar preset
         $config['buttons'] = $this->getToolbarButtons();
 
         return $config;
     }
 
     /**
-     * Получить кнопки toolbar на основе пресета
+     * Get toolbar buttons based on preset
      */
     protected function getToolbarButtons(): array
     {
@@ -302,22 +302,22 @@ class RichEditor extends AbstractField
     }
 
     /**
-     * Подготовить для отображения
+     * Prepare for display
      */
     public function prepareForDisplay(FormContext $context): void
     {
-        // Заполнить значение из источника данных
+        // Fill value from data source
         $this->fillFromDataSource($context->dataSource());
     }
 
     /**
-     * Преобразовать в массив для Blade шаблона
+     * Convert to array for Blade template
      */
     public function toArray(): array
     {
         $value = $this->getValue() ?? '';
 
-        // Убедиться что это строка
+        // Ensure it's a string
         if (!is_string($value)) {
             $value = (string)$value;
         }
@@ -328,14 +328,14 @@ class RichEditor extends AbstractField
             'toolbar' => $this->getToolbar(),
             'showMenuBar' => $this->hasMenuBar(),
             'maxLength' => $this->getMaxLength(),
-            'placeholder' => $this->getPlaceholder() ?? 'Начните печатать...',
+            'placeholder' => $this->getPlaceholder() ?? 'Start typing...',
             'jsConfig' => json_encode($this->getJsConfig()),
             'value' => $value,
         ]);
     }
 
     /**
-     * Отобразить поле
+     * Render field
      */
     public function render(FormContext $context): string
     {
