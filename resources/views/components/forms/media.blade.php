@@ -19,6 +19,7 @@
          data-collection="{{ $collection }}"
          data-model-type="{{ $modelType ?? '' }}"
          data-model-id="{{ $modelId ?? '' }}"
+         data-meta-key="{{ $metaKey ?? '' }}"
          data-prop-names="{{ json_encode($propNames ?? []) }}">
 
         {{-- Upload Area --}}
@@ -88,13 +89,17 @@
                     </div>
 
                     {{-- Hidden inputs for order and deletion tracking --}}
-                    <input type="hidden" name="{{ $key }}_order[]" value="{{ $media->id }}">
+                    <input type="hidden" name="__media_order[{{ $metaKey }}][]" value="{{ $media->id }}">
 
                     {{-- Hidden input with current props (for edit form pre-filling) --}}
                     @php
                         $currentProps = is_string($media->props) ? json_decode($media->props, true) : [];
                     @endphp
-                    <input type="hidden" name="{{ $key }}_props[{{ $media->id }}]" value="{{ json_encode($currentProps ?: []) }}">
+                    <input type="hidden"
+                           name="__media_props[{{ $metaKey }}][{{ $media->id }}]"
+                           value="{{ json_encode($currentProps ?: []) }}"
+                           data-media-props="true"
+                           data-props-id="{{ $media->id }}">
 
                     <div class="media-item-footer">
                         <div class="media-item-footer-line">
@@ -110,8 +115,8 @@
         </div>
 
         {{-- Hidden inputs for tracking changes --}}
-        <input type="hidden" name="{{ $key }}_uploaded" value="" data-uploaded-ids>
-        <input type="hidden" name="{{ $key }}_deleted" value="" data-deleted-ids>
+        <input type="hidden" name="__media_uploaded[{{ $metaKey }}]" value="" data-uploaded-ids>
+        <input type="hidden" name="__media_deleted[{{ $metaKey }}]" value="" data-deleted-ids>
     </div>
 
     @if(!empty($errors))
@@ -153,7 +158,7 @@
             </div>
         </div>
 
-        <input type="hidden" name="{{ $key }}_order[]" value="">
+        <input type="hidden" name="__media_order[{{ $metaKey }}][]" value="">
 
         <div class="media-item-footer">
             <div class="media-item-footer-line">

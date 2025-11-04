@@ -19,6 +19,7 @@ use Monstrex\Ave\Console\Commands\CacheClearCommand;
 use Monstrex\Ave\View\Composers\SidebarComposer;
 use Monstrex\Ave\Support\PackageAssets;
 use Monstrex\Ave\Media\MediaStorage;
+use Monstrex\Ave\Core\Media\MediaRepository;
 
 /**
  * AveServiceProvider Class
@@ -59,6 +60,11 @@ class AveServiceProvider extends ServiceProvider
         $this->app->singleton(ResourceRenderer::class);
         $this->app->singleton(FormValidator::class);
         $this->app->singleton(ResourcePersistence::class);
+        $this->app->singleton(MediaRepository::class, function ($app) {
+            $mediaModel = config('ave.media_model', 'Monstrex\\Ave\\Models\\Media');
+
+            return new MediaRepository($mediaModel);
+        });
 
         // Register Media Storage service
         $this->app->singleton('media-storage', function ($app) {

@@ -79,7 +79,7 @@
         <div class="fieldset-items" data-fieldset-items>
             @if(!empty($itemInstances))
                 @foreach($itemInstances as $index => $item)
-                    <div class="fieldset-item{{ !empty($collapsed) ? ' collapsed' : '' }}" data-item-index="{{ $index }}">
+                    <div class="fieldset-item{{ !empty($collapsed) ? ' collapsed' : '' }}" data-item-index="{{ $index }}" data-item-id="{{ $item['id'] }}">
                         @if(!empty($sortable))
                             <div class="fieldset-drag-handle" title="Drag to reorder">
                                 <svg class="icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -123,7 +123,7 @@
                             </div>
 
                             <div class="fieldset-item-fields">
-                                <input type="hidden" name="{{ $key }}[{{ $index }}][_id]" value="{{ $itemIds[$index] ?? $index + 1 }}">
+                                <input type="hidden" name="{{ $key }}[{{ $item['id'] }}][_id]" value="{{ $item['id'] }}">
 
                                 @if(!empty($item['fields']))
                                     @foreach($item['fields'] as $itemField)
@@ -201,9 +201,9 @@
 
             <div class="fieldset-item-fields">
                 {{-- Hidden field to store unique item ID (value will be set by JS) --}}
-                <input type="hidden" name="{{ $key ?? 'fieldset' }}[__INDEX__][_id]" value="" data-field-id>
+                <input type="hidden" name="{{ $key ?? 'fieldset' }}[__ITEM__][_id]" value="" data-field-id>
 
-                {{-- Template fields with __INDEX__ placeholder --}}
+                {{-- Template fields with __ITEM__ placeholder --}}
                 @if(!empty($templateFields))
                     @foreach($templateFields as $templateField)
                         {!! $templateField->render($context) !!}

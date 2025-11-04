@@ -3,11 +3,12 @@
 namespace Monstrex\Ave\Core\Fields\Fieldset;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Monstrex\Ave\Core\DataSources\ArrayDataSource;
 use Monstrex\Ave\Core\FormContext;
 use Monstrex\Ave\Core\Fields\AbstractField;
 use Monstrex\Ave\Core\Fields\Fieldset as FieldsetField;
-use Monstrex\Ave\Core\Fields\Media;
 
 /**
  * Responsible for cloning and preparing child fields for Fieldset items.
@@ -16,11 +17,12 @@ class ItemFactory
 {
     public function __construct(
         private FieldsetField $fieldset,
-    ) {}
+    ) {
+    }
 
-    public function makeFromData(int $index, array $itemData, ?Model $record): Item
+    public function makeFromData(int $index, array &$itemData, ?Model $record): Item
     {
-        $itemId = $this->resolveItemId($itemData, $index);
+        $itemId = $this->resolveItemId($itemData);
         $fields = [];
 
         foreach ($this->fieldset->getChildSchema() as $definition) {
@@ -28,14 +30,40 @@ class ItemFactory
                 continue;
             }
 
-            $fieldClone = clone $definition;
-            $originalKey = $definition->getKey();
+            $nestedField = $definition->nestWithin($this->fieldset->getKey(), $itemId);
+            $baseKey = $definition->baseKey();
+            $storedValue = $itemData[$baseKey] ?? null;
 
-            $this->fillField($fieldClone, $itemData, $record, $originalKey);
-            $this->renameField($fieldClone, $originalKey, $index, $itemId);
+            if (is_string($storedValue) && method_exists($nestedField, 'useCollectionOverride')) {
+                $nestedField->useCollectionOverride($storedValue);
+            }
 
-            $fields[] = $fieldClone;
+            if ($record && is_string($storedValue) && method_exists($nestedField, 'fillFromCollectionName')) {
+                $nestedField->fillFromCollectionName($record, $storedValue);
+            } else {
+                $dataSource = new ArrayDataSource($itemData);
+                $originalKey = $nestedField->getKey();
+
+                $nestedField->setKey($baseKey);
+                $nestedField->fillFromDataSource($dataSource);
+                $nestedField->setKey($originalKey);
+            }
+
+            if (method_exists($nestedField, 'prepareForDisplay')) {
+                $nestedField->prepareForDisplay(FormContext::forData($itemData));
+            }
+
+            $fields[] = $nestedField;
         }
+
+        Log::debug('Fieldset item prepared', [
+            'fieldset' => $this->fieldset->getKey(),
+            'item_id' => $itemId,
+            'field_keys' => array_map(
+                static fn (AbstractField $field): string => $field->getKey(),
+                $fields
+            ),
+        ]);
 
         return new Item($index, $itemId, $itemData, $fields);
     }
@@ -52,76 +80,32 @@ class ItemFactory
                 continue;
             }
 
-            $clone = clone $definition;
-            $reflection = new \ReflectionClass($clone);
-            $property = $reflection->getProperty('key');
-            $property->setAccessible(true);
-
-            $originalName = $property->getValue($clone);
-            $templateName = sprintf('%s[__INDEX__][%s]', $this->fieldset->getKey(), $originalName);
-            $property->setValue($clone, $templateName);
-
-            if ($clone instanceof Media) {
-                $overrideProperty = $reflection->getProperty('collectionNameOverride');
-                $overrideProperty->setAccessible(true);
-                $overrideProperty->setValue(
-                    $clone,
-                    sprintf('%s___INDEX___%s', $this->fieldset->getKey(), $originalName)
-                );
-            }
-
-            $templateFields[] = $clone;
+            $templateFields[] = $definition->nestWithin($this->fieldset->getKey(), '__ITEM__');
         }
 
         return $templateFields;
     }
 
-    private function resolveItemId(array &$itemData, int $index): int
+    private function resolveItemId(array &$itemData): string
     {
-        $itemData['_id'] = isset($itemData['_id']) ? (int) $itemData['_id'] : ($index + 1);
+        $identifier = $itemData['_id'] ?? null;
 
-        return $itemData['_id'];
-    }
-
-    private function fillField(AbstractField $field, array $itemData, ?Model $record, string $originalKey): void
-    {
-        $dataSource = new ArrayDataSource($itemData);
-        $field->fillFromDataSource($dataSource);
-
-        if ($field instanceof Media && $record) {
-            $collectionName = $itemData[$originalKey] ?? null;
-
-            if (is_string($collectionName) && $collectionName !== '') {
-                $field->setCollectionNameOverride($collectionName);
-                if (method_exists($field, 'fillFromCollectionName')) {
-                    $field->fillFromCollectionName($record, $collectionName);
-                }
-            }
+        if (is_string($identifier) && $identifier !== '') {
+            return $identifier;
         }
 
-        if (!($field instanceof Media) && method_exists($field, 'prepareForDisplay')) {
-            $itemContextData = $itemData;
-            $field->prepareForDisplay(FormContext::forData($itemContextData));
-        }
-    }
+        if (is_numeric($identifier)) {
+            $identifier = (string) $identifier;
+            $itemData['_id'] = $identifier;
 
-    private function renameField(AbstractField $field, string $originalKey, int $index, int $itemId): void
-    {
-        $reflection = new \ReflectionClass($field);
-        $property = $reflection->getProperty('key');
-        $property->setAccessible(true);
-
-        if ($field instanceof Media) {
-            $originalNameProp = $reflection->getProperty('originalName');
-            $originalNameProp->setAccessible(true);
-            $originalNameProp->setValue($field, $originalKey);
-
-            $field->setFieldSetItemId($itemId);
+            return $identifier;
         }
 
-        $property->setValue(
-            $field,
-            sprintf('%s[%d][%s]', $this->fieldset->getKey(), $index, $originalKey)
-        );
+        $generated = Str::lower(Str::ulid()->toBase32());
+        $identifier = substr($generated, 0, 12);
+
+        $itemData['_id'] = $identifier;
+
+        return $identifier;
     }
 }

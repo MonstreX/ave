@@ -3,6 +3,8 @@
 namespace Monstrex\Ave\Core\Fields;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Log;
 use Monstrex\Ave\Contracts\HandlesFormRequest;
 use Monstrex\Ave\Contracts\HandlesPersistence;
 use Monstrex\Ave\Contracts\ProvidesValidationRules;
@@ -11,7 +13,6 @@ use Monstrex\Ave\Core\FormContext;
 use Monstrex\Ave\Core\Fields\FieldPersistenceResult;
 use Monstrex\Ave\Core\Fields\Fieldset\Item;
 use Monstrex\Ave\Core\Fields\Fieldset\ItemFactory;
-use Monstrex\Ave\Core\Fields\Fieldset\MediaManager;
 use Monstrex\Ave\Core\Fields\Fieldset\Renderer;
 use Monstrex\Ave\Core\Fields\Fieldset\RequestProcessor;
 
@@ -49,7 +50,7 @@ class Fieldset extends AbstractField implements HandlesFormRequest, ProvidesVali
     /** @var array<int,array<string,mixed>> */
     private array $itemInstances = [];
 
-    /** @var array<int,int> */
+    /** @var array<int,string> */
     private array $itemIds = [];
 
     /** @var array<int,mixed> */
@@ -58,7 +59,6 @@ class Fieldset extends AbstractField implements HandlesFormRequest, ProvidesVali
     private ?Renderer $renderer = null;
     private ?RequestProcessor $requestProcessor = null;
     private ?ItemFactory $itemFactory = null;
-    private ?MediaManager $mediaManager = null;
 
     public static function make(string $key): static
     {
@@ -95,19 +95,37 @@ class Fieldset extends AbstractField implements HandlesFormRequest, ProvidesVali
         }
 
         $sanitized = [];
-        foreach ($raw as $index => $item) {
+
+        foreach ($raw as $item) {
             if (!is_array($item)) {
                 continue;
             }
 
-            if (!is_numeric($index)) {
+            $identifier = $item['_id'] ?? null;
+
+            if (is_string($identifier) && $identifier !== '') {
+                $sanitized[] = $item;
                 continue;
             }
 
+            if (is_numeric($identifier)) {
+                $item['_id'] = (string) $identifier;
+                $sanitized[] = $item;
+                continue;
+            }
+
+            $item['_id'] = (string) Str::ulid();
             $sanitized[] = $item;
         }
 
-        $request->merge([$this->key => array_values($sanitized)]);
+        $normalized = array_values($sanitized);
+
+        Log::debug('Fieldset prepareRequest sanitized', [
+            'field' => $this->key,
+            'sanitized' => $normalized,
+        ]);
+
+        $request->merge([$this->key => $normalized]);
     }
 
     public function buildValidationRules(): array
@@ -154,6 +172,15 @@ class Fieldset extends AbstractField implements HandlesFormRequest, ProvidesVali
 
         $result = $this->requestProcessor()->process($request, $context);
         $this->preparedItems = $result->items();
+
+        Log::debug('Fieldset prepareForSave', [
+            'field' => $this->key,
+            'items_count' => count($this->preparedItems),
+            'item_ids' => array_map(
+                static fn (array $item): string => $item['_id'] ?? 'unknown',
+                $this->preparedItems
+            ),
+        ]);
 
         return FieldPersistenceResult::make($this->preparedItems, $result->deferredActions());
     }
@@ -243,7 +270,7 @@ class Fieldset extends AbstractField implements HandlesFormRequest, ProvidesVali
 
         $this->itemInstances = array_map(
             static fn (Item $item): array => [
-                'id' => 'item-' . $item->id,
+                'id' => $item->id,
                 'index' => $item->index,
                 'fields' => $item->fields,
                 'data' => $item->data,
@@ -294,7 +321,7 @@ class Fieldset extends AbstractField implements HandlesFormRequest, ProvidesVali
 
     public function getItemId(int $index): string
     {
-        return $this->itemInstances[$index]['id'] ?? ('item-' . $index);
+        return $this->itemInstances[$index]['id'] ?? (string) $index;
     }
 
     public function getRowTitle(int $index): string
@@ -419,7 +446,31 @@ class Fieldset extends AbstractField implements HandlesFormRequest, ProvidesVali
             return [];
         }
 
-        return array_values(array_filter($raw, 'is_array'));
+        $normalized = [];
+
+        foreach ($raw as $item) {
+            if (!is_array($item)) {
+                continue;
+            }
+
+            $identifier = $item['_id'] ?? null;
+
+            if (is_string($identifier) && $identifier !== '') {
+                $normalized[] = $item;
+                continue;
+            }
+
+            if (is_numeric($identifier)) {
+                $item['_id'] = (string) $identifier;
+                $normalized[] = $item;
+                continue;
+            }
+
+            $item['_id'] = (string) Str::ulid();
+            $normalized[] = $item;
+        }
+
+        return array_values($normalized);
     }
 
     /**
@@ -439,19 +490,11 @@ class Fieldset extends AbstractField implements HandlesFormRequest, ProvidesVali
 
     private function requestProcessor(): RequestProcessor
     {
-        return $this->requestProcessor ??= new RequestProcessor(
-            $this,
-            $this->mediaManager()
-        );
+        return $this->requestProcessor ??= new RequestProcessor($this);
     }
 
     private function itemFactory(): ItemFactory
     {
         return $this->itemFactory ??= new ItemFactory($this);
-    }
-
-    private function mediaManager(): MediaManager
-    {
-        return $this->mediaManager ??= new MediaManager();
     }
 }

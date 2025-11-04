@@ -4,13 +4,16 @@ namespace Monstrex\Ave\Core\Fields;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
-use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Monstrex\Ave\Contracts\HandlesPersistence;
 use Monstrex\Ave\Contracts\ProvidesValidationRules;
 use Monstrex\Ave\Core\DataSources\DataSourceInterface;
 use Monstrex\Ave\Core\Fields\FieldPersistenceResult;
 use Monstrex\Ave\Core\FormContext;
+use Monstrex\Ave\Core\Media\MediaRepository;
+use Monstrex\Ave\Support\CollectionKeyGenerator;
 
 /**
  * Media Field - input field for managing files and images
@@ -74,19 +77,14 @@ class Media extends AbstractField implements ProvidesValidationRules, HandlesPer
     protected array $propNames = [];
 
     /**
-     * Original field name (before FieldSet renaming)
+     * Explicit collection override (optional).
      */
-    protected ?string $originalName = null;
+    protected ?string $collectionOverride = null;
 
     /**
-     * FieldSet item ID (if field is inside FieldSet)
+     * Identifier of the nested item when the field is used inside a container.
      */
-    protected ?int $fieldSetItemId = null;
-
-    /**
-     * Collection name override (from FieldSet JSON)
-     */
-    protected ?string $collectionNameOverride = null;
+    protected ?string $nestedItemIdentifier = null;
 
     /**
      * Pending media operations (uploads, deletions, reordering)
@@ -99,6 +97,16 @@ class Media extends AbstractField implements ProvidesValidationRules, HandlesPer
     public function collection(string $collection): static
     {
         $this->collection = $collection;
+        return $this;
+    }
+
+    /**
+     * Override resulting collection name explicitly.
+     */
+    public function useCollectionOverride(?string $collection): static
+    {
+        $this->collectionOverride = $collection;
+
         return $this;
     }
 
@@ -201,36 +209,12 @@ class Media extends AbstractField implements ProvidesValidationRules, HandlesPer
         return $this;
     }
 
-    /**
-     * Get original field name (before FieldSet renaming)
-     */
-    public function getOriginalName(): string
+    public function nestWithin(string $parentKey, string $itemIdentifier): static
     {
-        return $this->originalName ?? $this->key;
-    }
+        $clone = parent::nestWithin($parentKey, $itemIdentifier);
+        $clone->nestedItemIdentifier = $itemIdentifier;
 
-    /**
-     * Set FieldSet item ID (for generating stable collection names)
-     */
-    public function setFieldSetItemId(int $itemId): void
-    {
-        $this->fieldSetItemId = $itemId;
-    }
-
-    /**
-     * Override collection name (used when loading from FieldSet JSON)
-     */
-    public function setCollectionNameOverride(string $collectionName): void
-    {
-        $this->collectionNameOverride = $collectionName;
-    }
-
-    /**
-     * Check if field is inside FieldSet
-     */
-    protected function isNestedInFieldSet(): bool
-    {
-        return str_contains($this->key, '[');
+        return $clone;
     }
 
     /**
@@ -297,6 +281,11 @@ class Media extends AbstractField implements ProvidesValidationRules, HandlesPer
         return $this->columns;
     }
 
+    protected function isNested(): bool
+    {
+        return $this->key !== $this->baseKey();
+    }
+
     /**
      * Resolve actual collection name
      *
@@ -307,17 +296,11 @@ class Media extends AbstractField implements ProvidesValidationRules, HandlesPer
      */
     protected function resolveCollectionName(): string
     {
-        if ($this->collectionNameOverride !== null) {
-            return $this->collectionNameOverride;
-        }
-
-        if ($this->fieldSetItemId !== null) {
-            $fieldSetName = strstr($this->key, '[', true);
-            $originalName = $this->originalName ?? $this->key;
-            return "{$fieldSetName}_{$this->fieldSetItemId}_{$originalName}";
-        }
-
-        return $this->collection;
+        return CollectionKeyGenerator::forMedia(
+            $this->collection,
+            $this->key,
+            $this->collectionOverride
+        );
     }
 
     /**
@@ -325,8 +308,10 @@ class Media extends AbstractField implements ProvidesValidationRules, HandlesPer
      */
     public function fillFromRecord(Model $record): void
     {
+        $collection = $this->resolveCollectionName();
+
         $mediaItems = $record->media()
-            ->where('collection_name', $this->collection)
+            ->where('collection_name', $collection)
             ->orderBy('order')
             ->get();
 
@@ -339,6 +324,8 @@ class Media extends AbstractField implements ProvidesValidationRules, HandlesPer
      */
     public function fillFromCollectionName(Model $record, string $collectionName): void
     {
+        $this->useCollectionOverride($collectionName);
+
         $mediaItems = $record->media()
             ->where('collection_name', $collectionName)
             ->orderBy('order')
@@ -353,6 +340,13 @@ class Media extends AbstractField implements ProvidesValidationRules, HandlesPer
     public function fillFromDataSource(DataSourceInterface $source): void
     {
         $mediaData = $source->get($this->key) ?? [];
+
+        if (is_string($mediaData)) {
+            $this->useCollectionOverride($mediaData);
+            $this->setValue(collect());
+
+            return;
+        }
 
         if (!$mediaData instanceof Collection) {
             $mediaData = collect($mediaData);
@@ -395,54 +389,97 @@ class Media extends AbstractField implements ProvidesValidationRules, HandlesPer
     {
         $this->pendingMediaPayload = [];
 
-        if ($this->isNestedInFieldSet()) {
-            return FieldPersistenceResult::make($value);
-        }
+        $metaKey = CollectionKeyGenerator::metaKeyForField($this->key);
+        $uploadedIds = $this->parseIdList($request->input('__media_uploaded', [])[$metaKey] ?? []);
+        $deletedIds = $this->parseIdList($request->input('__media_deleted', [])[$metaKey] ?? []);
+        $order = $this->parseIdList($request->input('__media_order', [])[$metaKey] ?? []);
+        $props = $this->normalisePropsInput($request->input('__media_props', [])[$metaKey] ?? []);
 
-        $metaKey = $this->buildMetaKey($this->key);
-        $uploadedIds = $this->parseIdList(Arr::get($request->input('__media_uploaded', []), $metaKey, []));
-        $deletedIds = $this->parseIdList(Arr::get($request->input('__media_deleted', []), $metaKey, []));
-        $order = $this->parseIdList(Arr::get($request->input('__media_order', []), $metaKey, []));
-        $props = $this->normalisePropsInput(Arr::get($request->input('__media_props', []), $metaKey, []));
+        Log::debug('Media request payload', [
+            'field' => $this->key,
+            'meta_key' => $metaKey,
+            'raw_uploaded' => $request->input('__media_uploaded', [])[$metaKey] ?? null,
+            'raw_deleted' => $request->input('__media_deleted', [])[$metaKey] ?? null,
+            'raw_order' => $request->input('__media_order', [])[$metaKey] ?? null,
+        ]);
 
         $record = $context->record();
+        $collection = $this->resolveCollectionName();
+        $repository = $this->mediaRepository();
 
-        if (!empty($deletedIds) && $record && $record->exists) {
-            $record->media()
-                ->where('collection_name', $this->collection)
-                ->whereIn('id', $deletedIds)
-                ->delete();
+        if (str_contains(Str::lower($collection), '__item__')) {
+            Log::warning('Media collection still contains placeholder', [
+                'field' => $this->key,
+                'collection' => $collection,
+                'html_key' => $this->key,
+                'meta_key' => $metaKey,
+            ]);
         }
 
-        if (empty($uploadedIds) && empty($order) && empty($props)) {
-            return FieldPersistenceResult::make($value);
+        if (!empty($deletedIds) && $record && $record->exists) {
+            $repository->delete($record, $collection, $deletedIds);
         }
 
         $payload = [
             'uploaded' => $uploadedIds,
             'order' => $order,
             'props' => $props,
+            'meta_key' => $metaKey,
+            'collection' => $collection,
+            'deleted' => $deletedIds,
         ];
 
         $this->pendingMediaPayload = $payload;
 
         $deferred = [
-            function (Model $savedRecord) use ($payload): void {
+            function (Model $savedRecord) use ($payload, $repository, $collection): void {
                 if (!empty($payload['uploaded'])) {
-                    $this->attachMedia($savedRecord, $this->collection, $payload['uploaded']);
+                    $repository->attach($savedRecord, $collection, $payload['uploaded']);
                 }
 
                 if (!empty($payload['order'])) {
-                    $this->syncMediaOrder($savedRecord, $this->collection, $payload['order']);
+                    $repository->reorder($savedRecord, $collection, $payload['order']);
                 }
 
                 if (!empty($payload['props'])) {
-                    $this->syncMediaProps($savedRecord, $this->collection, $payload['props']);
+                    $repository->updateProps($savedRecord, $collection, $payload['props']);
                 }
             },
         ];
 
-        return FieldPersistenceResult::make($value, $deferred);
+        $existingCount = ($record && $record->exists)
+            ? $repository->count($record, $collection)
+            : 0;
+        $remainingAfterDeletion = max(0, $existingCount - count($deletedIds));
+        $willHaveMedia = !empty($uploadedIds) || $remainingAfterDeletion > 0;
+
+        $finalValue = null;
+
+        if ($willHaveMedia) {
+            $finalValue = $collection;
+        } elseif (!$this->isNested()) {
+            $finalValue = $value;
+        }
+
+        Log::debug('Media prepareForSave', [
+            'field' => $this->key,
+            'collection' => $collection,
+            'meta_key' => $metaKey,
+            'uploaded' => $uploadedIds,
+            'deleted' => $deletedIds,
+            'order' => $order,
+            'props_keys' => array_keys($props),
+            'existing_count' => $existingCount,
+            'remaining_after_deletion' => $remainingAfterDeletion,
+            'will_have_media' => $willHaveMedia,
+            'final_value' => $finalValue,
+        ]);
+
+        if (empty($uploadedIds) && empty($order) && empty($props)) {
+            return FieldPersistenceResult::make($finalValue);
+        }
+
+        return FieldPersistenceResult::make($finalValue, $deferred);
     }
 
     /**
@@ -450,8 +487,8 @@ class Media extends AbstractField implements ProvidesValidationRules, HandlesPer
      */
     public function applyToDataSource(DataSourceInterface $source, mixed $value): void
     {
-        if ($this->isNestedInFieldSet()) {
-            $source->set($this->key, $value);
+        if ($this->isNested()) {
+            $source->set($this->baseKey(), $value);
         }
     }
 
@@ -514,7 +551,7 @@ class Media extends AbstractField implements ProvidesValidationRules, HandlesPer
             'propNames' => $this->propNames,
             'modelType' => null, // Will be populated in render()
             'modelId' => null,   // Will be populated in render()
-            'metaKey' => $this->buildMetaKey($this->key),
+            'metaKey' => CollectionKeyGenerator::metaKeyForField($this->key),
         ]);
     }
 
@@ -609,91 +646,14 @@ class Media extends AbstractField implements ProvidesValidationRules, HandlesPer
         return $result;
     }
 
-    /**
-     * Attach uploaded media files to record
-     */
-    private function attachMedia(Model $record, string $collectionName, array $mediaIds): void
+    private function mediaRepository(): MediaRepository
     {
-        if (empty($mediaIds)) {
-            return;
-        }
-
-        // Get Media model from application
-        $mediaModel = app(config('ave.media_model', 'Monstrex\Ave\Models\Media'));
-
-        $mediaModel::whereIn('id', $mediaIds)->update([
-            'model_type' => get_class($record),
-            'model_id' => $record->getKey(),
-            'collection_name' => $collectionName,
-        ]);
-    }
-
-    /**
-     * Synchronize media file order
-     */
-    private function syncMediaOrder(Model $record, string $collectionName, array $orderedIds): void
-    {
-        if (empty($orderedIds)) {
-            return;
-        }
-
-        $mediaModel = app(config('ave.media_model', 'Monstrex\Ave\Models\Media'));
-
-        $mediaItems = $mediaModel
-            ->where('model_type', get_class($record))
-            ->where('model_id', $record->getKey())
-            ->where('collection_name', $collectionName)
-            ->whereIn('id', $orderedIds)
-            ->get()
-            ->keyBy('id');
-
-        foreach ($orderedIds as $index => $mediaId) {
-            $media = $mediaItems->get($mediaId);
-            if (!$media) {
-                continue;
-            }
-
-            $media->order = $index;
-            $media->save();
-        }
-    }
-
-    /**
-     * Synchronize media file properties
-     */
-    private function syncMediaProps(Model $record, string $collectionName, array $props): void
-    {
-        if (empty($props)) {
-            return;
-        }
-
-        $mediaModel = app(config('ave.media_model', 'Monstrex\Ave\Models\Media'));
-
-        $mediaItems = $mediaModel
-            ->where('model_type', get_class($record))
-            ->where('model_id', $record->getKey())
-            ->where('collection_name', $collectionName)
-            ->whereIn('id', array_keys($props))
-            ->get()
-            ->keyBy('id');
-
-        foreach ($props as $mediaId => $values) {
-            $media = $mediaItems->get($mediaId);
-            if (!$media) {
-                continue;
-            }
-
-            $currentProps = json_decode($media->props, true) ?? [];
-            $media->props = json_encode(array_merge($currentProps, $values));
-            $media->save();
-        }
-    }
-
-    protected function buildMetaKey(string $key): string
-    {
-        $metaKey = str_replace(['[', ']'], '_', $key);
-        $metaKey = preg_replace('/_+/', '_', $metaKey);
-
-        return trim($metaKey, '_');
+        return app(MediaRepository::class);
     }
 }
+
+
+
+
+
+

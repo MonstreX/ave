@@ -4,6 +4,7 @@ namespace Monstrex\Ave\Core\Validation;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Monstrex\Ave\Contracts\HandlesFormRequest;
 use Monstrex\Ave\Contracts\ProvidesValidationRules;
 use Monstrex\Ave\Core\Fields\AbstractField;
@@ -50,6 +51,12 @@ class FormValidator
         if ($mode === 'edit' && $model) {
             $rules = $this->adjustUniqueRulesForEdit($rules, $model);
         }
+
+        Log::debug('FormValidator generated rules', [
+            'resource' => $resourceClass,
+            'mode' => $mode,
+            'rules' => $rules,
+        ]);
 
         return $rules;
     }

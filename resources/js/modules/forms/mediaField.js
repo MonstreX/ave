@@ -16,15 +16,18 @@ function humanFileSize(bytes, decimals = 1) {
 // Store all media field containers for later reference
 const mediaContainers = new Map();
 
-const computeMetaKey = (value) => {
+const computeMetaKey = (value = '') => {
     if (!value) {
         return '';
     }
 
     return value
-        .replace(/[\\[\\]]+/g, '_')
-        .replace(/_+/g, '_')
-        .replace(/^_|_$/g, '');
+        .replace(/\]/g, '')
+        .replace(/\[/g, '.')
+        .replace(/\.+/g, '.')
+        .replace(/^\./, '')
+        .replace(/\.$/, '')
+        .toLowerCase();
 };
 
 export function updateAllMediaHiddenInputs() {
@@ -59,6 +62,13 @@ export default function initMediaFields(root = document) {
         let metaKey = computeMetaKey(container.dataset.metaKey || fieldName);
         container.dataset.metaKey = metaKey;
         const propNames = JSON.parse(container.dataset.propNames || '[]');
+
+        console.debug('Init media field container', {
+            rawFieldName: container.closest('[data-field-name]')?.getAttribute('data-field-name') || null,
+            datasetFieldName: fieldName,
+            metaKey,
+            collection,
+        });
 
         const uploadArea = container.querySelector('[data-media-dropzone]');
         const fileInput = container.querySelector('.media-file-input');
@@ -522,6 +532,12 @@ export default function initMediaFields(root = document) {
         function updateHiddenInputs() {
             if (uploadedIdsInput) {
                 uploadedIdsInput.value = uploadedIds.join(',');
+                console.debug('Media uploaded IDs updated', {
+                    fieldName,
+                    metaKey,
+                    uploadedIds: [...uploadedIds],
+                    inputName: uploadedIdsInput.name,
+                });
             }
             if (deletedIdsInput) {
                 deletedIdsInput.value = deletedIds.join(',');
@@ -589,3 +605,4 @@ export default function initMediaFields(root = document) {
         }
     });
 }
+

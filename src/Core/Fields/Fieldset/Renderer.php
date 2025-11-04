@@ -32,14 +32,14 @@ class Renderer
         $normalized = array_values(array_filter($rawItems, 'is_array'));
         $items = [];
 
-        foreach ($normalized as $index => $itemData) {
+        foreach ($normalized as $index => &$itemData) {
             $itemData = is_array($itemData) ? $itemData : [];
             $items[] = $this->itemFactory->makeFromData($index, $itemData, $record);
         }
+        unset($itemData);
 
         $templateFields = $this->itemFactory->makeTemplateFields();
 
         return new RenderResult($items, $templateFields);
     }
 }
-

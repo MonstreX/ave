@@ -3,6 +3,8 @@
 namespace Monstrex\Ave\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 use Illuminate\Routing\Controller;
 use Monstrex\Ave\Core\ResourceManager;
 use Monstrex\Ave\Core\Validation\FormValidator;
@@ -118,7 +120,19 @@ class ResourceController extends Controller
         $form = $resourceClass::form($request);
         $context = FormContext::forCreate([], $request);
         $rules = $this->validator->rulesFromForm($form, $resourceClass, $request, mode: 'create', model: null, context: $context);
-        $data = $request->validate($rules);
+        try {
+            $data = $request->validate($rules);
+        } catch (ValidationException $exception) {
+            Log::error('Resource validation failed on store', [
+                'resource' => $resourceClass,
+                'slug' => $slug,
+                'errors' => $exception->errors(),
+                'input' => $request->all(),
+                'rules' => $rules,
+            ]);
+
+            throw $exception;
+        }
 
         $model = $this->persistence->create($resourceClass, $form, $data, $request, $context);
 
@@ -198,7 +212,20 @@ class ResourceController extends Controller
         $form = $resourceClass::form($request);
         $context = FormContext::forEdit($model, [], $request);
         $rules = $this->validator->rulesFromForm($form, $resourceClass, $request, mode: 'edit', model: $model, context: $context);
-        $data = $request->validate($rules);
+        try {
+            $data = $request->validate($rules);
+        } catch (ValidationException $exception) {
+            Log::error('Resource validation failed on update', [
+                'resource' => $resourceClass,
+                'slug' => $slug,
+                'model_id' => $model->getKey(),
+                'errors' => $exception->errors(),
+                'input' => $request->all(),
+                'rules' => $rules,
+            ]);
+
+            throw $exception;
+        }
 
         $this->persistence->update($resourceClass, $form, $model, $data, $request, $context);
 

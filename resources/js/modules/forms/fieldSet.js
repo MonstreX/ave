@@ -39,30 +39,52 @@ export default function initFieldSet(root = document) {
                 .replace(/^_|_$/g, '');
         };
 
-        // Track current item index for naming new items
-        let itemIndex = itemsContainer.querySelectorAll('.fieldset-item').length;
         let sortableInstance = null;
 
-        /**
-         * Get next unique ID for new item
-         * Finds max _id among existing items and returns max + 1
-         */
-        function getNextItemId() {
-            const items = itemsContainer.querySelectorAll('.fieldset-item');
-            let maxId = 0;
+        const generateItemId = () => {
+            if (window.crypto?.getRandomValues) {
+                const buffer = new Uint32Array(2);
+                window.crypto.getRandomValues(buffer);
+                return Array.from(buffer)
+                    .map(value => value.toString(36).padStart(7, '0'))
+                    .join('')
+                    .slice(0, 12);
+            }
 
-            items.forEach(item => {
-                const idInput = item.querySelector('input[name$="[_id]"]');
-                if (idInput) {
-                    const id = parseInt(idInput.value) || 0;
-                    if (id > maxId) {
-                        maxId = id;
+            return Math.random().toString(36).slice(2, 14);
+        };
+
+        const replacePlaceholders = (value, index, itemId) => {
+            return value
+                .replace(/__INDEX__/g, index)
+                .replace(/__index__/g, index)
+                .replace(/__ITEM__/g, itemId)
+                .replace(/__item__/g, itemId);
+        };
+
+        const applyPlaceholders = (element, index, itemId) => {
+            const nodes = [element, ...element.querySelectorAll('*')];
+
+            nodes.forEach(node => {
+                Array.from(node.attributes || []).forEach(attr => {
+                    const updated = replacePlaceholders(attr.value, index, itemId);
+
+                    if (updated !== attr.value) {
+                        node.setAttribute(attr.name, updated);
                     }
-                }
+                });
+
+                Object.entries(node.dataset || {}).forEach(([key, value]) => {
+                    const updated = replacePlaceholders(value, index, itemId);
+                    if (updated !== value) {
+                        node.dataset[key] = updated;
+                    }
+                });
             });
 
-            return maxId + 1;
-        }
+            element.dataset.itemIndex = index;
+            element.dataset.itemId = itemId;
+        };
 
         // Initialize Sortable.js for drag-and-drop (disabled by default)
         if (sortable) {
@@ -103,89 +125,18 @@ export default function initFieldSet(root = document) {
                     return;
                 }
 
-                // Get unique ID
-                const itemId = getNextItemId();
+                const position = currentCount;
+                const itemId = generateItemId();
 
-                // Set data attributes
-                addedItem.dataset.itemIndex = itemIndex;
-                addedItem.dataset.itemId = itemId;
+                applyPlaceholders(addedItem, position, itemId);
 
-                // Replace __INDEX__ in all name attributes
-                addedItem.querySelectorAll('[name*="__INDEX__"]').forEach(field => {
-                    field.name = field.name.replace(/__INDEX__/g, itemIndex);
-                });
-
-                // Replace __INDEX__ in data-field-name attributes so nested scripts resolve real indexes
-                addedItem.querySelectorAll('[data-field-name]').forEach(element => {
-                    const currentName = element.dataset.fieldName;
-                    if (!currentName || !currentName.includes('__INDEX__')) {
-                        return;
-                    }
-                    element.dataset.fieldName = currentName.replace(/__INDEX__/g, itemIndex);
-                });
-
-                // Replace __INDEX__ in media item template IDs inside this item
-                addedItem.querySelectorAll('[id*="__INDEX__"]').forEach(element => {
-                    element.id = element.id.replace(/__INDEX__/g, itemIndex);
-                });
-
-                // Set _id field
-                const idInput = addedItem.querySelector(`input[name="${fieldName}[${itemIndex}][_id]"]`);
+                const idInput = addedItem.querySelector('[data-field-id]');
                 if (idInput) {
                     idInput.value = itemId;
                 }
 
-                // Update collection names for MediaField (features_X_preview)
-                // MUST be done BEFORE reinitFormComponents()
                 addedItem.querySelectorAll('.media-field-container').forEach(mediaContainer => {
-                    const collection = mediaContainer.dataset.collection;
-                    const metaTemplate = mediaContainer.dataset.metaKey;
-                    const fieldsetFieldName = mediaContainer.closest('[data-field-name]')?.dataset.fieldName || '';
-
-                    if (collection && collection.includes('__INDEX__')) {
-                        // Replace __INDEX__ with itemId in collection name
-                        // features___INDEX___preview -> features_1_preview
-                        const newCollection = collection.replace(/__INDEX__/g, itemId);
-                        mediaContainer.dataset.collection = newCollection;
-
-                        // Reset initialization flag so MediaField reinits with correct collection
-                        mediaContainer.dataset.initialized = 'false';
-                    }
-
-                    let resolvedMetaBase = '';
-
-                    if (metaTemplate && metaTemplate.includes('__INDEX__')) {
-                        resolvedMetaBase = metaTemplate.replace(/__INDEX__/g, itemIndex);
-                    } else if (fieldsetFieldName) {
-                        resolvedMetaBase = fieldsetFieldName;
-                    }
-
-                    if (resolvedMetaBase) {
-                        const resolvedMetaKey = computeMetaKey(resolvedMetaBase);
-                        mediaContainer.dataset.metaKey = resolvedMetaKey;
-
-                        const uploadedInput = mediaContainer.querySelector('[data-uploaded-ids]');
-                        if (uploadedInput) {
-                            uploadedInput.name = `__media_uploaded[${resolvedMetaKey}]`;
-                        }
-
-                        const deletedInput = mediaContainer.querySelector('[data-deleted-ids]');
-                        if (deletedInput) {
-                            deletedInput.name = `__media_deleted[${resolvedMetaKey}]`;
-                        }
-
-                        mediaContainer.querySelectorAll('input[name^="__media_order["]').forEach(orderInput => {
-                            orderInput.name = `__media_order[${resolvedMetaKey}][]`;
-                        });
-
-                        mediaContainer.querySelectorAll('input[data-media-props="true"]').forEach(propsInput => {
-                            const mediaId = propsInput.getAttribute('data-props-id');
-                            if (!mediaId) {
-                                return;
-                            }
-                            propsInput.name = `__media_props[${resolvedMetaKey}][${mediaId}]`;
-                        });
-                    }
+                    mediaContainer.dataset.initialized = 'false';
                 });
 
                 // Initialize components AFTER updating collection names
@@ -195,13 +146,7 @@ export default function initFieldSet(root = document) {
                 // Emit event for listeners to reinitialize their own components
                 // This supports both direct subscribers and form reinitialization setup
                 aveEvents.emit('dom:updated', addedItem);
-
-                itemIndex++;
-
-                // Update numbers
                 updateItemNumbers();
-
-                // Initialize header for new item
                 updateItemHeader(addedItem);
             });
         }
@@ -375,6 +320,7 @@ export default function initFieldSet(root = document) {
         function updateItemNumbers() {
             const items = itemsContainer.querySelectorAll('.fieldset-item');
             items.forEach((item, index) => {
+                item.dataset.itemIndex = index;
                 const numberBadge = item.querySelector('.fieldset-item-number');
                 if (numberBadge) {
                     numberBadge.textContent = index + 1;
@@ -515,3 +461,4 @@ async function deleteMediaCollection(collectionName, modelType, modelId, uploadU
         console.error('Failed to delete media collection:', error);
     }
 }
+

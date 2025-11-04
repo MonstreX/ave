@@ -14,9 +14,8 @@ final class Item
      */
     public function __construct(
         public readonly int $index,
-        public readonly int $id,
+        public readonly string $id,
         public readonly array $data,
         public readonly array $fields,
     ) {}
 }
-

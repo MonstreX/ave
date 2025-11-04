@@ -3,10 +3,12 @@
 namespace Monstrex\Ave\Core\Fields\Fieldset;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
+use Monstrex\Ave\Contracts\HandlesPersistence;
 use Monstrex\Ave\Core\FormContext;
 use Monstrex\Ave\Core\Fields\AbstractField;
 use Monstrex\Ave\Core\Fields\Fieldset as FieldsetField;
-use Monstrex\Ave\Core\Fields\Media;
 
 /**
  * Normalises incoming request payload for Fieldset fields.
@@ -15,30 +17,27 @@ class RequestProcessor
 {
     public function __construct(
         private FieldsetField $fieldset,
-        private MediaManager $mediaManager,
-    ) {}
+    ) {
+    }
 
     public function process(Request $request, FormContext $context): ProcessResult
     {
-        $fieldsetKey = $this->fieldset->getKey();
-        $rawItems = $request->input($fieldsetKey, []);
+        $rawItems = $request->input($this->fieldset->getKey(), []);
 
         if (!is_array($rawItems)) {
             $rawItems = [];
         }
 
-        $normalized = array_values(array_filter($rawItems, 'is_array'));
-
         $processedItems = [];
         $deferred = [];
-        $record = $context->record();
 
-        foreach ($normalized as $index => $itemData) {
-            $itemData = is_array($itemData) ? $itemData : [];
+        foreach ($rawItems as $itemData) {
+            if (!is_array($itemData)) {
+                continue;
+            }
 
-            $itemId = isset($itemData['_id']) ? (int) $itemData['_id'] : ($index + 1);
-            $itemData['_id'] = $itemId;
-
+            $itemId = $this->resolveItemId($itemData);
+            $normalizedItem = ['_id' => $itemId];
             $hasMeaningfulData = false;
 
             foreach ($this->fieldset->getChildSchema() as $schemaField) {
@@ -46,54 +45,64 @@ class RequestProcessor
                     continue;
                 }
 
-                $fieldName = $schemaField->getKey();
+                $nestedField = $schemaField->nestWithin($this->fieldset->getKey(), $itemId);
+                $baseKey = $schemaField->baseKey();
+                $rawValue = $itemData[$baseKey] ?? null;
 
-                if ($schemaField instanceof Media) {
-                    $operation = $this->mediaManager->collectOperation(
-                        $request,
-                        $fieldsetKey,
-                        $schemaField,
-                        $index,
-                        $itemId,
-                    );
-
-                    if ($operation->hasAny()) {
-                        $deferred[] = $this->mediaManager->makeDeferredAction($operation);
-                    }
-
-                    $remainingMedia = $this->mediaManager->calculateRemainingMedia($record, $operation);
-
-                    if (!empty($itemData[$fieldName] ?? null)
-                        || !empty($operation->uploaded)
-                        || !empty($operation->order)
-                        || !empty($operation->props)
-                        || $remainingMedia > 0
-                    ) {
-                        $hasMeaningfulData = true;
-                    }
-
-                    $itemData[$fieldName] = $operation->collection;
-
-                    continue;
+                if ($nestedField instanceof HandlesPersistence) {
+                    $result = $nestedField->prepareForSave($rawValue, $request, $context);
+                    $normalizedValue = $result->value();
+                    $deferred = array_merge($deferred, $result->deferredActions());
+                } else {
+                    $normalizedValue = $nestedField->extract($rawValue);
                 }
 
-                if ($fieldName === '_id') {
-                    continue;
-                }
-
-                $value = $itemData[$fieldName] ?? null;
-                if ($this->fieldset->valueIsMeaningful($value)) {
+                if ($this->fieldset->valueIsMeaningful($normalizedValue)) {
                     $hasMeaningfulData = true;
                 }
+
+                $normalizedItem[$baseKey] = $normalizedValue;
             }
 
             if (!$hasMeaningfulData) {
+                Log::debug('Fieldset request item skipped (no meaningful data)', [
+                    'fieldset' => $this->fieldset->getKey(),
+                    'item_id' => $itemId,
+                ]);
                 continue;
             }
 
-            $processedItems[] = $itemData;
+            Log::debug('Fieldset request item processed', [
+                'fieldset' => $this->fieldset->getKey(),
+                'item_id' => $itemId,
+                'stored_keys' => array_keys($normalizedItem),
+            ]);
+
+            $processedItems[] = $normalizedItem;
         }
 
         return new ProcessResult($processedItems, $deferred);
+    }
+
+    private function resolveItemId(array &$item): string
+    {
+        $identifier = $item['_id'] ?? null;
+
+        if (is_string($identifier) && $identifier !== '') {
+            return $identifier;
+        }
+
+        if (is_numeric($identifier)) {
+            $identifier = (string) $identifier;
+            $item['_id'] = $identifier;
+
+            return $identifier;
+        }
+
+        $generated = Str::lower(Str::ulid()->toBase32());
+        $identifier = substr($generated, 0, 12);
+        $item['_id'] = $identifier;
+
+        return $identifier;
     }
 }

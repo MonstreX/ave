@@ -4,15 +4,17 @@ namespace Monstrex\Ave\Core\Fields;
 
 use Illuminate\Support\Str;
 use Monstrex\Ave\Contracts\FormField;
+use Monstrex\Ave\Contracts\NestableField;
 use Monstrex\Ave\Core\DataSources\DataSourceInterface;
 use Monstrex\Ave\Core\DataSources\ModelDataSource;
 use Monstrex\Ave\Core\FormContext;
 
-abstract class AbstractField implements FormField
+abstract class AbstractField implements FormField, NestableField
 {
     public const TYPE = 'abstract';
 
     protected string $key;
+    protected string $baseKey;
     protected ?string $label = null;
     protected ?string $help = null;
     protected mixed $default = null;
@@ -26,6 +28,7 @@ abstract class AbstractField implements FormField
     public function __construct(string $key)
     {
         $this->key = $key;
+        $this->baseKey = $key;
     }
 
     public static function make(string $key): static
@@ -219,5 +222,19 @@ abstract class AbstractField implements FormField
         $template = $map[$type] ?? $type;
 
         return "ave::components.forms.{$template}";
+    }
+
+    public function baseKey(): string
+    {
+        return $this->baseKey;
+    }
+
+    public function nestWithin(string $parentKey, string $itemIdentifier): static
+    {
+        $clone = clone $this;
+
+        $clone->key = sprintf('%s[%s][%s]', $parentKey, $itemIdentifier, $this->baseKey());
+
+        return $clone;
     }
 }
