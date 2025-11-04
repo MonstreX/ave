@@ -28,46 +28,52 @@ export default function initFieldSet(root = document) {
             return;
         }
 
-        const computeMetaKey = (value) => {
+        const computeMetaKey = (value = '') => {
             if (!value) {
                 return '';
             }
 
             return value
-                .replace(/[\\[\\]]+/g, '_')
-                .replace(/_+/g, '_')
-                .replace(/^_|_$/g, '');
+                .replace(/\]/g, '')
+                .replace(/\[/g, '.')
+                .replace(/\.+/g, '.')
+                .replace(/^\./, '')
+                .replace(/\.$/, '')
+                .toLowerCase();
         };
 
         let sortableInstance = null;
 
-        const generateItemId = () => {
-            if (window.crypto?.getRandomValues) {
-                const buffer = new Uint32Array(2);
-                window.crypto.getRandomValues(buffer);
-                return Array.from(buffer)
-                    .map(value => value.toString(36).padStart(7, '0'))
-                    .join('')
-                    .slice(0, 12);
+        const collectUsedItemIds = () =>
+            Array.from(itemsContainer.querySelectorAll('[data-field-id]'))
+                .map(input => parseInt(input.value, 10))
+                .filter(Number.isInteger);
+
+        const nextItemId = () => {
+            const used = new Set(collectUsedItemIds());
+            let candidate = 0;
+
+            while (used.has(candidate)) {
+                candidate++;
             }
 
-            return Math.random().toString(36).slice(2, 14);
+            return candidate;
         };
 
-        const replacePlaceholders = (value, index, itemId) => {
+        const replacePlaceholders = (value, itemId) => {
             return value
-                .replace(/__INDEX__/g, index)
-                .replace(/__index__/g, index)
+                .replace(/__INDEX__/g, itemId)
+                .replace(/__index__/g, itemId)
                 .replace(/__ITEM__/g, itemId)
                 .replace(/__item__/g, itemId);
         };
 
-        const applyPlaceholders = (element, index, itemId) => {
+        const applyPlaceholders = (element, displayIndex, itemId) => {
             const nodes = [element, ...element.querySelectorAll('*')];
 
             nodes.forEach(node => {
                 Array.from(node.attributes || []).forEach(attr => {
-                    const updated = replacePlaceholders(attr.value, index, itemId);
+                    const updated = replacePlaceholders(attr.value, itemId);
 
                     if (updated !== attr.value) {
                         node.setAttribute(attr.name, updated);
@@ -75,14 +81,14 @@ export default function initFieldSet(root = document) {
                 });
 
                 Object.entries(node.dataset || {}).forEach(([key, value]) => {
-                    const updated = replacePlaceholders(value, index, itemId);
+                    const updated = replacePlaceholders(value, itemId);
                     if (updated !== value) {
                         node.dataset[key] = updated;
                     }
                 });
             });
 
-            element.dataset.itemIndex = index;
+            element.dataset.itemIndex = displayIndex;
             element.dataset.itemId = itemId;
         };
 
@@ -125,10 +131,9 @@ export default function initFieldSet(root = document) {
                     return;
                 }
 
-                const position = currentCount;
-                const itemId = generateItemId();
+                const itemId = nextItemId();
 
-                applyPlaceholders(addedItem, position, itemId);
+                applyPlaceholders(addedItem, currentCount, itemId);
 
                 const idInput = addedItem.querySelector('[data-field-id]');
                 if (idInput) {

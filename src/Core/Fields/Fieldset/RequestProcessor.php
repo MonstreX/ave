@@ -4,7 +4,6 @@ namespace Monstrex\Ave\Core\Fields\Fieldset;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
 use Monstrex\Ave\Contracts\HandlesPersistence;
 use Monstrex\Ave\Core\FormContext;
 use Monstrex\Ave\Core\Fields\AbstractField;
@@ -30,13 +29,14 @@ class RequestProcessor
 
         $processedItems = [];
         $deferred = [];
+        $usedIds = [];
 
         foreach ($rawItems as $itemData) {
             if (!is_array($itemData)) {
                 continue;
             }
 
-            $itemId = $this->resolveItemId($itemData);
+            $itemId = $this->resolveItemId($itemData, $usedIds);
             $normalizedItem = ['_id' => $itemId];
             $hasMeaningfulData = false;
 
@@ -79,30 +79,37 @@ class RequestProcessor
             ]);
 
             $processedItems[] = $normalizedItem;
+            $usedIds[$itemId] = true;
         }
 
         return new ProcessResult($processedItems, $deferred);
     }
 
-    private function resolveItemId(array &$item): string
+    private function resolveItemId(array &$item, array &$usedIds): int
     {
         $identifier = $item['_id'] ?? null;
 
-        if (is_string($identifier) && $identifier !== '') {
-            return $identifier;
-        }
-
         if (is_numeric($identifier)) {
-            $identifier = (string) $identifier;
-            $item['_id'] = $identifier;
-
-            return $identifier;
+            $id = (int) $identifier;
+        } elseif (is_string($identifier) && ctype_digit($identifier)) {
+            $id = (int) $identifier;
+        } else {
+            $id = $this->nextAvailableIndex($usedIds);
         }
 
-        $generated = Str::lower(Str::ulid()->toBase32());
-        $identifier = substr($generated, 0, 12);
-        $item['_id'] = $identifier;
+        $item['_id'] = $id;
 
-        return $identifier;
+        return $id;
+    }
+
+    private function nextAvailableIndex(array $usedIds): int
+    {
+        $candidate = 0;
+
+        while (isset($usedIds[$candidate])) {
+            $candidate++;
+        }
+
+        return $candidate;
     }
 }

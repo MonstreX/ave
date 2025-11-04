@@ -4,7 +4,6 @@ namespace Monstrex\Ave\Core\Fields\Fieldset;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
 use Monstrex\Ave\Core\DataSources\ArrayDataSource;
 use Monstrex\Ave\Core\FormContext;
 use Monstrex\Ave\Core\Fields\AbstractField;
@@ -22,7 +21,7 @@ class ItemFactory
 
     public function makeFromData(int $index, array &$itemData, ?Model $record): Item
     {
-        $itemId = $this->resolveItemId($itemData);
+        $itemId = $this->resolveItemId($itemData, $index);
         $fields = [];
 
         foreach ($this->fieldset->getChildSchema() as $definition) {
@@ -30,7 +29,7 @@ class ItemFactory
                 continue;
             }
 
-            $nestedField = $definition->nestWithin($this->fieldset->getKey(), $itemId);
+            $nestedField = $definition->nestWithin($this->fieldset->getKey(), (string) $itemId);
             $baseKey = $definition->baseKey();
             $storedValue = $itemData[$baseKey] ?? null;
 
@@ -86,26 +85,20 @@ class ItemFactory
         return $templateFields;
     }
 
-    private function resolveItemId(array &$itemData): string
+    private function resolveItemId(array &$itemData, int $fallbackIndex): int
     {
         $identifier = $itemData['_id'] ?? null;
 
-        if (is_string($identifier) && $identifier !== '') {
-            return $identifier;
-        }
-
         if (is_numeric($identifier)) {
-            $identifier = (string) $identifier;
-            $itemData['_id'] = $identifier;
-
-            return $identifier;
+            $id = (int) $identifier;
+        } elseif (is_string($identifier) && ctype_digit($identifier)) {
+            $id = (int) $identifier;
+        } else {
+            $id = $fallbackIndex;
         }
 
-        $generated = Str::lower(Str::ulid()->toBase32());
-        $identifier = substr($generated, 0, 12);
+        $itemData['_id'] = $id;
 
-        $itemData['_id'] = $identifier;
-
-        return $identifier;
+        return $id;
     }
 }

@@ -33,10 +33,10 @@ final class RenderResult
     }
 
     /**
-     * @return array<int,string>
+     * @return array<int,int>
      */
     public function itemIds(): array
     {
-        return array_map(static fn (Item $item): string => $item->id, $this->items);
+        return array_map(static fn (Item $item): int => $item->id, $this->items);
     }
 }

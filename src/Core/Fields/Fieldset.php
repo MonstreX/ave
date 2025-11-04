@@ -3,7 +3,6 @@
 namespace Monstrex\Ave\Core\Fields;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
 use Monstrex\Ave\Contracts\HandlesFormRequest;
 use Monstrex\Ave\Contracts\HandlesPersistence;
@@ -50,7 +49,7 @@ class Fieldset extends AbstractField implements HandlesFormRequest, ProvidesVali
     /** @var array<int,array<string,mixed>> */
     private array $itemInstances = [];
 
-    /** @var array<int,string> */
+    /** @var array<int,int> */
     private array $itemIds = [];
 
     /** @var array<int,mixed> */
@@ -95,6 +94,7 @@ class Fieldset extends AbstractField implements HandlesFormRequest, ProvidesVali
         }
 
         $sanitized = [];
+        $usedIds = [];
 
         foreach ($raw as $item) {
             if (!is_array($item)) {
@@ -103,18 +103,16 @@ class Fieldset extends AbstractField implements HandlesFormRequest, ProvidesVali
 
             $identifier = $item['_id'] ?? null;
 
-            if (is_string($identifier) && $identifier !== '') {
-                $sanitized[] = $item;
-                continue;
-            }
-
             if (is_numeric($identifier)) {
-                $item['_id'] = (string) $identifier;
-                $sanitized[] = $item;
-                continue;
+                $id = (int) $identifier;
+            } elseif (is_string($identifier) && ctype_digit($identifier)) {
+                $id = (int) $identifier;
+            } else {
+                $id = $this->nextAvailableIndex($usedIds);
             }
 
-            $item['_id'] = (string) Str::ulid();
+            $item['_id'] = $id;
+            $usedIds[$id] = true;
             $sanitized[] = $item;
         }
 
@@ -447,6 +445,7 @@ class Fieldset extends AbstractField implements HandlesFormRequest, ProvidesVali
         }
 
         $normalized = [];
+        $usedIds = [];
 
         foreach ($raw as $item) {
             if (!is_array($item)) {
@@ -455,18 +454,16 @@ class Fieldset extends AbstractField implements HandlesFormRequest, ProvidesVali
 
             $identifier = $item['_id'] ?? null;
 
-            if (is_string($identifier) && $identifier !== '') {
-                $normalized[] = $item;
-                continue;
-            }
-
             if (is_numeric($identifier)) {
-                $item['_id'] = (string) $identifier;
-                $normalized[] = $item;
-                continue;
+                $id = (int) $identifier;
+            } elseif (is_string($identifier) && ctype_digit($identifier)) {
+                $id = (int) $identifier;
+            } else {
+                $id = $this->nextAvailableIndex($usedIds);
             }
 
-            $item['_id'] = (string) Str::ulid();
+            $item['_id'] = $id;
+            $usedIds[$id] = true;
             $normalized[] = $item;
         }
 
@@ -496,5 +493,16 @@ class Fieldset extends AbstractField implements HandlesFormRequest, ProvidesVali
     private function itemFactory(): ItemFactory
     {
         return $this->itemFactory ??= new ItemFactory($this);
+    }
+
+    private function nextAvailableIndex(array $usedIds): int
+    {
+        $candidate = 0;
+
+        while (isset($usedIds[$candidate])) {
+            $candidate++;
+        }
+
+        return $candidate;
     }
 }
