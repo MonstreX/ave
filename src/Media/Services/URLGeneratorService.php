@@ -15,9 +15,8 @@ class URLGeneratorService
     {
 
         $targetPath = config('ave.media.storage.root', 'media').'/'.
-                        ($params['model'] ? $prefix = $params['model']->getTable().'/' : '').
-                        date('Y').'/'.date('m').
-                        (! empty($params['collectionName']) ? '/'.$params['collectionName'] : '');
+                        ($params['model'] ? $params['model']->getTable().'/' : '').
+                        date('Y').'/'.date('m');
 
         foreach ($params['files'] as $key => $file) {
 
