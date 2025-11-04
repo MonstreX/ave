@@ -101,18 +101,9 @@ class Fieldset extends AbstractField implements HandlesFormRequest, ProvidesVali
                 continue;
             }
 
-            $identifier = $item['_id'] ?? null;
-
-            if (is_numeric($identifier)) {
-                $id = (int) $identifier;
-            } elseif (is_string($identifier) && ctype_digit($identifier)) {
-                $id = (int) $identifier;
-            } else {
-                $id = $this->nextAvailableIndex($usedIds);
-            }
+            $id = $this->resolveStableItemId($item['_id'] ?? null, $usedIds);
 
             $item['_id'] = $id;
-            $usedIds[$id] = true;
             $sanitized[] = $item;
         }
 
@@ -420,6 +411,26 @@ class Fieldset extends AbstractField implements HandlesFormRequest, ProvidesVali
     }
 
     /**
+     * Resolve stable numeric identifier for a fieldset item.
+     *
+     * @param array<int,bool> $usedIds
+     */
+    private function resolveStableItemId(mixed $identifier, array &$usedIds): int
+    {
+        if (is_numeric($identifier)) {
+            $id = (int) $identifier;
+        } elseif (is_string($identifier) && ctype_digit($identifier)) {
+            $id = (int) $identifier;
+        } else {
+            $id = $this->nextAvailableIndex($usedIds);
+        }
+
+        $usedIds[$id] = true;
+
+        return $id;
+    }
+
+    /**
      * Helper reused across request processing for checking empty values.
      */
     public function valueIsMeaningful(mixed $value): bool
@@ -452,18 +463,8 @@ class Fieldset extends AbstractField implements HandlesFormRequest, ProvidesVali
                 continue;
             }
 
-            $identifier = $item['_id'] ?? null;
-
-            if (is_numeric($identifier)) {
-                $id = (int) $identifier;
-            } elseif (is_string($identifier) && ctype_digit($identifier)) {
-                $id = (int) $identifier;
-            } else {
-                $id = $this->nextAvailableIndex($usedIds);
-            }
-
+            $id = $this->resolveStableItemId($item['_id'] ?? null, $usedIds);
             $item['_id'] = $id;
-            $usedIds[$id] = true;
             $normalized[] = $item;
         }
 
@@ -506,3 +507,4 @@ class Fieldset extends AbstractField implements HandlesFormRequest, ProvidesVali
         return $candidate;
     }
 }
+

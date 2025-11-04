@@ -7,96 +7,55 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Monstrex\Ave\Contracts\HandlesFormRequest;
+use Monstrex\Ave\Contracts\HandlesNestedValue;
 use Monstrex\Ave\Contracts\HandlesPersistence;
 use Monstrex\Ave\Contracts\ProvidesValidationRules;
 use Monstrex\Ave\Core\DataSources\DataSourceInterface;
 use Monstrex\Ave\Core\Fields\FieldPersistenceResult;
+use Monstrex\Ave\Core\Fields\Media\MediaConfiguration;
+use Monstrex\Ave\Core\Fields\Media\MediaRenderer;
+use Monstrex\Ave\Core\Fields\Media\MediaRequestPayload;
 use Monstrex\Ave\Core\FormContext;
 use Monstrex\Ave\Core\Media\MediaRepository;
 use Monstrex\Ave\Support\CollectionKeyGenerator;
 
 /**
- * Media Field - input field for managing files and images
+ * Media Field - input field for managing files and images.
  *
- * Adaptation of v1 MediaField for v2 with support for:
- * - Single and multiple file uploads
- * - Drag & drop uploads
- * - Image previews
- * - Sorting (drag-to-reorder)
- * - File deletion
- * - Media property editing (title, alt, description)
- * - Usage inside FieldSet (nested media fields)
- * - Database or JSON storage
+ * Responsibilities split between configuration, request handling and rendering
+ * helpers to keep the field's public API concise.
  */
-class Media extends AbstractField implements ProvidesValidationRules, HandlesPersistence
+class Media extends AbstractField implements ProvidesValidationRules, HandlesPersistence, HandlesFormRequest, HandlesNestedValue
 {
-    /**
-     * Collection for storing files
-     * Used to group media by types (gallery, hero, icon, etc.)
-     */
-    protected string $collection = 'default';
+    public const TYPE = 'media';
 
-    /**
-     * Whether to allow multiple file uploads
-     */
-    protected bool $multiple = false;
+    protected MediaConfiguration $config;
 
-    /**
-     * Maximum number of files
-     */
-    protected ?int $maxFiles = null;
-
-    /**
-     * MIME types allowed for upload
-     */
-    protected array $accept = [];
-
-    /**
-     * Maximum file size in KB
-     */
-    protected ?int $maxFileSize = null;
-
-    /**
-     * Whether to show image previews in grid
-     */
-    protected bool $showPreview = true;
-
-    /**
-     * Image transformations (width, height, format, etc.)
-     */
-    protected array $imageConversions = [];
-
-    /**
-     * Number of columns in media grid (1-12)
-     */
-    protected int $columns = 6;
-
-    /**
-     * Media properties available for editing (title, alt, description, etc.)
-     */
-    protected array $propNames = [];
-
-    /**
-     * Explicit collection override (optional).
-     */
-    protected ?string $collectionOverride = null;
-
-    /**
-     * Identifier of the nested item when the field is used inside a container.
-     */
     protected ?string $nestedItemIdentifier = null;
 
-    /**
-     * Pending media operations (uploads, deletions, reordering)
-     */
-    protected array $pendingMediaPayload = [];
+    protected ?MediaRequestPayload $pendingPayload = null;
+
+    public function __construct(string $key)
+    {
+        parent::__construct($key);
+
+        $this->config = new MediaConfiguration();
+    }
+
+    public function __clone()
+    {
+        $this->config = clone $this->config;
+        $this->pendingPayload = null;
+    }
 
     /**
-     * Set collection for grouping media
+     * Set collection for grouping media.
      */
     public function collection(string $collection): static
     {
-        $this->collection = $collection;
+        $this->config->setCollection($collection);
+
         return $this;
     }
 
@@ -105,207 +64,187 @@ class Media extends AbstractField implements ProvidesValidationRules, HandlesPer
      */
     public function useCollectionOverride(?string $collection): static
     {
-        $this->collectionOverride = $collection;
+        $this->config->setCollectionOverride($collection);
 
         return $this;
     }
 
     /**
-     * Enable/disable multiple file uploads
+     * Enable/disable multiple file uploads.
      */
     public function multiple(bool $multiple = true, ?int $maxFiles = null): static
     {
-        $this->multiple = $multiple;
-        $this->maxFiles = $maxFiles;
+        $this->config->setMultiple($multiple, $maxFiles);
+
         return $this;
     }
 
     /**
-     * Set allowed MIME types
+     * Set allowed MIME types.
      */
     public function accept(array $mimeTypes): static
     {
-        $this->accept = $mimeTypes;
+        $this->config->setAccept($mimeTypes);
+
         return $this;
     }
 
     /**
-     * Quick set for images
+     * Quick set for images.
      */
     public function acceptImages(): static
     {
-        $this->accept = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
+        $this->config->setAccept(['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml']);
+
         return $this;
     }
 
     /**
-     * Quick set for documents
+     * Quick set for documents.
      */
     public function acceptDocuments(): static
     {
-        $this->accept = [
+        $this->config->setAccept([
             'application/pdf',
             'application/msword',
             'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
             'application/vnd.ms-excel',
             'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        ];
+        ]);
+
         return $this;
     }
 
     /**
-     * Set maximum file size in KB
+     * Set maximum file size in KB.
      */
     public function maxFileSize(int $sizeInKB): static
     {
-        $this->maxFileSize = $sizeInKB;
+        $this->config->setMaxFileSize($sizeInKB);
+
         return $this;
     }
 
     /**
-     * Set maximum number of files
+     * Set maximum number of files.
      */
     public function maxFiles(int $count): static
     {
-        $this->maxFiles = $count;
+        $this->config->setMaxFiles($count);
+
         return $this;
     }
 
     /**
-     * Show/hide image previews
+     * Show/hide image previews.
      */
     public function preview(bool $show = true): static
     {
-        $this->showPreview = $show;
+        $this->config->setShowPreview($show);
+
         return $this;
     }
 
     /**
-     * Set image transformations
-     * Example: ['thumbnail' => ['width' => 150, 'height' => 150], 'medium' => ['width' => 500]]
+     * Set image transformations.
+     * Example: ['thumbnail' => ['width' => 150, 'height' => 150], ...]
      */
     public function conversions(array $conversions): static
     {
-        $this->imageConversions = $conversions;
+        $this->config->setImageConversions($conversions);
+
         return $this;
     }
 
     /**
-     * Set grid columns count (1-12)
+     * Set grid columns count (1-12).
      */
     public function columns(int $columns): static
     {
-        $this->columns = max(1, min(12, $columns));
+        $this->config->setColumns(max(1, min(12, $columns)));
+
         return $this;
     }
 
     /**
-     * Define media properties for editing
-     * Example: 'title', 'alt', 'description'
+     * Define media properties for editing (title, alt, etc.).
      */
     public function props(string ...$propNames): static
     {
-        $this->propNames = $propNames;
+        $this->config->setPropNames($propNames);
+
         return $this;
     }
 
     public function nestWithin(string $parentKey, string $itemIdentifier): static
     {
+        /** @var static $clone */
         $clone = parent::nestWithin($parentKey, $itemIdentifier);
         $clone->nestedItemIdentifier = $itemIdentifier;
+        $clone->config = clone $this->config;
 
         return $clone;
     }
 
-    /**
-     * Get collection
-     */
     public function getCollection(): string
     {
-        return $this->collection;
+        return $this->config->collection();
     }
 
-    /**
-     * Check if multiple upload
-     */
     public function isMultiple(): bool
     {
-        return $this->multiple;
+        return $this->config->isMultiple();
     }
 
-    /**
-     * Get allowed MIME types
-     */
     public function getAccept(): array
     {
-        return $this->accept;
+        return $this->config->accept();
     }
 
-    /**
-     * Get Accept string for input[type=file]
-     */
     public function getAcceptString(): string
     {
-        return implode(',', $this->accept);
+        return implode(',', $this->config->accept());
     }
 
-    /**
-     * Get maximum file size
-     */
     public function getMaxFileSize(): ?int
     {
-        return $this->maxFileSize;
+        return $this->config->maxFileSize();
     }
 
-    /**
-     * Get maximum number of files
-     */
     public function getMaxFiles(): ?int
     {
-        return $this->maxFiles;
+        return $this->config->maxFiles();
     }
 
-    /**
-     * Show preview
-     */
     public function showsPreview(): bool
     {
-        return $this->showPreview;
+        return $this->config->showPreview();
     }
 
-    /**
-     * Get grid columns count
-     */
     public function getColumns(): int
     {
-        return $this->columns;
+        return $this->config->columns();
+    }
+
+    public function getPropNames(): array
+    {
+        return $this->config->propNames();
     }
 
     protected function isNested(): bool
     {
-        return $this->key !== $this->baseKey();
+        return $this->nestedItemIdentifier !== null || $this->key !== $this->baseKey();
     }
 
-    /**
-     * Resolve actual collection name
-     *
-     * Priority:
-     * 1. Override from FieldSet JSON (when loading existing data)
-     * 2. Generate from fieldSetItemId (when creating/saving)
-     * 3. Use default collection property
-     */
     protected function resolveCollectionName(): string
     {
         return CollectionKeyGenerator::forMedia(
-            $this->collection,
+            $this->config->collection(),
             $this->key,
-            $this->collectionOverride
+            $this->config->collectionOverride()
         );
     }
 
-    /**
-     * Fill field from Eloquent model
-     */
     public function fillFromRecord(Model $record): void
     {
         $collection = $this->resolveCollectionName();
@@ -318,10 +257,6 @@ class Media extends AbstractField implements ProvidesValidationRules, HandlesPer
         $this->setValue($mediaItems);
     }
 
-    /**
-     * Fill media field from specific collection
-     * Used when Media is inside FieldSet and collection name is stored in JSON
-     */
     public function fillFromCollectionName(Model $record, string $collectionName): void
     {
         $this->useCollectionOverride($collectionName);
@@ -334,9 +269,6 @@ class Media extends AbstractField implements ProvidesValidationRules, HandlesPer
         $this->setValue($mediaItems);
     }
 
-    /**
-     * Fill from data source (for FieldSet and JSON)
-     */
     public function fillFromDataSource(DataSourceInterface $source): void
     {
         $mediaData = $source->get($this->key) ?? [];
@@ -348,20 +280,36 @@ class Media extends AbstractField implements ProvidesValidationRules, HandlesPer
             return;
         }
 
-        if (!$mediaData instanceof Collection) {
-            $mediaData = collect($mediaData);
-        }
-
-        $this->setValue($mediaData);
+        $collection = $mediaData instanceof Collection ? $mediaData : collect($mediaData);
+        $this->setValue($collection);
     }
 
-    /**
-     * Prepare for display
-     */
+    public function applyNestedValue(mixed $storedValue, ?Model $record = null): void
+    {
+        if (is_string($storedValue)) {
+            $this->useCollectionOverride($storedValue);
+
+            if ($record instanceof Model && $record->exists) {
+                $this->fillFromCollectionName($record, $storedValue);
+            } else {
+                $this->setValue(collect());
+            }
+
+            return;
+        }
+
+        if ($storedValue instanceof Collection) {
+            $this->setValue($storedValue);
+            return;
+        }
+
+        if (is_array($storedValue)) {
+            $this->setValue(collect($storedValue));
+        }
+    }
+
     public function prepareForDisplay(FormContext $context): void
     {
-        // If value is already set (e.g., from fillFromDataSource in ResourceRenderer),
-        // and it's not empty, don't override it
         $currentValue = $this->getValue();
         if ($currentValue instanceof Collection && $currentValue->isNotEmpty()) {
             return;
@@ -372,77 +320,69 @@ class Media extends AbstractField implements ProvidesValidationRules, HandlesPer
 
         $record = $context->record();
 
-        // If we have a model record, load media from it
         if ($record && $record instanceof Model && $record->exists) {
             $this->fillFromRecord($record);
         }
-        // If still empty and not from model, try data source (for FieldSet and JSON)
+
         if (empty($this->getValue())) {
-            $this->fillFromDataSource($context->dataSource());
+            $dataSource = $context->dataSource();
+            if ($dataSource instanceof DataSourceInterface) {
+                $this->fillFromDataSource($dataSource);
+            }
         }
     }
 
-    /**
-     * Processing before apply
-     */
+    public function prepareRequest(Request $request, FormContext $context): void
+    {
+        $payload = $this->capturePayload($request);
+        $collection = $this->resolveCollectionName();
+        $record = $context->record();
+        $repository = $this->mediaRepository();
+
+        $existingCount = ($record && $record->exists)
+            ? $repository->count($record, $collection)
+            : 0;
+
+        $remainingAfterDeletion = max(0, $existingCount - count($payload->deleted()));
+        $willHaveMedia = !empty($payload->uploaded()) || $remainingAfterDeletion > 0;
+
+        $request->merge([
+            $this->key => $willHaveMedia ? $collection : null,
+        ]);
+    }
+
     public function prepareForSave(mixed $value, Request $request, FormContext $context): FieldPersistenceResult
     {
-        $this->pendingMediaPayload = [];
-
-        $metaKey = CollectionKeyGenerator::metaKeyForField($this->key);
-        $uploadedIds = $this->parseIdList($request->input('__media_uploaded', [])[$metaKey] ?? []);
-        $deletedIds = $this->parseIdList($request->input('__media_deleted', [])[$metaKey] ?? []);
-        $order = $this->parseIdList($request->input('__media_order', [])[$metaKey] ?? []);
-        $props = $this->normalisePropsInput($request->input('__media_props', [])[$metaKey] ?? []);
-
-        Log::debug('Media request payload', [
-            'field' => $this->key,
-            'meta_key' => $metaKey,
-            'raw_uploaded' => $request->input('__media_uploaded', [])[$metaKey] ?? null,
-            'raw_deleted' => $request->input('__media_deleted', [])[$metaKey] ?? null,
-            'raw_order' => $request->input('__media_order', [])[$metaKey] ?? null,
-        ]);
-
-        $record = $context->record();
+        $payload = $this->pendingPayload ?? $this->capturePayload($request);
         $collection = $this->resolveCollectionName();
         $repository = $this->mediaRepository();
+        $record = $context->record();
 
         if (str_contains(Str::lower($collection), '__item__')) {
             Log::warning('Media collection still contains placeholder', [
                 'field' => $this->key,
                 'collection' => $collection,
                 'html_key' => $this->key,
-                'meta_key' => $metaKey,
+                'meta_key' => $payload->metaKey(),
             ]);
         }
 
-        if (!empty($deletedIds) && $record && $record->exists) {
-            $repository->delete($record, $collection, $deletedIds);
+        if (!empty($payload->deleted()) && $record && $record->exists) {
+            $repository->delete($record, $collection, $payload->deleted());
         }
-
-        $payload = [
-            'uploaded' => $uploadedIds,
-            'order' => $order,
-            'props' => $props,
-            'meta_key' => $metaKey,
-            'collection' => $collection,
-            'deleted' => $deletedIds,
-        ];
-
-        $this->pendingMediaPayload = $payload;
 
         $deferred = [
             function (Model $savedRecord) use ($payload, $repository, $collection): void {
-                if (!empty($payload['uploaded'])) {
-                    $repository->attach($savedRecord, $collection, $payload['uploaded']);
+                if (!empty($payload->uploaded())) {
+                    $repository->attach($savedRecord, $collection, $payload->uploaded());
                 }
 
-                if (!empty($payload['order'])) {
-                    $repository->reorder($savedRecord, $collection, $payload['order']);
+                if (!empty($payload->order())) {
+                    $repository->reorder($savedRecord, $collection, $payload->order());
                 }
 
-                if (!empty($payload['props'])) {
-                    $repository->updateProps($savedRecord, $collection, $payload['props']);
+                if (!empty($payload->props())) {
+                    $repository->updateProps($savedRecord, $collection, $payload->props());
                 }
             },
         ];
@@ -450,41 +390,38 @@ class Media extends AbstractField implements ProvidesValidationRules, HandlesPer
         $existingCount = ($record && $record->exists)
             ? $repository->count($record, $collection)
             : 0;
-        $remainingAfterDeletion = max(0, $existingCount - count($deletedIds));
-        $willHaveMedia = !empty($uploadedIds) || $remainingAfterDeletion > 0;
 
-        $finalValue = null;
+        $remainingAfterDeletion = max(0, $existingCount - count($payload->deleted()));
+        $willHaveMedia = !empty($payload->uploaded()) || $remainingAfterDeletion > 0;
 
-        if ($willHaveMedia) {
-            $finalValue = $collection;
-        } elseif (!$this->isNested()) {
-            $finalValue = $value;
-        }
+        $finalValue = $this->isNested()
+            ? ($willHaveMedia ? $collection : $value)
+            : ($willHaveMedia ? $collection : null);
 
         Log::debug('Media prepareForSave', [
             'field' => $this->key,
             'collection' => $collection,
-            'meta_key' => $metaKey,
-            'uploaded' => $uploadedIds,
-            'deleted' => $deletedIds,
-            'order' => $order,
-            'props_keys' => array_keys($props),
+            'meta_key' => $payload->metaKey(),
+            'uploaded' => $payload->uploaded(),
+            'deleted' => $payload->deleted(),
+            'order' => $payload->order(),
+            'props_keys' => array_keys($payload->props()),
             'existing_count' => $existingCount,
             'remaining_after_deletion' => $remainingAfterDeletion,
             'will_have_media' => $willHaveMedia,
             'final_value' => $finalValue,
         ]);
 
-        if (empty($uploadedIds) && empty($order) && empty($props)) {
-            return FieldPersistenceResult::make($finalValue);
-        }
+        $result = FieldPersistenceResult::make(
+            $finalValue,
+            $payload->hasChanges() ? $deferred : []
+        );
 
-        return FieldPersistenceResult::make($finalValue, $deferred);
+        $this->pendingPayload = null;
+
+        return $result;
     }
 
-    /**
-     * Apply to data source
-     */
     public function applyToDataSource(DataSourceInterface $source, mixed $value): void
     {
         if ($this->isNested()) {
@@ -492,43 +429,39 @@ class Media extends AbstractField implements ProvidesValidationRules, HandlesPer
         }
     }
 
-    /**
-     * Get validation rules
-     */
     public function getRules(): array
     {
         $rules = parent::getRules();
 
-        if ($this->maxFiles && $this->multiple) {
-            $rules[] = "max:{$this->maxFiles}";
+        if ($this->config->maxFiles() && $this->config->isMultiple()) {
+            $rules[] = 'array';
+            $rules[] = "max:{$this->config->maxFiles()}";
         }
 
-        return $rules;
+        if (empty($rules)) {
+            $rules[] = 'nullable';
+        }
+
+        return array_unique($rules);
     }
 
     public function buildValidationRules(): array
     {
         $rules = $this->getRules();
 
-        if ($this->isRequired()) {
-            if (!in_array('required', $rules, true)) {
-                $rules[] = 'required';
-            }
+        if ($this->isRequired() && !in_array('required', $rules, true)) {
+            array_unshift($rules, 'required');
         } elseif (!in_array('nullable', $rules, true)) {
-            $rules[] = 'nullable';
+            array_unshift($rules, 'nullable');
         }
 
         return [$this->key() => implode('|', array_filter($rules))];
     }
 
-    /**
-     * Convert to array for Blade template
-     */
     public function toArray(): array
     {
         $mediaItems = $this->getValue() ?? collect();
 
-        // If it is not a collection, convert
         if (!$mediaItems instanceof Collection) {
             $mediaItems = collect($mediaItems);
         }
@@ -536,7 +469,7 @@ class Media extends AbstractField implements ProvidesValidationRules, HandlesPer
         $actualCollection = $this->resolveCollectionName();
 
         return array_merge(parent::toArray(), [
-            'type' => 'media',
+            'type' => self::TYPE,
             'collection' => $actualCollection,
             'multiple' => $this->isMultiple(),
             'accept' => $this->getAccept(),
@@ -546,114 +479,42 @@ class Media extends AbstractField implements ProvidesValidationRules, HandlesPer
             'showPreview' => $this->showsPreview(),
             'columns' => $this->getColumns(),
             'mediaItems' => $mediaItems,
-            'imageConversions' => $this->imageConversions,
+            'imageConversions' => $this->config->imageConversions(),
             'uploadUrl' => route('ave.media.upload'),
-            'propNames' => $this->propNames,
-            'modelType' => null, // Will be populated in render()
-            'modelId' => null,   // Will be populated in render()
-            'metaKey' => CollectionKeyGenerator::metaKeyForField($this->key),
+            'propNames' => $this->config->propNames(),
+            'modelType' => null,
+            'modelId' => null,
+            'metaKey' => $this->metaKey(),
         ]);
     }
 
-    /**
-     * Render field
-     */
     public function render(FormContext $context): string
     {
         if (empty($this->getValue())) {
             $this->prepareForDisplay($context);
         }
 
+        $renderer = new MediaRenderer();
         $view = $this->view ?: 'ave::components.forms.media';
+        $fieldData = array_merge($this->toArray(), ['field' => $this]);
 
-        // Extract error information from context
-        $hasError = $context->hasError($this->key);
-        $errors = $context->getErrors($this->key);
-
-        // Get all field data as array (includes mediaItems, collection, etc.)
-        $fieldData = $this->toArray();
-
-        // Add model information for media operations
-        $record = $context->record();
-        $fieldData['modelType'] = $record ? get_class($record) : null;
-        $fieldData['modelId'] = $record?->id ?? null;
-
-        return view($view, [
-            'field'      => $this,
-            'context'    => $context,
-            'hasError'   => $hasError,
-            'errors'     => $errors,
-            'attributes' => '',
-            ...$fieldData,
-        ])->render();
+        return $renderer->render($view, $fieldData, $context);
     }
 
-    /**
-     * Parse ID list from string or array
-     */
-    private function parseIdList(mixed $value): array
+    protected function capturePayload(Request $request): MediaRequestPayload
     {
-        if (is_string($value)) {
-            if (trim($value) === '') {
-                return [];
-            }
-            $value = array_map('trim', explode(',', $value));
-        }
+        $this->pendingPayload = MediaRequestPayload::capture($this->metaKey(), $request);
 
-        if (!is_array($value)) {
-            return [];
-        }
-
-        $ids = [];
-        foreach ($value as $entry) {
-            if ($entry === null || $entry === '') {
-                continue;
-            }
-            $ids[] = (int)$entry;
-        }
-
-        return array_values(array_unique(array_filter($ids, fn(int $id) => $id > 0)));
+        return $this->pendingPayload;
     }
 
-    /**
-     * Normalize media input properties
-     */
-    private function normalisePropsInput(mixed $input): array
+    protected function metaKey(): string
     {
-        if (!is_array($input)) {
-            return [];
-        }
-
-        $result = [];
-        foreach ($input as $key => $value) {
-            $id = (int)$key;
-            if ($id <= 0) {
-                continue;
-            }
-
-            if (is_string($value)) {
-                $decoded = json_decode($value, true);
-                $value = is_array($decoded) ? $decoded : [];
-            }
-
-            if (!is_array($value)) {
-                continue;
-            }
-
-            $result[$id] = $value;
-        }
-
-        return $result;
+        return CollectionKeyGenerator::metaKeyForField($this->key);
     }
 
-    private function mediaRepository(): MediaRepository
+    protected function mediaRepository(): MediaRepository
     {
         return app(MediaRepository::class);
     }
 }
-
-
-
-
-
-

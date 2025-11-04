@@ -121,6 +121,7 @@
         </div>
 
         {{-- Hidden inputs for tracking changes --}}
+        <input type="hidden" name="{{ $key }}" value="{{ $collection }}" data-media-value>
         <input type="hidden" name="__media_uploaded[{{ $metaKey }}]" value="" data-uploaded-ids>
         <input type="hidden" name="__media_deleted[{{ $metaKey }}]" value="" data-deleted-ids>
     </div>

@@ -38,7 +38,21 @@ export function updateAllMediaHiddenInputs() {
         if (data.deletedIdsInput) {
             data.deletedIdsInput.value = data.deletedIds.join(',');
         }
+        syncFieldValue(data);
     });
+}
+
+function syncFieldValue(data) {
+    const { fieldValueInput, container, collection, uploadedIds } = data;
+    if (!fieldValueInput || !container) {
+        return;
+    }
+
+    const grid = container.querySelector('[data-media-grid]');
+    const items = grid ? grid.querySelectorAll('.media-item') : [];
+    const hasValue = (items.length > 0) || ((uploadedIds ?? []).length > 0);
+
+    fieldValueInput.value = hasValue ? collection : '';
 }
 
 export default function initMediaFields(root = document) {
@@ -75,6 +89,7 @@ export default function initMediaFields(root = document) {
         const grid = container.querySelector('[data-media-grid]');
         const uploadedIdsInput = container.querySelector('[data-uploaded-ids]');
         const deletedIdsInput = container.querySelector('[data-deleted-ids]');
+        const fieldValueInput = container.querySelector('[data-media-value]');
 
         const uploadedIds = [];
         const deletedIds = [];
@@ -86,8 +101,17 @@ export default function initMediaFields(root = document) {
             deletedIds,
             uploadedIdsInput,
             deletedIdsInput,
+            fieldValueInput,
             fieldName,
-            metaKey
+            metaKey,
+            collection,
+            container,
+        });
+        syncFieldValue({
+            fieldValueInput,
+            container,
+            collection,
+            uploadedIds,
         });
 
         // Click to upload
@@ -393,6 +417,7 @@ export default function initMediaFields(root = document) {
             if (!mediaId) {
                 mediaItem?.remove();
                 updateMediaNumbers();
+                updateHiddenInputs();
                 showToast('success', 'File removed successfully.');
                 return;
             }
@@ -414,6 +439,15 @@ export default function initMediaFields(root = document) {
                 if (data.success) {
                     mediaItem?.remove();
                     updateMediaNumbers();
+                    const numericId = parseInt(mediaId, 10);
+                    const uploadedIndex = uploadedIds.indexOf(numericId);
+                    if (uploadedIndex !== -1) {
+                        uploadedIds.splice(uploadedIndex, 1);
+                    }
+                    if (!deletedIds.includes(numericId)) {
+                        deletedIds.push(numericId);
+                    }
+                    updateHiddenInputs();
                     showToast('success', 'File deleted successfully.');
                 } else {
                     showToast('danger', 'Failed to delete file: ' + (data.message || 'Unknown error'));
@@ -502,20 +536,21 @@ export default function initMediaFields(root = document) {
                     }
 
                     // Store props in hidden input for future edits
-            const currentMetaKey = container.dataset.metaKey || metaKey || computeMetaKey(fieldName);
-            let propsInput = mediaItem.querySelector(`input[data-media-props="true"][data-props-id="${mediaId}"]`);
-            if (!propsInput) {
-                propsInput = document.createElement('input');
-                propsInput.type = 'hidden';
-                propsInput.name = `__media_props[${currentMetaKey}][${mediaId}]`;
-                propsInput.setAttribute('data-media-props', 'true');
-                propsInput.setAttribute('data-props-id', mediaId);
-                mediaItem.appendChild(propsInput);
-            } else {
-                propsInput.name = `__media_props[${currentMetaKey}][${mediaId}]`;
-                propsInput.setAttribute('data-media-props', 'true');
-                propsInput.setAttribute('data-props-id', mediaId);
-            }
+                    // Store props in hidden input for future edits
+                    const currentMetaKey = container.dataset.metaKey || metaKey || computeMetaKey(fieldName);
+                    let propsInput = mediaItem.querySelector(`input[data-media-props="true"][data-props-id="${mediaId}"]`);
+                    if (!propsInput) {
+                        propsInput = document.createElement('input');
+                        propsInput.type = 'hidden';
+                        propsInput.name = `__media_props[${currentMetaKey}][${mediaId}]`;
+                        propsInput.setAttribute('data-media-props', 'true');
+                        propsInput.setAttribute('data-props-id', mediaId);
+                        mediaItem.appendChild(propsInput);
+                    } else {
+                        propsInput.name = `__media_props[${currentMetaKey}][${mediaId}]`;
+                        propsInput.setAttribute('data-media-props', 'true');
+                        propsInput.setAttribute('data-props-id', mediaId);
+                    }
                     propsInput.value = JSON.stringify(data.media.props);
 
                     showToast('success', data.message || 'Properties saved successfully');
@@ -542,6 +577,12 @@ export default function initMediaFields(root = document) {
             if (deletedIdsInput) {
                 deletedIdsInput.value = deletedIds.join(',');
             }
+            syncFieldValue({
+                fieldValueInput,
+                container,
+                collection,
+                uploadedIds,
+            });
         }
 
         function updateMediaNumbers() {
@@ -605,4 +646,7 @@ export default function initMediaFields(root = document) {
         }
     });
 }
+
+
+
 

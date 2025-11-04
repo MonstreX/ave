@@ -4,6 +4,7 @@ namespace Monstrex\Ave\Core\Fields\Fieldset;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
+use Monstrex\Ave\Contracts\HandlesNestedValue;
 use Monstrex\Ave\Core\DataSources\ArrayDataSource;
 use Monstrex\Ave\Core\FormContext;
 use Monstrex\Ave\Core\Fields\AbstractField;
@@ -33,13 +34,14 @@ class ItemFactory
             $baseKey = $definition->baseKey();
             $storedValue = $itemData[$baseKey] ?? null;
 
-            if (is_string($storedValue) && method_exists($nestedField, 'useCollectionOverride')) {
-                $nestedField->useCollectionOverride($storedValue);
+            $handledViaContract = false;
+
+            if ($nestedField instanceof HandlesNestedValue) {
+                $nestedField->applyNestedValue($storedValue, $record);
+                $handledViaContract = true;
             }
 
-            if ($record && is_string($storedValue) && method_exists($nestedField, 'fillFromCollectionName')) {
-                $nestedField->fillFromCollectionName($record, $storedValue);
-            } else {
+            if (!$handledViaContract) {
                 $dataSource = new ArrayDataSource($itemData);
                 $originalKey = $nestedField->getKey();
 

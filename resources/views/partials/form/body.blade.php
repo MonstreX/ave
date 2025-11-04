@@ -6,16 +6,26 @@
                 @method('PUT')
             @endif
 
-            @foreach($formLayout as $row)
-                <div class="form-row">
-                    @foreach($row['columns'] as $column)
-                        <div class="form-column" style="grid-column: span {{ $column['span'] }}">
-                            @foreach($column['fields'] as $field)
-                                {!! $field->render($context) !!}
-                            @endforeach
-                        </div>
-                    @endforeach
-                </div>
+            @foreach($formLayout as $entry)
+                @php
+                    $entryType = $entry['type'] ?? (isset($entry['columns']) ? 'row-legacy' : null);
+                @endphp
+
+                @if($entryType === 'row')
+                    {!! $entry['component']->render($context) !!}
+                @elseif($entryType === 'component')
+                    {!! $entry['component']->render($context) !!}
+                @elseif($entryType === 'row-legacy')
+                    <div class="form-row">
+                        @foreach($entry['columns'] as $column)
+                            <div class="form-column" style="grid-column: span {{ $column['span'] }}">
+                                @foreach($column['fields'] as $field)
+                                    {!! $field->render($context) !!}
+                                @endforeach
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
             @endforeach
 
             @include('ave::partials.form.actions')

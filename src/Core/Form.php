@@ -2,10 +2,15 @@
 
 namespace Monstrex\Ave\Core;
 
+use InvalidArgumentException;
+use Monstrex\Ave\Contracts\FormField;
+use Monstrex\Ave\Core\Components\FormComponent;
+use Monstrex\Ave\Core\Components\RowComponent;
+
 class Form
 {
-    /** @var array<FormRow> */
-    protected array $rows = [];
+    /** @var array<int,RowComponent|FormComponent> */
+    protected array $layout = [];
 
     protected ?string $submitLabel = null;
     protected ?string $cancelUrl = null;
@@ -16,38 +21,43 @@ class Form
     }
 
     /**
-     * Define form schema using rows
+     * Define form schema using components and/or rows.
      *
-     * @param array $rows
+     * @param array<int,mixed> $components
      */
-    public function schema(array $rows): static
+    public function schema(array $components): static
     {
-        $this->rows = $rows;
+        $this->layout = [];
+
+        foreach ($components as $component) {
+            $this->layout[] = $this->normalizeComponent($component);
+        }
+
         return $this;
     }
 
     /**
-     * Add single row to form
+     * Add single row to form.
      */
     public function addRow(FormRow $row): static
     {
-        $this->rows[] = $row;
+        $this->layout[] = RowComponent::fromFormRow($row);
+
         return $this;
     }
 
     /**
-     * Quick helper: add fields in single column
+     * Quick helper: add fields in single column.
      *
-     * @param array $fields
+     * @param array<int,FormField> $fields
      */
     public function fields(array $fields): static
     {
         $row = FormRow::make()->columns([
-            FormColumn::make()->fields($fields)->span(12)
+            FormColumn::make()->fields($fields)->span(12),
         ]);
 
-        $this->rows[] = $row;
-        return $this;
+        return $this->addRow($row);
     }
 
     public function submitLabel(string $label): static
@@ -62,52 +72,46 @@ class Form
         return $this;
     }
 
+    /**
+     * Get normalized layout definition for rendering.
+     *
+     * @return array<int,array<string,mixed>>
+     */
     public function layout(): array
     {
         return array_map(
-            fn (FormRow $row) => [
-                'columns' => array_map(
-                    fn (FormColumn $column) => [
-                        'span' => $column->getSpan(),
-                        'fields' => $column->getFields(),
-                    ],
-                    $row->getColumns()
-                ),
-            ],
-            $this->rows
+            static function (RowComponent|FormComponent $component): array {
+                if ($component instanceof RowComponent) {
+                    return $component->toLayoutArray();
+                }
+
+                return [
+                    'type' => 'component',
+                    'component' => $component,
+                ];
+            },
+            $this->layout
         );
     }
 
     /**
-     * Get all form rows serialized for JSON responses.
-     */
-    public function rows(): array
-    {
-        return array_map(fn (FormRow $row) => $row->toArray(), $this->rows);
-    }
-
-    /**
-     * Get all fields (flattened from all rows/columns)
+     * Get all fields (flattened from all components).
      *
-     * @return array
+     * @return array<int,FormField>
      */
     public function getAllFields(): array
     {
         $fields = [];
 
-        foreach ($this->rows as $row) {
-            foreach ($row->getColumns() as $column) {
-                foreach ($column->getFields() as $field) {
-                    $fields[] = $field;
-                }
-            }
+        foreach ($this->layout as $component) {
+            $fields = array_merge($fields, $component->flattenFields());
         }
 
         return $fields;
     }
 
     /**
-     * Find field by key
+     * Find field by key.
      */
     public function getField(string $key)
     {
@@ -121,7 +125,9 @@ class Form
     }
 
     /**
-     * Get all fields for the controller
+     * Get all fields for the controller.
+     *
+     * @return array<int,FormField>
      */
     public function getFields(): array
     {
@@ -129,26 +135,59 @@ class Form
     }
 
     /**
-     * Get form layout (rows)
+     * Get form layout rows for JSON responses (row-only).
+     *
+     * @return array<int,array<string,mixed>>
      */
-    public function getLayout(): array
+    public function rows(): array
     {
-        return $this->layout();
+        $rows = [];
+
+        foreach ($this->layout() as $item) {
+            if (($item['type'] ?? null) === 'row') {
+                $rows[] = $item['columns'];
+            }
+        }
+
+        return $rows;
     }
 
-    /**
-     * Get submit button label
-     */
     public function getSubmitLabel(): string
     {
         return $this->submitLabel ?? 'Save';
     }
 
-    /**
-     * Get cancel URL
-     */
     public function getCancelUrl(): ?string
     {
         return $this->cancelUrl;
     }
+
+    /**
+     * @param mixed $component
+     */
+    protected function normalizeComponent(mixed $component): RowComponent|FormComponent
+    {
+        if ($component instanceof RowComponent) {
+            return $component;
+        }
+
+        if ($component instanceof FormRow) {
+            return RowComponent::fromFormRow($component);
+        }
+
+        if ($component instanceof FormComponent) {
+            return $component;
+        }
+
+        if (is_array($component)) {
+            $row = FormRow::make()->columns([
+                FormColumn::make()->fields($component)->span(12),
+            ]);
+
+            return RowComponent::fromFormRow($row);
+        }
+
+        throw new InvalidArgumentException('Unsupported form schema component.');
+    }
 }
+
