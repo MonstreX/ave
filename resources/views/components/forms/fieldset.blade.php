@@ -123,7 +123,7 @@
                             </div>
 
                             <div class="fieldset-item-fields">
-                                <input type="hidden" name="{{ $key }}[{{ $item['id'] }}][_id]" value="{{ $item['id'] }}">
+                                <input type="hidden" name="{{ $key }}[{{ $item['id'] }}][_id]" value="{{ $item['id'] }}" data-field-id>
 
                                 @if(!empty($item['fields']))
                                     @foreach($item['fields'] as $itemField)
