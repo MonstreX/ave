@@ -69,13 +69,15 @@ export default function initMediaFields(root = document) {
         const maxSize = parseInt(container.dataset.maxSize) || null;
         const accept = container.dataset.accept || '';
         const uploadUrl = container.dataset.uploadUrl;
-        const collection = container.dataset.collection || 'default';
         const modelType = container.dataset.modelType || '';
         const modelId = container.dataset.modelId || '';
         const fieldName = container.closest('[data-field-name]')?.dataset.fieldName || 'media';
         let metaKey = computeMetaKey(container.dataset.metaKey || fieldName);
         container.dataset.metaKey = metaKey;
         const propNames = JSON.parse(container.dataset.propNames || '[]');
+
+        // Use collection name from data-collection attribute (already properly set by server/fieldSet.js)
+        const collection = container.dataset.collection || 'default';
 
         console.debug('Init media field container', {
             rawFieldName: container.closest('[data-field-name]')?.getAttribute('data-field-name') || null,

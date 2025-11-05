@@ -101,6 +101,12 @@ export default function initFieldSet(root = document) {
                 const normalizedMetaKey = computeMetaKey(updatedPath);
                 mediaContainer.dataset.metaKey = normalizedMetaKey;
 
+                // Also update data-collection with the same item ID replacement
+                if (mediaContainer.dataset.collection && mediaContainer.dataset.collection.includes('__ITEM__')) {
+                    const updatedCollection = replacePlaceholders(mediaContainer.dataset.collection, itemId);
+                    mediaContainer.dataset.collection = updatedCollection;
+                }
+
                 // Update name attributes of hidden inputs for uploaded/deleted/props data
                 // This ensures request data is sent with the correct key that server expects
                 mediaContainer.querySelectorAll('input[data-uploaded-ids], input[data-deleted-ids], input[data-media-props="true"]').forEach(input => {

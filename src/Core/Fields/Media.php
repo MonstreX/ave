@@ -258,9 +258,14 @@ class Media extends AbstractField implements ProvidesValidationRules, HandlesPer
     {
         $statePath = $this->getStatePath();
 
-        // Skip template fields (shouldn't be stored to database)
+        // For template fields, replace __TEMPLATE__ with __ITEM__ to generate collection name for display/upload
+        // This preserves the structure and allows JS to replace __ITEM__ with actual item ID
         if (StatePathCollectionGenerator::isTemplateStatePath($statePath)) {
-            return null;
+            $itemPath = str_replace('.__TEMPLATE__.', '.__ITEM__.', $statePath);
+            // Temporarily set the item path to generate correct collection name
+            $field = clone $this;
+            $field = $field->statePath($itemPath);
+            return StatePathCollectionGenerator::forMedia($field);
         }
 
         // Use state path approach: deterministic, compositional, no parsing
@@ -445,7 +450,7 @@ class Media extends AbstractField implements ProvidesValidationRules, HandlesPer
         // Media value is always the collection name (used by HasMedia relation)
         // For nested fields (in Fieldset containers), always return collection name
         // even if media hasn't been uploaded yet
-        $finalValue = ($willHaveMedia || $this->hasContainer()) ? $collection : null;
+        $finalValue = ($willHaveMedia || $this->isNested()) ? $collection : null;
 
         Log::debug('Media prepareForSave', [
             'field' => $this->key,
