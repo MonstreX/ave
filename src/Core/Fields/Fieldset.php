@@ -137,9 +137,10 @@ class Fieldset extends AbstractField implements HandlesFormRequest, ProvidesVali
 
         $normalized = array_values($sanitized);
 
-        Log::debug('Fieldset prepareRequest sanitized', [
+        Log::debug('Fieldset prepareRequest - structure normalized', [
             'field' => $this->key,
-            'sanitized' => $normalized,
+            'item_count' => count($normalized),
+            'item_ids' => array_column($normalized, '_id'),
         ]);
 
         $request->merge([$this->key => $normalized]);
