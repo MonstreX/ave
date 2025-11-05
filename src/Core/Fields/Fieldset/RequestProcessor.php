@@ -95,12 +95,6 @@ class RequestProcessor
         $cleanupActions = $this->collectCleanupActionsForDeletedItems($originalValue, $context);
         $deferred = array_merge($deferred, $cleanupActions);
 
-        Log::debug('Fieldset cleanup actions collected', [
-            'fieldset' => $this->fieldset->getKey(),
-            'cleanup_actions_count' => count($cleanupActions),
-            'total_deferred_actions' => count($deferred),
-        ]);
-
         return new ProcessResult($processedItems, $deferred);
     }
 
@@ -114,9 +108,6 @@ class RequestProcessor
     private function collectCleanupActionsForDeletedItems(mixed $originalValue, FormContext $context): array
     {
         if (!is_array($originalValue) || empty($originalValue)) {
-            Log::debug('No original fieldset value, skipping cleanup', [
-                'fieldset' => $this->fieldset->getKey(),
-            ]);
             return [];
         }
 
@@ -135,12 +126,6 @@ class RequestProcessor
             $currentIds->{$id} = true;
         }
 
-        Log::debug('Fieldset item comparison', [
-            'fieldset' => $this->fieldset->getKey(),
-            'original_item_ids' => array_keys($originalItems),
-            'current_item_ids' => $currentIdsList,
-        ]);
-
         $deferredActions = [];
 
         // For each deleted item, collect cleanup actions from its fields
@@ -150,20 +135,9 @@ class RequestProcessor
                 continue;
             }
 
-            Log::debug('Fieldset item deleted, collecting cleanup actions', [
-                'fieldset' => $this->fieldset->getKey(),
-                'item_id' => $itemId,
-            ]);
-
             // Item was deleted - collect cleanup actions
             $itemCleanupActions = $this->collectCleanupActionsForItem($itemId, $itemData, $context);
             $deferredActions = array_merge($deferredActions, $itemCleanupActions);
-
-            Log::debug('Cleanup actions collected for deleted item', [
-                'fieldset' => $this->fieldset->getKey(),
-                'item_id' => $itemId,
-                'action_count' => count($itemCleanupActions),
-            ]);
         }
 
         return $deferredActions;

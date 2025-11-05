@@ -206,15 +206,6 @@ class Fieldset extends AbstractField implements HandlesFormRequest, ProvidesVali
         $result = $this->requestProcessor()->process($request, $context, $originalValue);
         $this->preparedItems = $result->items();
 
-        Log::debug('Fieldset prepareForSave', [
-            'field' => $this->key,
-            'items_count' => count($this->preparedItems),
-            'item_ids' => array_map(
-                static fn (array $item): string => $item['_id'] ?? 'unknown',
-                $this->preparedItems
-            ),
-        ]);
-
         return FieldPersistenceResult::make($this->preparedItems, $result->deferredActions());
     }
 

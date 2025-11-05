@@ -601,30 +601,12 @@ class Media extends AbstractField implements ProvidesValidationRules, HandlesPer
             return [];
         }
 
-        Log::debug('Media cleanup action prepared', [
-            'field' => $this->getKey(),
-            'collection' => $collection,
-            'model_type' => get_class($model),
-            'model_id' => $model->getKey(),
-        ]);
-
         // Return a closure that will be executed as a deferred action
         // The closure encapsulates all cleanup logic within the Media field
         return [
             function (Model $record) use ($collection) {
-                Log::debug('Executing media collection cleanup', [
-                    'collection' => $collection,
-                    'model_type' => get_class($record),
-                    'model_id' => $record->getKey(),
-                ]);
-
                 try {
-                    $deleted = MediaFacade::model($record)->collection($collection)->delete();
-
-                    Log::info('Media collection cleanup completed', [
-                        'collection' => $collection,
-                        'deleted_count' => $deleted,
-                    ]);
+                    MediaFacade::model($record)->collection($collection)->delete();
                 } catch (\Exception $e) {
                     Log::error('Media collection cleanup failed', [
                         'collection' => $collection,
