@@ -46,11 +46,12 @@ class StatePathCollectionGenerator
             return $baseCollection;
         }
 
-        // Combine base collection with parent path
-        // Example: 'default' + ['sections', '0'] = 'default.sections.0'
+        // Combine parent path with base collection
+        // Example: ['features', '0'] + 'feature_icons' = 'features.0.feature_icons'
+        // Order: fieldset path → collection name (outer to inner)
         $parentPath = implode('.', $segments);
 
-        return "{$baseCollection}.{$parentPath}";
+        return "{$parentPath}.{$baseCollection}";
     }
 
     /**

@@ -46,7 +46,7 @@ class StatePathCollectionGeneratorTest extends TestCase
 
         $collection = StatePathCollectionGenerator::forMedia($media);
 
-        $this->assertEquals('default.profile', $collection);
+        $this->assertEquals('profile.default', $collection);
     }
 
     /**
@@ -62,7 +62,7 @@ class StatePathCollectionGeneratorTest extends TestCase
 
         $collection = StatePathCollectionGenerator::forMedia($media);
 
-        $this->assertEquals('default.sections.0', $collection);
+        $this->assertEquals('sections.0.default', $collection);
     }
 
     /**
@@ -80,7 +80,7 @@ class StatePathCollectionGeneratorTest extends TestCase
 
         $collection = StatePathCollectionGenerator::forMedia($media);
 
-        $this->assertEquals('default.sections.0.items.1', $collection);
+        $this->assertEquals('sections.0.items.1.default', $collection);
     }
 
     /**
@@ -95,7 +95,7 @@ class StatePathCollectionGeneratorTest extends TestCase
 
         $collection = StatePathCollectionGenerator::forMedia($media);
 
-        $this->assertEquals('media.profile', $collection);
+        $this->assertEquals('profile.media', $collection);
     }
 
     /**
@@ -180,11 +180,13 @@ class StatePathCollectionGeneratorTest extends TestCase
     public function test_template_field_collection_handling(): void
     {
         $fieldset = Fieldset::make('items');
+        $fieldset = $fieldset->statePath('items.__TEMPLATE__');
+
         $media = Media::make('image')
             ->markAsTemplate()
             ->container($fieldset);
 
-        // When isTemplate() is true, resolveCollectionName should skip
+        // When isTemplate() is true, state path should contain __TEMPLATE__
         $this->assertTrue($media->isTemplate());
         $this->assertStringContainsString('__TEMPLATE__', $media->getStatePath());
     }
@@ -214,13 +216,14 @@ class StatePathCollectionGeneratorTest extends TestCase
     {
         $fieldset = Fieldset::make('profile');
         $media = Media::make('avatar')
-            ->useCollectionOverride('custom_avatars')
+            ->collection('custom_avatars')  // Set custom collection
             ->container($fieldset);
 
-        // Override should be used instead of 'default'
+        // Custom collection should be used
         $collection = StatePathCollectionGenerator::forMedia($media);
 
-        // Override is the base collection
-        $this->assertStringStartsWith('custom_avatars', $collection);
+        // Override is appended at the end (path.override format)
+        $this->assertStringEndsWith('custom_avatars', $collection);
+        $this->assertEquals('profile.custom_avatars', $collection);
     }
 }
