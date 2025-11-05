@@ -245,7 +245,13 @@ class Media extends AbstractField implements ProvidesValidationRules, HandlesPer
         return $this->config->propNames();
     }
 
-    protected function isNested(): bool
+    /**
+     * Check if this media field is nested in a fieldset.
+     *
+     * This is a more specific check than isNested() from HasContainer trait.
+     * It checks for fieldset-specific nesting (item identifier or key differences).
+     */
+    public function isNestedInFieldset(): bool
     {
         return $this->nestedItemIdentifier !== null || $this->key !== $this->baseKey();
     }
@@ -412,7 +418,7 @@ class Media extends AbstractField implements ProvidesValidationRules, HandlesPer
         $remainingAfterDeletion = max(0, $existingCount - count($payload->deleted()));
         $willHaveMedia = !empty($payload->uploaded()) || $remainingAfterDeletion > 0;
 
-        $finalValue = $this->isNested()
+        $finalValue = $this->isNestedInFieldset()
             ? ($willHaveMedia ? $collection : $value)
             : ($willHaveMedia ? $collection : null);
 
@@ -442,7 +448,7 @@ class Media extends AbstractField implements ProvidesValidationRules, HandlesPer
 
     public function applyToDataSource(DataSourceInterface $source, mixed $value): void
     {
-        if ($this->isNested()) {
+        if ($this->isNestedInFieldset()) {
             $source->set($this->baseKey(), $value);
         }
     }
