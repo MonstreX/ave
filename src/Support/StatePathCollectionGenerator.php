@@ -26,8 +26,9 @@ class StatePathCollectionGenerator
      *
      * Algorithm:
      * 1. Get field's state path (e.g., 'sections.0.gallery')
-     * 2. Extract parent path (all segments except the last one)
-     * 3. Combine collection name with parent path
+     * 2. Check for override first (if explicitly set, use it)
+     * 3. Extract parent path (all segments except the last one)
+     * 4. Combine collection name with parent path
      *
      * @param Media $field The media field to process
      * @return string The derived collection name
@@ -35,7 +36,13 @@ class StatePathCollectionGenerator
     public static function forMedia(Media $field): string
     {
         $statePath = $field->getStatePath();
-        $baseCollection = $field->getCollection();
+
+        // Check for explicit override first
+        if ($field->hasCollectionOverride()) {
+            $baseCollection = $field->getCollectionOverride();
+        } else {
+            $baseCollection = $field->getCollection();
+        }
 
         // Extract path segments (all except the field name itself)
         $segments = explode('.', $statePath);

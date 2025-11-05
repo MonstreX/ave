@@ -21,7 +21,7 @@ class StatePathCollectionGeneratorTest extends TestCase
 
         $collection = StatePathCollectionGenerator::forMedia($media);
 
-        $this->assertEquals('default', $collection);
+        $this->assertEquals('avatar', $collection);
     }
 
     /**
@@ -46,7 +46,7 @@ class StatePathCollectionGeneratorTest extends TestCase
 
         $collection = StatePathCollectionGenerator::forMedia($media);
 
-        $this->assertEquals('profile.default', $collection);
+        $this->assertEquals('profile.avatar', $collection);
     }
 
     /**
@@ -62,7 +62,7 @@ class StatePathCollectionGeneratorTest extends TestCase
 
         $collection = StatePathCollectionGenerator::forMedia($media);
 
-        $this->assertEquals('sections.0.default', $collection);
+        $this->assertEquals('sections.0.image', $collection);
     }
 
     /**
@@ -80,7 +80,7 @@ class StatePathCollectionGeneratorTest extends TestCase
 
         $collection = StatePathCollectionGenerator::forMedia($media);
 
-        $this->assertEquals('sections.0.items.1.default', $collection);
+        $this->assertEquals('sections.0.items.1.gallery', $collection);
     }
 
     /**

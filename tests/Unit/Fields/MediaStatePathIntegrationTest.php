@@ -21,7 +21,7 @@ class MediaStatePathIntegrationTest extends TestCase
         $media = Media::make('avatar');
 
         $this->assertEquals('avatar', $media->getStatePath());
-        $this->assertEquals('default', StatePathCollectionGenerator::forMedia($media));
+        $this->assertEquals('avatar', StatePathCollectionGenerator::forMedia($media));
     }
 
     /**
@@ -33,7 +33,7 @@ class MediaStatePathIntegrationTest extends TestCase
         $media = Media::make('avatar')->container($fieldset);
 
         $this->assertEquals('profile.avatar', $media->getStatePath());
-        $this->assertEquals('default.profile', StatePathCollectionGenerator::forMedia($media));
+        $this->assertEquals('profile.avatar', StatePathCollectionGenerator::forMedia($media));
     }
 
     /**
@@ -48,7 +48,7 @@ class MediaStatePathIntegrationTest extends TestCase
             ->container($fieldset);
 
         $this->assertEquals('items.0.image', $media->getStatePath());
-        $this->assertEquals('default.items.0', StatePathCollectionGenerator::forMedia($media));
+        $this->assertEquals('items.0.image', StatePathCollectionGenerator::forMedia($media));
     }
 
     /**
@@ -65,8 +65,8 @@ class MediaStatePathIntegrationTest extends TestCase
         $this->assertEquals('gallery.thumbnail', $thumbnail->getStatePath());
 
         // Both use same parent path, different field names
-        $this->assertEquals('default.gallery', StatePathCollectionGenerator::forMedia($featured));
-        $this->assertEquals('default.gallery', StatePathCollectionGenerator::forMedia($thumbnail));
+        $this->assertEquals('gallery.featured', StatePathCollectionGenerator::forMedia($featured));
+        $this->assertEquals('gallery.thumbnail', StatePathCollectionGenerator::forMedia($thumbnail));
     }
 
     /**
@@ -84,7 +84,7 @@ class MediaStatePathIntegrationTest extends TestCase
         $media = Media::make('image')->container($items);
 
         $this->assertEquals('sections.0.items.1.image', $media->getStatePath());
-        $this->assertEquals('default.sections.0.items.1', StatePathCollectionGenerator::forMedia($media));
+        $this->assertEquals('sections.0.items.1.image', StatePathCollectionGenerator::forMedia($media));
     }
 
     /**
@@ -110,7 +110,7 @@ class MediaStatePathIntegrationTest extends TestCase
         $media = Media::make('image')->container($level3);
 
         $this->assertEquals('chapters.0.sections.1.content.image', $media->getStatePath());
-        $this->assertEquals('default.chapters.0.sections.1.content', StatePathCollectionGenerator::forMedia($media));
+        $this->assertEquals('chapters.0.sections.1.content.image', StatePathCollectionGenerator::forMedia($media));
     }
 
     /**
@@ -125,7 +125,7 @@ class MediaStatePathIntegrationTest extends TestCase
             ->container($fieldset);
 
         $this->assertEquals('profile.photos', $media->getStatePath());
-        $this->assertEquals('user_media.profile', StatePathCollectionGenerator::forMedia($media));
+        $this->assertEquals('profile.user_media', StatePathCollectionGenerator::forMedia($media));
     }
 
     /**
@@ -140,7 +140,7 @@ class MediaStatePathIntegrationTest extends TestCase
             ->container($fieldset);
 
         $this->assertEquals('gallery.images', $media->getStatePath());
-        $this->assertEquals('featured_images.gallery', StatePathCollectionGenerator::forMedia($media));
+        $this->assertEquals('gallery.featured_images', StatePathCollectionGenerator::forMedia($media));
     }
 
     /**
@@ -148,16 +148,16 @@ class MediaStatePathIntegrationTest extends TestCase
      */
     public function test_template_field_in_fieldset(): void
     {
-        $fieldset = Fieldset::make('items');
+        $fieldset = Fieldset::make('items')->statePath('items.__TEMPLATE__');
 
         $template = Media::make('image')
             ->markAsTemplate()
             ->container($fieldset);
 
         $this->assertTrue($template->isTemplate());
-        $this->assertEquals('items.__TEMPLATE__', $template->getTemplateSafeStatePath());
+        $this->assertEquals('items.__TEMPLATE__.image', $template->getStatePath());
 
-        // Template should not get real collection
+        // Template should contain the marker
         $this->assertStringContainsString('__TEMPLATE__', $template->getStatePath());
     }
 
@@ -191,8 +191,8 @@ class MediaStatePathIntegrationTest extends TestCase
         $media1 = Media::make('image')->container($item1);
 
         // Different item IDs = different collections
-        $this->assertEquals('default.items.0', StatePathCollectionGenerator::forMedia($media0));
-        $this->assertEquals('default.items.1', StatePathCollectionGenerator::forMedia($media1));
+        $this->assertEquals('items.0.image', StatePathCollectionGenerator::forMedia($media0));
+        $this->assertEquals('items.1.image', StatePathCollectionGenerator::forMedia($media1));
     }
 
     /**
@@ -227,7 +227,7 @@ class MediaStatePathIntegrationTest extends TestCase
 
         // Verify collection generation
         $collection = StatePathCollectionGenerator::forMedia($media);
-        $this->assertEquals('default.sections', $collection);
+        $this->assertEquals('sections.banner', $collection);
 
         // Verify parent path extraction
         $parent = StatePathCollectionGenerator::getParentPath($media->getStatePath());

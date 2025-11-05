@@ -10,7 +10,7 @@ namespace Monstrex\Ave\Core\Fields\Media;
  */
 class MediaConfiguration
 {
-    protected string $collection = 'default';
+    protected ?string $collection = null;
 
     protected ?string $collectionOverride = null;
 
@@ -45,7 +45,7 @@ class MediaConfiguration
         $this->collection = $collection;
     }
 
-    public function collection(): string
+    public function collection(): ?string
     {
         return $this->collection;
     }

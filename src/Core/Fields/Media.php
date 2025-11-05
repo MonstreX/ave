@@ -199,7 +199,19 @@ class Media extends AbstractField implements ProvidesValidationRules, HandlesPer
 
     public function getCollection(): string
     {
-        return $this->config->collection();
+        // Use explicitly set collection, or fall back to field name
+        $collection = $this->config->collection();
+        return $collection !== null ? $collection : $this->baseKey();
+    }
+
+    public function hasCollectionOverride(): bool
+    {
+        return $this->config->collectionOverride() !== null;
+    }
+
+    public function getCollectionOverride(): ?string
+    {
+        return $this->config->collectionOverride();
     }
 
     public function isMultiple(): bool
