@@ -90,6 +90,17 @@ export default function initFieldSet(root = document) {
 
             element.dataset.itemIndex = displayIndex;
             element.dataset.itemId = itemId;
+
+            // Update data-meta-key for media field containers
+            // Convert state path format (e.g., "features.__ITEM__.icon") to metaKey format (e.g., "features_0_icon")
+            element.querySelectorAll('[data-meta-key*=".__ITEM__."]').forEach(mediaContainer => {
+                const oldMetaKey = mediaContainer.dataset.metaKey;
+                // Replace __ITEM__ placeholder with actual item ID, then normalize to metaKey format
+                const updatedPath = replacePlaceholders(oldMetaKey, itemId);
+                // Convert state path with dots to metaKey with underscores
+                const normalizedMetaKey = computeMetaKey(updatedPath);
+                mediaContainer.dataset.metaKey = normalizedMetaKey;
+            });
         };
 
         // Initialize Sortable.js for drag-and-drop (disabled by default)
