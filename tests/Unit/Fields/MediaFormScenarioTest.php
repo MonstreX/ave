@@ -29,7 +29,7 @@ class MediaFormScenarioTest extends TestCase
         $this->assertEquals('featured_image', $featured->getStatePath());
 
         $collection = StatePathCollectionGenerator::forMedia($featured);
-        $this->assertEquals('default', $collection);
+        $this->assertEquals('featured_image', $collection);
     }
 
     /**
@@ -56,8 +56,8 @@ class MediaFormScenarioTest extends TestCase
         $this->assertEquals('variants.0.image', $media0->getStatePath());
         $this->assertEquals('variants.1.image', $media1->getStatePath());
 
-        $this->assertEquals('default.variants.0', StatePathCollectionGenerator::forMedia($media0));
-        $this->assertEquals('default.variants.1', StatePathCollectionGenerator::forMedia($media1));
+        $this->assertEquals('variants.0.image', StatePathCollectionGenerator::forMedia($media0));
+        $this->assertEquals('variants.1.image', StatePathCollectionGenerator::forMedia($media1));
     }
 
     /**
@@ -82,7 +82,7 @@ class MediaFormScenarioTest extends TestCase
         $images = Media::make('images')->container($gallery);
 
         $this->assertEquals('projects.0.galleries.1.images', $images->getStatePath());
-        $this->assertEquals('default.projects.0.galleries.1', StatePathCollectionGenerator::forMedia($images));
+        $this->assertEquals('projects.0.galleries.1.images', StatePathCollectionGenerator::forMedia($images));
     }
 
     /**
@@ -107,7 +107,7 @@ class MediaFormScenarioTest extends TestCase
         $this->assertEquals('sections.2.title', $title->getStatePath());
 
         $collection = StatePathCollectionGenerator::forMedia($featured);
-        $this->assertEquals('default.sections.2', $collection);
+        $this->assertEquals('sections.2.featured', $collection);
     }
 
     /**
@@ -126,7 +126,7 @@ class MediaFormScenarioTest extends TestCase
             $ts = $testimonials->statePath("testimonials.{$i}");
             $photo = Media::make('photo')->container($ts);
 
-            $expected = "default.testimonials.{$i}";
+            $expected = "testimonials.{$i}.photo";
             $this->assertEquals($expected, StatePathCollectionGenerator::forMedia($photo));
         }
     }
@@ -149,8 +149,8 @@ class MediaFormScenarioTest extends TestCase
         $avatar = Media::make('avatar')->container($member);
         $bio = Media::make('bio_image')->container($member);
 
-        $this->assertEquals('default.members.1', StatePathCollectionGenerator::forMedia($avatar));
-        $this->assertEquals('default.members.1', StatePathCollectionGenerator::forMedia($bio));
+        $this->assertEquals('members.1.avatar', StatePathCollectionGenerator::forMedia($avatar));
+        $this->assertEquals('members.1.bio_image', StatePathCollectionGenerator::forMedia($bio));
     }
 
     /**
@@ -169,7 +169,7 @@ class MediaFormScenarioTest extends TestCase
         $headshot = Media::make('headshot')->container($speaker);
 
         $this->assertEquals('speakers.0.headshot', $headshot->getStatePath());
-        $this->assertEquals('default.speakers.0', StatePathCollectionGenerator::forMedia($headshot));
+        $this->assertEquals('speakers.0.headshot', StatePathCollectionGenerator::forMedia($headshot));
     }
 
     /**
@@ -187,7 +187,7 @@ class MediaFormScenarioTest extends TestCase
         $image = Media::make('image')->container($item);
 
         $this->assertEquals('gallery.0.image', $image->getStatePath());
-        $this->assertEquals('default.gallery.0', StatePathCollectionGenerator::forMedia($image));
+        $this->assertEquals('gallery.0.image', StatePathCollectionGenerator::forMedia($image));
     }
 
     /**
@@ -221,6 +221,6 @@ class MediaFormScenarioTest extends TestCase
             ->container($item);
 
         // Should use custom collection base
-        $this->assertEquals('media.gallery.2', StatePathCollectionGenerator::forMedia($media));
+        $this->assertEquals('gallery.2.media', StatePathCollectionGenerator::forMedia($media));
     }
 }

@@ -53,8 +53,8 @@ class FieldsetCriticalTest extends TestCase
         $col0 = StatePathCollectionGenerator::forMedia($media0);
         $col1 = StatePathCollectionGenerator::forMedia($media1);
 
-        $this->assertEquals('default.gallery.0', $col0);
-        $this->assertEquals('default.gallery.1', $col1);
+        $this->assertEquals('gallery.0.hero', $col0);
+        $this->assertEquals('gallery.1.hero', $col1);
         $this->assertNotEquals($col0, $col1);
     }
 
@@ -82,7 +82,7 @@ class FieldsetCriticalTest extends TestCase
         $media = Media::make('image')->container($sections);
 
         $this->assertEquals('chapters.0.sections.1.image', $media->getStatePath());
-        $this->assertEquals('default.chapters.0.sections.1', StatePathCollectionGenerator::forMedia($media));
+        $this->assertEquals('chapters.0.sections.1.image', StatePathCollectionGenerator::forMedia($media));
     }
 
     /**
@@ -187,7 +187,7 @@ class FieldsetCriticalTest extends TestCase
         $collection = StatePathCollectionGenerator::forMedia($media);
 
         // Collection should use custom base name with parent path
-        $this->assertEquals('special.gallery.0', $collection);
+        $this->assertEquals('gallery.0.special', $collection);
     }
 
     /**
@@ -205,10 +205,10 @@ class FieldsetCriticalTest extends TestCase
         $col2 = StatePathCollectionGenerator::forMedia($thumbnail);
         $col3 = StatePathCollectionGenerator::forMedia($gallery);
 
-        // All same collection (differentiated by media attributes)
-        $this->assertEquals('default.gallery.0', $col1);
-        $this->assertEquals('default.gallery.0', $col2);
-        $this->assertEquals('default.gallery.0', $col3);
+        // Different collections for different fields (field name = collection name)
+        $this->assertEquals('gallery.0.featured', $col1);
+        $this->assertEquals('gallery.0.thumbnail', $col2);
+        $this->assertEquals('gallery.0.gallery_items', $col3);
     }
 
     /**
