@@ -372,9 +372,8 @@ class Media extends AbstractField implements ProvidesValidationRules, HandlesPer
         $remainingAfterDeletion = max(0, $existingCount - count($payload->deleted()));
         $willHaveMedia = !empty($payload->uploaded()) || $remainingAfterDeletion > 0;
 
-        $request->merge([
-            $this->key => $willHaveMedia ? $collection : null,
-        ]);
+        // Media fields are not stored in the model - they're handled separately via ave_media table
+        // No need to merge anything into request for validation
     }
 
     public function prepareForSave(mixed $value, Request $request, FormContext $context): FieldPersistenceResult
@@ -466,18 +465,9 @@ class Media extends AbstractField implements ProvidesValidationRules, HandlesPer
 
     public function getRules(): array
     {
-        $rules = parent::getRules();
-
-        if ($this->config->maxFiles() && $this->config->isMultiple()) {
-            $rules[] = 'array';
-            $rules[] = "max:{$this->config->maxFiles()}";
-        }
-
-        if (empty($rules)) {
-            $rules[] = 'nullable';
-        }
-
-        return array_unique($rules);
+        // Media fields are not stored in the model - they're handled via ave_media table
+        // No validation rules needed for the media field itself
+        return [];
     }
 
     public function buildValidationRules(): array
