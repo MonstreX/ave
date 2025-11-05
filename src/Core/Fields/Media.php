@@ -10,6 +10,7 @@ use Illuminate\Support\Str;
 use Monstrex\Ave\Contracts\HandlesFormRequest;
 use Monstrex\Ave\Contracts\HandlesNestedValue;
 use Monstrex\Ave\Contracts\HandlesPersistence;
+use Monstrex\Ave\Contracts\HandlesNestedCleanup;
 use Monstrex\Ave\Contracts\ProvidesValidationRules;
 use Monstrex\Ave\Core\DataSources\DataSourceInterface;
 use Monstrex\Ave\Core\Fields\FieldPersistenceResult;
@@ -27,7 +28,7 @@ use Monstrex\Ave\Support\MetaKeyGenerator;
  * Responsibilities split between configuration, request handling and rendering
  * helpers to keep the field's public API concise.
  */
-class Media extends AbstractField implements ProvidesValidationRules, HandlesPersistence, HandlesFormRequest, HandlesNestedValue
+class Media extends AbstractField implements ProvidesValidationRules, HandlesPersistence, HandlesFormRequest, HandlesNestedValue, HandlesNestedCleanup
 {
     public const TYPE = 'media';
 
@@ -560,5 +561,50 @@ class Media extends AbstractField implements ProvidesValidationRules, HandlesPer
     protected function mediaRepository(): MediaRepository
     {
         return app(MediaRepository::class);
+    }
+
+    /**
+     * Get cleanup actions for nested media field when item is deleted
+     *
+     * Returns delete collection action if this is a nested field in a Fieldset
+     */
+    public function getNestedCleanupActions(mixed $value, array $itemData, ?FormContext $context = null): array
+    {
+        // Only cleanup if this is a nested field in a Fieldset
+        if (!$this->isNested()) {
+            return [];
+        }
+
+        $collection = $this->resolveCollectionName();
+
+        // If we don't have a collection name, there's nothing to clean up
+        if (!$collection) {
+            return [];
+        }
+
+        // Get model and model ID from context
+        $model = $context?->record();
+
+        if (!$model || !$model->getKey()) {
+            return [];
+        }
+
+        $modelType = get_class($model);
+        $uploadUrl = $this->config->uploadUrl();
+
+        // Build delete URL from upload URL
+        $deleteUrl = str_replace('/upload', '/collection', $uploadUrl);
+
+        return [
+            [
+                'url' => $deleteUrl,
+                'method' => 'DELETE',
+                'body' => [
+                    'collection' => $collection,
+                    'model_type' => $modelType,
+                    'model_id' => $model->getKey(),
+                ],
+            ],
+        ];
     }
 }

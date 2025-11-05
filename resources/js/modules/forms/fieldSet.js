@@ -213,10 +213,7 @@ export default function initFieldSet(root = document) {
 
             if (!confirmed) return;
 
-            // Delete media collections before removing item
-            await deleteFieldSetMediaCollections(item);
-
-            // Remove item
+            // Remove item from DOM
             item.remove();
 
             // Update numbers
@@ -431,67 +428,5 @@ export default function initFieldSet(root = document) {
             }
         }
     });
-}
-
-/**
- * Delete all media collections associated with a FieldSet item
- * @param {HTMLElement} item - FieldSet item element
- */
-async function deleteFieldSetMediaCollections(item) {
-    // Find all MediaField containers in this FieldSet item
-    const mediaContainers = item.querySelectorAll('.media-field-container');
-
-    for (const mediaContainer of mediaContainers) {
-        const collectionName = mediaContainer.dataset.collection;
-
-        // Check if this is a FieldSet collection (contains underscores like features_1_preview)
-        if (!collectionName || !collectionName.includes('_')) continue;
-
-        const modelType = mediaContainer.dataset.modelType;
-        const modelId = mediaContainer.dataset.modelId;
-        const uploadUrl = mediaContainer.dataset.uploadUrl;
-
-        if (!modelType || !modelId || !uploadUrl) continue;
-
-        // Call endpoint to delete the collection
-        await deleteMediaCollection(collectionName, modelType, modelId, uploadUrl);
-    }
-}
-
-/**
- * Delete a media collection via API
- * @param {string} collectionName - Collection name to delete
- * @param {string} modelType - Model class name
- * @param {string|number} modelId - Model ID
- * @param {string} uploadUrl - Upload URL to derive base path
- */
-async function deleteMediaCollection(collectionName, modelType, modelId, uploadUrl) {
-    // Build delete URL from upload URL (e.g., /admin/media/upload -> /admin/media/collection)
-    const deleteUrl = uploadUrl.replace('/upload', '/collection');
-    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
-
-    try {
-        const response = await fetch(deleteUrl, {
-            method: 'DELETE',
-            headers: {
-                'X-CSRF-TOKEN': csrfToken,
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                collection: collectionName,
-                model_type: modelType,
-                model_id: modelId
-            })
-        });
-
-        if (!response.ok) {
-            const text = await response.text();
-            throw new Error(text || `HTTP ${response.status}`);
-        }
-
-        return response.json();
-    } catch (error) {
-        console.error('Failed to delete media collection:', error);
-    }
 }
 
