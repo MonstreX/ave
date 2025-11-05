@@ -3,6 +3,7 @@
 namespace Monstrex\Ave\Core\Fields\Media;
 
 use Illuminate\Database\Eloquent\Model;
+use Monstrex\Ave\Core\Fields\Media as MediaField;
 use Monstrex\Ave\Core\FormContext;
 
 /**
@@ -13,7 +14,7 @@ class MediaRenderer
     /**
      * @param array<string,mixed> $fieldData
      */
-    public function render(string $view, array $fieldData, FormContext $context, ?Media $field = null): string
+    public function render(string $view, array $fieldData, FormContext $context, ?MediaField $field = null): string
     {
         $record = $context->record();
 

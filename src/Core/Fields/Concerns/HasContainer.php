@@ -2,8 +2,6 @@
 
 namespace Monstrex\Ave\Core\Fields\Concerns;
 
-use Monstrex\Ave\Contracts\FormComponent;
-
 /**
  * HasContainer trait provides parent container awareness to fields.
  *
@@ -13,15 +11,15 @@ use Monstrex\Ave\Contracts\FormComponent;
  */
 trait HasContainer
 {
-    protected ?FormComponent $container = null;
+    protected ?object $container = null;
 
     /**
      * Set the parent container (field or component).
      * Typically called by the parent when creating child instances.
      *
-     * @param FormComponent|null $container The parent container, or null to unset
+     * @param object|null $container The parent container, or null to unset
      */
-    public function container(?FormComponent $container): static
+    public function container(?object $container): static
     {
         $clone = clone $this;
         $clone->container = $container;
@@ -32,7 +30,7 @@ trait HasContainer
     /**
      * Get the immediate parent container.
      */
-    public function getContainer(): ?FormComponent
+    public function getContainer(): ?object
     {
         return $this->container;
     }
@@ -51,7 +49,7 @@ trait HasContainer
      * Useful when you need to access the topmost parent (Form, Page, etc.)
      * even through multiple levels of nesting.
      */
-    public function getRootContainer(): ?FormComponent
+    public function getRootContainer(): ?object
     {
         $container = $this->container;
 

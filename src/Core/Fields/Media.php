@@ -242,7 +242,7 @@ class Media extends AbstractField implements ProvidesValidationRules, HandlesPer
         return $this->config->propNames();
     }
 
-    protected function resolveCollectionName(): string
+    protected function resolveCollectionName(): ?string
     {
         $statePath = $this->getStatePath();
 
@@ -257,6 +257,11 @@ class Media extends AbstractField implements ProvidesValidationRules, HandlesPer
 
     public function fillFromRecord(Model $record): void
     {
+        // Skip template fields - they don't have real data
+        if ($this->isTemplate()) {
+            return;
+        }
+
         $collection = $this->resolveCollectionName();
 
         $mediaItems = $record->media()
@@ -344,8 +349,19 @@ class Media extends AbstractField implements ProvidesValidationRules, HandlesPer
 
     public function prepareRequest(Request $request, FormContext $context): void
     {
+        // Skip template fields - they don't have real data
+        if ($this->isTemplate()) {
+            return;
+        }
+
         $payload = $this->capturePayload($request);
         $collection = $this->resolveCollectionName();
+
+        // Skip if collection cannot be resolved (e.g., template paths)
+        if (!$collection) {
+            return;
+        }
+
         $record = $context->record();
         $repository = $this->mediaRepository();
 
@@ -363,8 +379,19 @@ class Media extends AbstractField implements ProvidesValidationRules, HandlesPer
 
     public function prepareForSave(mixed $value, Request $request, FormContext $context): FieldPersistenceResult
     {
+        // Skip template fields - they don't have real data
+        if ($this->isTemplate()) {
+            return FieldPersistenceResult::empty();
+        }
+
         $payload = $this->pendingPayload ?? $this->capturePayload($request);
         $collection = $this->resolveCollectionName();
+
+        // Skip if collection cannot be resolved (e.g., template paths)
+        if (!$collection) {
+            return FieldPersistenceResult::empty();
+        }
+
         $repository = $this->mediaRepository();
         $record = $context->record();
 
@@ -492,7 +519,7 @@ class Media extends AbstractField implements ProvidesValidationRules, HandlesPer
             'propNames' => $this->config->propNames(),
             'modelType' => null,
             'modelId' => null,
-            'metaKey' => $this->metaKey(),
+            'metaKey' => $this->isTemplate() ? '' : $this->metaKey(),
         ]);
     }
 
@@ -518,7 +545,7 @@ class Media extends AbstractField implements ProvidesValidationRules, HandlesPer
 
     protected function metaKey(): string
     {
-        return CollectionKeyGenerator::metaKeyForField($this->key);
+        return MetaKeyGenerator::fromStatePath($this->getStatePath());
     }
 
     protected function mediaRepository(): MediaRepository
