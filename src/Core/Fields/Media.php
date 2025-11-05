@@ -18,7 +18,6 @@ use Monstrex\Ave\Core\Fields\Media\MediaRenderer;
 use Monstrex\Ave\Core\Fields\Media\MediaRequestPayload;
 use Monstrex\Ave\Core\FormContext;
 use Monstrex\Ave\Core\Media\MediaRepository;
-use Monstrex\Ave\Support\CollectionKeyGenerator;
 use Monstrex\Ave\Support\StatePathCollectionGenerator;
 
 /**
@@ -239,39 +238,15 @@ class Media extends AbstractField implements ProvidesValidationRules, HandlesPer
 
     protected function resolveCollectionName(): string
     {
-        // Phase 1: Try new state-path-based approach first (if available)
-        if (method_exists($this, 'getStatePath')) {
-            try {
-                $statePath = $this->getStatePath();
+        $statePath = $this->getStatePath();
 
-                // Skip if this is a template field (shouldn't store to DB)
-                if (!str_contains($statePath, '__TEMPLATE__')) {
-                    // Use new generator for deterministic collection names
-                    $collection = StatePathCollectionGenerator::forMedia($this);
-
-                    Log::debug('Media using state path for collection', [
-                        'field' => $this->baseKey(),
-                        'statePath' => $statePath,
-                        'collection' => $collection,
-                    ]);
-
-                    return $collection;
-                }
-            } catch (\Exception $e) {
-                Log::warning('State path collection generation failed, falling back', [
-                    'error' => $e->getMessage(),
-                    'field' => $this->baseKey(),
-                ]);
-                // Fall back to old method below
-            }
+        // Skip template fields (shouldn't be stored to database)
+        if (StatePathCollectionGenerator::isTemplateStatePath($statePath)) {
+            return null;
         }
 
-        // Fall back to original HTML-key-based generation (Phase 0 compatibility)
-        return CollectionKeyGenerator::forMedia(
-            $this->config->collection(),
-            $this->key,
-            $this->config->collectionOverride()
-        );
+        // Use state path approach: deterministic, compositional, no parsing
+        return StatePathCollectionGenerator::forMedia($this);
     }
 
     public function fillFromRecord(Model $record): void
