@@ -100,6 +100,14 @@ export default function initFieldSet(root = document) {
                 // Convert state path with dots to metaKey with underscores
                 const normalizedMetaKey = computeMetaKey(updatedPath);
                 mediaContainer.dataset.metaKey = normalizedMetaKey;
+
+                // Update name attributes of hidden inputs for uploaded/deleted/props data
+                // This ensures request data is sent with the correct key that server expects
+                mediaContainer.querySelectorAll('input[data-uploaded-ids], input[data-deleted-ids], input[data-media-props="true"]').forEach(input => {
+                    if (input.name && input.name.includes(oldMetaKey)) {
+                        input.name = input.name.replace(oldMetaKey, normalizedMetaKey);
+                    }
+                });
             });
         };
 
