@@ -205,78 +205,14 @@ class RequestProcessor
             $fieldValue = $itemData[$baseKey] ?? null;
 
             // Get cleanup actions for this field
+            // Actions are already closures ready to be executed
             $actions = $nestedField->getNestedCleanupActions($fieldValue, $itemData, $context);
 
-            // Convert cleanup actions to deferred action closures
-            foreach ($actions as $action) {
-                $deferredActions[] = $this->createDeferredAction($action);
-            }
+            // Add closures directly to deferred actions
+            $deferredActions = array_merge($deferredActions, $actions);
         }
 
         return $deferredActions;
-    }
-
-    /**
-     * Create a deferred action closure from a cleanup action descriptor
-     *
-     * @param array $action - The cleanup action with url, method, body
-     * @return \Closure - Deferred action function
-     */
-    private function createDeferredAction(array $action): \Closure
-    {
-        return function () use ($action) {
-            Log::debug('Executing cleanup deferred action', [
-                'url' => $action['url'] ?? 'unknown',
-                'method' => $action['method'] ?? 'DELETE',
-            ]);
-
-            if (!isset($action['url'])) {
-                Log::warning('Cleanup action missing URL', ['action' => $action]);
-                return;
-            }
-
-            try {
-                $method = strtolower($action['method'] ?? 'DELETE');
-                $body = $action['body'] ?? [];
-                $fullUrl = url($action['url']);
-
-                Log::debug('Cleanup action details', [
-                    'method' => $method,
-                    'url' => $fullUrl,
-                    'body' => $body,
-                ]);
-
-                // Use Http facade for making request
-                $response = \Illuminate\Support\Facades\Http::withHeaders([
-                    'Content-Type' => 'application/json',
-                ])
-                    ->{$method}(
-                        $fullUrl,
-                        $body
-                    );
-
-                if (!$response->successful()) {
-                    Log::error('Cleanup action failed', [
-                        'url' => $action['url'],
-                        'status' => $response->status(),
-                        'response' => $response->body(),
-                    ]);
-                    return;
-                }
-
-                Log::info('Cleanup action executed successfully', [
-                    'url' => $action['url'],
-                    'method' => $method,
-                    'status' => $response->status(),
-                ]);
-            } catch (\Exception $e) {
-                Log::error('Cleanup action exception', [
-                    'url' => $action['url'] ?? 'unknown',
-                    'error' => $e->getMessage(),
-                    'trace' => $e->getTraceAsString(),
-                ]);
-            }
-        };
     }
 
     /**

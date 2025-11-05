@@ -21,6 +21,7 @@ use Monstrex\Ave\Core\FormContext;
 use Monstrex\Ave\Core\Media\MediaRepository;
 use Monstrex\Ave\Support\StatePathCollectionGenerator;
 use Monstrex\Ave\Support\MetaKeyGenerator;
+use Monstrex\Ave\Media\Facades\Media as MediaFacade;
 
 /**
  * Media Field - input field for managing files and images.
@@ -588,7 +589,7 @@ class Media extends AbstractField implements ProvidesValidationRules, HandlesPer
             return [];
         }
 
-        // Get model and model ID from context
+        // Get model from context
         $model = $context?->record();
 
         if (!$model || !$model->getKey()) {
@@ -600,30 +601,37 @@ class Media extends AbstractField implements ProvidesValidationRules, HandlesPer
             return [];
         }
 
-        $modelType = get_class($model);
-        $uploadUrl = $this->config->uploadUrl();
-
-        // Build delete URL from upload URL
-        $deleteUrl = str_replace('/upload', '/collection', $uploadUrl);
-
-        Log::debug('Media cleanup action generated', [
+        Log::debug('Media cleanup action prepared', [
             'field' => $this->getKey(),
             'collection' => $collection,
-            'model_type' => $modelType,
+            'model_type' => get_class($model),
             'model_id' => $model->getKey(),
-            'delete_url' => $deleteUrl,
         ]);
 
+        // Return a closure that will be executed as a deferred action
+        // The closure encapsulates all cleanup logic within the Media field
         return [
-            [
-                'url' => $deleteUrl,
-                'method' => 'DELETE',
-                'body' => [
+            function (Model $record) use ($collection) {
+                Log::debug('Executing media collection cleanup', [
                     'collection' => $collection,
-                    'model_type' => $modelType,
-                    'model_id' => $model->getKey(),
-                ],
-            ],
+                    'model_type' => get_class($record),
+                    'model_id' => $record->getKey(),
+                ]);
+
+                try {
+                    $deleted = MediaFacade::model($record)->collection($collection)->delete();
+
+                    Log::info('Media collection cleanup completed', [
+                        'collection' => $collection,
+                        'deleted_count' => $deleted,
+                    ]);
+                } catch (\Exception $e) {
+                    Log::error('Media collection cleanup failed', [
+                        'collection' => $collection,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+            },
         ];
     }
 }

@@ -140,10 +140,5 @@ class MediaConfiguration
     {
         return $this->propNames;
     }
-
-    public function uploadUrl(): string
-    {
-        return route('ave.media.upload');
-    }
 }
 

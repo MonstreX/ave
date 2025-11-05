@@ -17,19 +17,16 @@ interface HandlesNestedCleanup
     /**
      * Get cleanup actions needed for this field when nested item is deleted
      *
-     * Returns an array of cleanup action descriptors that will be executed when
-     * the parent item is being deleted. Actions are executed on the frontend via fetch requests.
+     * Returns an array of closures that will be executed as deferred actions after
+     * the model is saved. Each closure receives the parent model as argument.
      *
-     * Each action should be an array with:
-     * - 'url': string - Endpoint URL to call for cleanup
-     * - 'method': string - HTTP method (usually 'DELETE')
-     * - 'headers': array - Additional headers (e.g., CSRF token)
-     * - 'body': array - Request body parameters
+     * The field is responsible for implementing its own cleanup logic without exposing
+     * internal details to RequestProcessor (encapsulation).
      *
      * @param mixed $value - The field value
      * @param array $itemData - Full item data (all fields in the item)
      * @param FormContext|null $context - Form context with model and request
-     * @return array - Array of cleanup action descriptors
+     * @return array<\Closure> - Array of cleanup action closures
      */
     public function getNestedCleanupActions(mixed $value, array $itemData, ?FormContext $context = null): array;
 }
