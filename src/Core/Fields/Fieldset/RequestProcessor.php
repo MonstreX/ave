@@ -45,7 +45,15 @@ class RequestProcessor
                     continue;
                 }
 
-                $nestedField = $schemaField->nestWithin($this->fieldset->getKey(), $itemId);
+                // Set state path for this item's field (e.g., 'features.0.icon')
+                $itemStatePath = $this->fieldset->getItemStatePath($itemId);
+                $childStatePath = "{$itemStatePath}.{$schemaField->baseKey()}";
+
+                $nestedField = $schemaField
+                    ->statePath($childStatePath)
+                    ->container($this->fieldset)
+                    ->nestWithin($this->fieldset->getKey(), $itemId);
+
                 $baseKey = $schemaField->baseKey();
                 $rawValue = $itemData[$baseKey] ?? null;
 
