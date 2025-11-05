@@ -19,6 +19,7 @@ use Monstrex\Ave\Core\Fields\Media\MediaRequestPayload;
 use Monstrex\Ave\Core\FormContext;
 use Monstrex\Ave\Core\Media\MediaRepository;
 use Monstrex\Ave\Support\StatePathCollectionGenerator;
+use Monstrex\Ave\Support\MetaKeyGenerator;
 
 /**
  * Media Field - input field for managing files and images.
@@ -174,6 +175,19 @@ class Media extends AbstractField implements ProvidesValidationRules, HandlesPer
         $this->config->setPropNames($propNames);
 
         return $this;
+    }
+
+    /**
+     * Get the meta key for this field (used in HTML data-meta-key attribute).
+     *
+     * The meta key is derived from the state path and used by JavaScript
+     * to uniquely identify media fields, especially in nested contexts.
+     *
+     * Example: state path 'gallery.0.image' → meta key 'gallery_0_image'
+     */
+    public function getMetaKey(): string
+    {
+        return MetaKeyGenerator::fromStatePath($this->getStatePath());
     }
 
     public function nestWithin(string $parentKey, string $itemIdentifier): static
@@ -502,7 +516,7 @@ class Media extends AbstractField implements ProvidesValidationRules, HandlesPer
         $view = $this->view ?: 'ave::components.forms.media';
         $fieldData = array_merge($this->toArray(), ['field' => $this]);
 
-        return $renderer->render($view, $fieldData, $context);
+        return $renderer->render($view, $fieldData, $context, $this);
     }
 
     protected function capturePayload(Request $request): MediaRequestPayload
