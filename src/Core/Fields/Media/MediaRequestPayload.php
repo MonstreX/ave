@@ -27,21 +27,10 @@ class MediaRequestPayload
 
     public static function capture(string $metaKey, Request $request): self
     {
-        $allUploaded = $request->input('__media_uploaded', []);
-        $uploaded = self::parseIdList(Arr::get($allUploaded, $metaKey));
-
+        $uploaded = self::parseIdList(Arr::get($request->input('__media_uploaded', []), $metaKey));
         $deleted = self::parseIdList(Arr::get($request->input('__media_deleted', []), $metaKey));
         $order = self::parseIdList(Arr::get($request->input('__media_order', []), $metaKey));
         $rawProps = Arr::get($request->input('__media_props', []), $metaKey, []);
-
-        // Debug: log what keys are available in request
-        if (empty($uploaded) && !empty($allUploaded)) {
-            \Illuminate\Support\Facades\Log::debug('MediaRequestPayload: looking for uploaded files', [
-                'metaKey' => $metaKey,
-                'available_keys' => array_keys($allUploaded),
-                'requested_value' => Arr::get($allUploaded, $metaKey),
-            ]);
-        }
 
         $props = [];
         if (is_array($rawProps)) {
