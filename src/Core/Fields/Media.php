@@ -33,8 +33,6 @@ class Media extends AbstractField implements ProvidesValidationRules, HandlesPer
 
     protected MediaConfiguration $config;
 
-    protected ?string $nestedItemIdentifier = null;
-
     protected ?MediaRequestPayload $pendingPayload = null;
 
     public function __construct(string $key)
@@ -194,7 +192,6 @@ class Media extends AbstractField implements ProvidesValidationRules, HandlesPer
     {
         /** @var static $clone */
         $clone = parent::nestWithin($parentKey, $itemIdentifier);
-        $clone->nestedItemIdentifier = $itemIdentifier;
         $clone->config = clone $this->config;
 
         return $clone;
@@ -243,17 +240,6 @@ class Media extends AbstractField implements ProvidesValidationRules, HandlesPer
     public function getPropNames(): array
     {
         return $this->config->propNames();
-    }
-
-    /**
-     * Check if this media field is nested in a fieldset.
-     *
-     * This is a more specific check than isNested() from HasContainer trait.
-     * It checks for fieldset-specific nesting (item identifier or key differences).
-     */
-    public function isNestedInFieldset(): bool
-    {
-        return $this->nestedItemIdentifier !== null || $this->key !== $this->baseKey();
     }
 
     protected function resolveCollectionName(): string
@@ -418,9 +404,8 @@ class Media extends AbstractField implements ProvidesValidationRules, HandlesPer
         $remainingAfterDeletion = max(0, $existingCount - count($payload->deleted()));
         $willHaveMedia = !empty($payload->uploaded()) || $remainingAfterDeletion > 0;
 
-        $finalValue = $this->isNestedInFieldset()
-            ? ($willHaveMedia ? $collection : $value)
-            : ($willHaveMedia ? $collection : null);
+        // Media value is always the collection name (used by HasMedia relation)
+        $finalValue = $willHaveMedia ? $collection : null;
 
         Log::debug('Media prepareForSave', [
             'field' => $this->key,
@@ -448,9 +433,8 @@ class Media extends AbstractField implements ProvidesValidationRules, HandlesPer
 
     public function applyToDataSource(DataSourceInterface $source, mixed $value): void
     {
-        if ($this->isNestedInFieldset()) {
-            $source->set($this->baseKey(), $value);
-        }
+        // Always use baseKey for nested fields (Fieldset will handle nesting via state path)
+        $source->set($this->baseKey(), $value);
     }
 
     public function getRules(): array
