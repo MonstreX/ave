@@ -163,13 +163,33 @@ class FormContext
     public function registerDeferredAction(Closure $action): void
     {
         $this->deferredActions[] = $action;
+        \Illuminate\Support\Facades\Log::debug('Deferred action registered', [
+            'total_deferred_actions' => count($this->deferredActions),
+        ]);
     }
 
     public function runDeferredActions(Model $record): void
     {
+        \Illuminate\Support\Facades\Log::debug('Running deferred actions', [
+            'record_class' => get_class($record),
+            'record_id' => $record->getKey(),
+            'actions_count' => count($this->deferredActions),
+        ]);
+
         foreach ($this->deferredActions as $action) {
-            $action($record);
+            try {
+                $action($record);
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error('Deferred action execution failed', [
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                ]);
+            }
         }
+
+        \Illuminate\Support\Facades\Log::debug('All deferred actions completed', [
+            'actions_count' => count($this->deferredActions),
+        ]);
 
         $this->deferredActions = [];
     }

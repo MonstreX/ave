@@ -188,8 +188,22 @@ class Fieldset extends AbstractField implements HandlesFormRequest, ProvidesVali
     {
         $this->preparedItems = [];
 
+        // Get original value from database through DataSource abstraction
+        $originalValue = null;
+        $dataSource = $context->dataSource();
+        if ($dataSource) {
+            $originalValue = $dataSource->get($this->key);
+            // Decode if stored as JSON
+            if (is_string($originalValue)) {
+                $decoded = json_decode($originalValue, true);
+                if (is_array($decoded)) {
+                    $originalValue = $decoded;
+                }
+            }
+        }
+
         // Pass the original value (from database) to processor so it can detect deleted items
-        $result = $this->requestProcessor()->process($request, $context, $value);
+        $result = $this->requestProcessor()->process($request, $context, $originalValue);
         $this->preparedItems = $result->items();
 
         Log::debug('Fieldset prepareForSave', [

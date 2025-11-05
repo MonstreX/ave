@@ -572,6 +572,9 @@ class Media extends AbstractField implements ProvidesValidationRules, HandlesPer
     {
         // Only cleanup if this is a nested field in a Fieldset
         if (!$this->isNested()) {
+            Log::debug('Media field is not nested, skipping cleanup', [
+                'field' => $this->getKey(),
+            ]);
             return [];
         }
 
@@ -579,6 +582,9 @@ class Media extends AbstractField implements ProvidesValidationRules, HandlesPer
 
         // If we don't have a collection name, there's nothing to clean up
         if (!$collection) {
+            Log::debug('Media field has no collection name, skipping cleanup', [
+                'field' => $this->getKey(),
+            ]);
             return [];
         }
 
@@ -586,6 +592,11 @@ class Media extends AbstractField implements ProvidesValidationRules, HandlesPer
         $model = $context?->record();
 
         if (!$model || !$model->getKey()) {
+            Log::debug('Media field has no model context, skipping cleanup', [
+                'field' => $this->getKey(),
+                'has_context' => $context !== null,
+                'has_model' => $model !== null,
+            ]);
             return [];
         }
 
@@ -594,6 +605,14 @@ class Media extends AbstractField implements ProvidesValidationRules, HandlesPer
 
         // Build delete URL from upload URL
         $deleteUrl = str_replace('/upload', '/collection', $uploadUrl);
+
+        Log::debug('Media cleanup action generated', [
+            'field' => $this->getKey(),
+            'collection' => $collection,
+            'model_type' => $modelType,
+            'model_id' => $model->getKey(),
+            'delete_url' => $deleteUrl,
+        ]);
 
         return [
             [
