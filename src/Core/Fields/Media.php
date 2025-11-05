@@ -443,7 +443,9 @@ class Media extends AbstractField implements ProvidesValidationRules, HandlesPer
         $willHaveMedia = !empty($payload->uploaded()) || $remainingAfterDeletion > 0;
 
         // Media value is always the collection name (used by HasMedia relation)
-        $finalValue = $willHaveMedia ? $collection : null;
+        // For nested fields (in Fieldset containers), always return collection name
+        // even if media hasn't been uploaded yet
+        $finalValue = ($willHaveMedia || $this->hasContainer()) ? $collection : null;
 
         Log::debug('Media prepareForSave', [
             'field' => $this->key,

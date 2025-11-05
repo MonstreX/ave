@@ -109,18 +109,8 @@ export default function initFieldSet(root = document) {
                     }
                 });
 
-                // Re-initialize media field to register it in mediaContainers Map with new metaKey
-                // This is critical for newly cloned elements so they have proper state tracking
                 // Reset the initialized flag so the field can be re-initialized with the new metaKey
                 delete mediaContainer.dataset.initialized;
-
-                // Import and call the initMediaFields function
-                import('../forms/mediaField.js').then(module => {
-                    module.default(mediaContainer);
-                }).catch(err => {
-                    console.error('Failed to re-initialize media field after cloning:', err);
-                });
-
             });
         };
 
