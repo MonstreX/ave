@@ -8,9 +8,15 @@ use Monstrex\Ave\Contracts\NestableField;
 use Monstrex\Ave\Core\DataSources\DataSourceInterface;
 use Monstrex\Ave\Core\DataSources\ModelDataSource;
 use Monstrex\Ave\Core\FormContext;
+use Monstrex\Ave\Core\Fields\Concerns\HasContainer;
+use Monstrex\Ave\Core\Fields\Concerns\HasStatePath;
+use Monstrex\Ave\Core\Fields\Concerns\IsTemplate;
 
 abstract class AbstractField implements FormField, NestableField
 {
+    use HasContainer;
+    use HasStatePath;
+    use IsTemplate;
     public const TYPE = 'abstract';
 
     protected string $key;

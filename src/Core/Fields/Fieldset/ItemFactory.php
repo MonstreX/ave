@@ -31,6 +31,12 @@ class ItemFactory
             }
 
             $nestedField = $definition->nestWithin($this->fieldset->getKey(), (string) $itemId);
+
+            // PHASE 1: Set container reference to enable state path composition
+            if (method_exists($nestedField, 'container')) {
+                $nestedField = $nestedField->container($this->fieldset);
+            }
+
             $baseKey = $definition->baseKey();
             $storedValue = $itemData[$baseKey] ?? null;
 
@@ -81,7 +87,18 @@ class ItemFactory
                 continue;
             }
 
-            $templateFields[] = $definition->nestWithin($this->fieldset->getKey(), '__ITEM__');
+            $templateField = $definition->nestWithin($this->fieldset->getKey(), '__ITEM__');
+
+            // PHASE 1: Mark as template and set container (enables state path composition)
+            if (method_exists($templateField, 'markAsTemplate')) {
+                $templateField = $templateField->markAsTemplate();
+            }
+
+            if (method_exists($templateField, 'container')) {
+                $templateField = $templateField->container($this->fieldset);
+            }
+
+            $templateFields[] = $templateField;
         }
 
         return $templateFields;
