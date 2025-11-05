@@ -25,17 +25,23 @@ class ItemFactory
         $itemId = $this->resolveItemId($itemData, $index);
         $fields = [];
 
+        // Build the state path for this item (e.g., 'items.0', 'items.1', etc.)
+        $itemStatePath = $this->fieldset->getItemStatePath($itemId);
+
         foreach ($this->fieldset->getChildSchema() as $definition) {
             if (!$definition instanceof AbstractField) {
                 continue;
             }
 
-            $nestedField = $definition->nestWithin($this->fieldset->getKey(), (string) $itemId);
+            // PHASE 3: Use state path composition instead of HTML key building
+            // Set explicit state path for child
+            $childStatePath = "{$itemStatePath}.{$definition->baseKey()}";
+            $nestedField = $definition
+                ->statePath($childStatePath)
+                ->container($this->fieldset);
 
-            // PHASE 1: Set container reference to enable state path composition
-            if (method_exists($nestedField, 'container')) {
-                $nestedField = $nestedField->container($this->fieldset);
-            }
+            // Keep HTML key for form rendering (backward compat in templates)
+            $nestedField = $nestedField->nestWithin($this->fieldset->getKey(), (string) $itemId);
 
             $baseKey = $definition->baseKey();
             $storedValue = $itemData[$baseKey] ?? null;
@@ -82,21 +88,23 @@ class ItemFactory
     {
         $templateFields = [];
 
+        // Template path uses __TEMPLATE__ marker to prevent database pollution
+        $templatePath = "{$this->fieldset->getStatePath()}.__TEMPLATE__";
+
         foreach ($this->fieldset->getChildSchema() as $definition) {
             if (!$definition instanceof AbstractField) {
                 continue;
             }
 
-            $templateField = $definition->nestWithin($this->fieldset->getKey(), '__ITEM__');
+            // PHASE 3: Use state path with template marker
+            $childTemplatePath = "{$templatePath}.{$definition->baseKey()}";
+            $templateField = $definition
+                ->statePath($childTemplatePath)
+                ->markAsTemplate()
+                ->container($this->fieldset);
 
-            // PHASE 1: Mark as template and set container (enables state path composition)
-            if (method_exists($templateField, 'markAsTemplate')) {
-                $templateField = $templateField->markAsTemplate();
-            }
-
-            if (method_exists($templateField, 'container')) {
-                $templateField = $templateField->container($this->fieldset);
-            }
+            // Keep HTML key for form rendering (backward compat in templates)
+            $templateField = $templateField->nestWithin($this->fieldset->getKey(), '__ITEM__');
 
             $templateFields[] = $templateField;
         }

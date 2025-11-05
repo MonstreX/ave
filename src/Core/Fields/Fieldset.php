@@ -84,6 +84,34 @@ class Fieldset extends AbstractField implements HandlesFormRequest, ProvidesVali
         return $this->childSchema;
     }
 
+    /**
+     * Get the state path for a specific item within this fieldset.
+     *
+     * Fieldsets are repeatable, so items have indexed paths like 'items.0', 'items.1', etc.
+     * This method builds the full state path for a given item.
+     *
+     * @param int|string $itemId The item index or ID
+     * @return string The state path for this item (e.g., 'items.0')
+     */
+    public function getItemStatePath(int|string $itemId): string
+    {
+        return "{$this->getStatePath()}.{$itemId}";
+    }
+
+    /**
+     * Override getChildStatePath to provide proper parent path for nested fields.
+     *
+     * When items are rendered, they get a specific item path. Children of items
+     * should compose from that path, not the fieldset's own path.
+     *
+     * Note: This is called during ItemFactory processing, where the item path
+     * has already been set on the container fieldset via statePath().
+     */
+    public function getChildStatePath(): string
+    {
+        return $this->getStatePath();
+    }
+
     public function prepareRequest(Request $request, FormContext $context): void
     {
         $raw = $request->input($this->key, []);
