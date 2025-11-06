@@ -331,9 +331,8 @@ export default function initMediaFields(root = document) {
                 console.log('isImage:', isImage, 'mime_type:', media.mime_type);
                 if (cropButton) {
                     console.log('Found crop button, showing it');
-                    cropButton.style.display = '';
-                    cropButton.removeAttribute('style');
-                    cropButton.style.display = 'inline-block';
+                    cropButton.style.display = 'flex';
+                    console.log('After setting display:', cropButton.style.display, cropButton);
                 } else {
                     console.log('Crop button NOT found in item');
                     console.log('Available actions:', item.querySelectorAll('[data-action]'));

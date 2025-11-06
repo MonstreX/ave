@@ -284,6 +284,11 @@
         color: #4a5568;
     }
 
+    &[data-action="crop"] {
+        // Crop button - shown for images only, hidden by default in template
+        // JS will set display property when item is an image
+    }
+
     &[data-action="delete"] {
         &:hover {
             background-color: #fed7d7;
