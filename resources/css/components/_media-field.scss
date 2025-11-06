@@ -17,10 +17,10 @@
 // ============================================
 
 .media-bulk-actions {
-    margin-bottom: 1rem;
-    padding: 1rem;
-    background-color: #edf2f7;
-    border: 1px solid #cbd5e0;
+    margin-bottom: 0;
+    padding: .5rem;
+    background-color: #f7fafc;
+    border: 1px solid #ebebeb;
     border-radius: 0.5rem;
     animation: slideDown 0.2s ease-out;
 }
@@ -39,12 +39,11 @@
 .bulk-actions-content {
     display: flex;
     align-items: center;
-    justify-content: space-between;
     gap: 1rem;
 }
 
 .bulk-info {
-    font-size: 0.875rem;
+    font-size: 0.75rem;
     color: #4a5568;
     font-weight: 500;
 }
@@ -256,10 +255,6 @@
         height: 100%;
         object-fit: contain; // Show full image without cropping
     }
-
-    .media-item.selected & {
-        background-color: #f0281a2e;
-    }
 }
 
 .media-file-icon {
@@ -311,6 +306,8 @@
     gap: 5px;
     top: 5px;
     right: 5px;
+    opacity: 0;
+    transition: opacity .5s;
 }
 
 .media-action {

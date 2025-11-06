@@ -22,15 +22,6 @@
 @endphp
 
 <div class="form-field fieldset-field @if(!empty($errors)) has-error @endif" data-field-name="{{ $key ?? 'fieldset' }}">
-    @if(!empty($label))
-        <label class="form-label">
-            {{ $label }}
-            @if(!empty($required))
-                <span class="required">*</span>
-            @endif
-        </label>
-    @endif
-
     <div class="fieldset-container"
          data-fieldset
          data-sortable="{{ !empty($sortable) ? 'true' : 'false' }}"
@@ -42,17 +33,22 @@
 
         <div class="fieldset-actions">
             <div class="fieldset-actions-left">
+                @if(!empty($label))
+                    <label class="form-label">
+                        {{ $label }}
+                        @if(!empty($required))
+                            <span class="required">*</span>
+                        @endif
+                    </label>
+                @endif
+            </div>
+
+            <div class="fieldset-actions-right">
                 @if(!empty($collapsible))
-                    <button type="button" class="btn-fieldset-action" data-action="collapse-all" title="Collapse All">
-                        <svg class="icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
-                            <path d="M4 6l4 4 4-4M4 2l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
+                    <button type="button" class="btn btn-md btn-fieldset-action" data-action="collapse-all" title="Collapse All">
                         <span>Collapse All</span>
                     </button>
-                    <button type="button" class="btn-fieldset-action" data-action="expand-all" title="Expand All">
-                        <svg class="icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
-                            <path d="M4 10l4-4 4 4M4 14l4-4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
+                    <button type="button" class="btn btn-md btn-fieldset-action" data-action="expand-all" title="Expand All">
                         <span>Expand All</span>
                     </button>
                 @endif
@@ -64,15 +60,6 @@
                         <span class="toggle-label">Sort Mode</span>
                     </label>
                 @endif
-            </div>
-
-            <div class="fieldset-actions-right">
-                <button type="button" class="btn btn-fieldset-add" data-action="add">
-                    <svg class="icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
-                        <path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                    </svg>
-                    <span>{{ $addButtonLabel }}</span>
-                </button>
             </div>
         </div>
 
@@ -149,6 +136,14 @@
                     </div>
                 @endforeach
             @endif
+        </div>
+        <div class="fieldset-actions-footer">
+            <button type="button" class="btn btn-fieldset-add" data-action="add">
+                <svg class="icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                <span>{{ $addButtonLabel }}</span>
+            </button>
         </div>
     </div>
 

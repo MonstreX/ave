@@ -7,10 +7,10 @@
     padding: 12px 20px;
     margin-bottom: 0;
     font-family: 'Open Sans', sans-serif;
-    font-size: 11px;
+    font-size: 13px;
     font-weight: normal;
     text-align: center;
-    text-transform: uppercase;
+    //text-transform: uppercase;
     text-decoration: none;
     vertical-align: middle;
     white-space: nowrap;
@@ -44,6 +44,12 @@
 .btn-sm {
     padding: 8px 16px;
     font-size: 10px;
+}
+
+// Button sizes
+.btn-md {
+    padding: 8px 18px;
+    font-size: 11px;
 }
 
 .btn-lg {

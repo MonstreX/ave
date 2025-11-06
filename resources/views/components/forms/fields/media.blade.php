@@ -62,14 +62,14 @@
         {{-- Bulk Actions Bar --}}
         <div class="media-bulk-actions" style="display: none;">
             <div class="bulk-actions-content">
+                <div class="bulk-buttons">
+                    <button type="button" class="btn btn-secondary btn-md" data-action="select-all">Select All</button>
+                    <button type="button" class="btn btn-secondary btn-md" data-action="deselect-all">Deselect All</button>
+                    <button type="button" class="btn btn-danger btn-md" data-action="delete-selected">Delete Selected</button>
+                </div>
                 <span class="bulk-info">
                     <span class="selected-count">0</span> selected
                 </span>
-                <div class="bulk-buttons">
-                    <button type="button" class="btn btn-secondary btn-sm" data-action="select-all">Select All</button>
-                    <button type="button" class="btn btn-secondary btn-sm" data-action="deselect-all">Deselect All</button>
-                    <button type="button" class="btn btn-danger btn-sm" data-action="delete-selected">Delete Selected</button>
-                </div>
             </div>
         </div>
 

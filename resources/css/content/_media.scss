@@ -14,16 +14,25 @@
 }
 
 .media-preview {
-    border: 1px solid #e4eaec;
+    border: 2px solid #efefef;
     border-radius: 4px;
     padding: 8px;
     background: #fff;
     text-align: center;
+    transition: all .5s;
+}
+
+.selected .media-preview {
+    border: 2px solid #22a7f0;
 }
 
 .media-preview img {
     max-width: 100%;
     border-radius: 4px;
+}
+
+.media-preview:hover .media-action-holder {
+    opacity: 1;
 }
 
 .media-placeholder {

@@ -920,11 +920,9 @@ export default function initMediaFields(root = document) {
         function selectAllMedia() {
             const mediaItems = grid.querySelectorAll('.media-item');
             mediaItems.forEach(item => {
-                const checkbox = item.querySelector('.media-item-checkbox');
                 const mediaId = item.dataset.mediaId;
 
-                if (mediaId && checkbox && !checkbox.checked) {
-                    checkbox.checked = true;
+                if (mediaId) {
                     selectedMediaIds.add(parseInt(mediaId));
                     item.classList.add('selected');
                 }
@@ -935,12 +933,7 @@ export default function initMediaFields(root = document) {
         function deselectAllMedia() {
             const mediaItems = grid.querySelectorAll('.media-item');
             mediaItems.forEach(item => {
-                const checkbox = item.querySelector('.media-item-checkbox');
-
-                if (checkbox && checkbox.checked) {
-                    checkbox.checked = false;
-                    item.classList.remove('selected');
-                }
+                item.classList.remove('selected');
             });
             selectedMediaIds.clear();
             updateBulkActionsBar();
