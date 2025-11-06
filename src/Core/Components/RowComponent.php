@@ -2,27 +2,26 @@
 
 namespace Monstrex\Ave\Core\Components;
 
-use Monstrex\Ave\Contracts\FormField;
-use Monstrex\Ave\Core\FormColumn;
+use Monstrex\Ave\Core\Col;
 use Monstrex\Ave\Core\FormContext;
-use Monstrex\Ave\Core\FormRow;
+use Monstrex\Ave\Core\Row;
 
 /**
- * Lightweight adapter turning FormRow into a reusable component.
+ * Lightweight adapter turning Row into a reusable component.
  */
 class RowComponent extends FormComponent
 {
     public function __construct(
-        protected FormRow $row,
+        protected Row $row,
     ) {
     }
 
-    public static function fromFormRow(FormRow $row): self
+    public static function fromRow(Row $row): self
     {
         return new self($row);
     }
 
-    public function getFormRow(): FormRow
+    public function getRow(): Row
     {
         return $this->row;
     }
@@ -45,7 +44,7 @@ class RowComponent extends FormComponent
         return view('ave::components.forms.row', [
             'component' => $this,
             'columns' => array_map(
-                static fn (FormColumn $column): array => [
+                static fn (Col $column): array => [
                     'span' => $column->getSpan(),
                     'fields' => $column->getFields(),
                 ],
@@ -65,7 +64,7 @@ class RowComponent extends FormComponent
         return [
             'type' => 'row',
             'columns' => array_map(
-                static fn (FormColumn $column): array => [
+                static fn (Col $column): array => [
                     'span' => $column->getSpan(),
                     'fields' => $column->getFields(),
                 ],

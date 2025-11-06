@@ -2,10 +2,13 @@
 
 namespace Monstrex\Ave\Core;
 
-class FormRow
+/**
+ * Row - container for columns with grid-based layout
+ */
+class Row
 {
     /**
-     * @var array<FormColumn>
+     * @var array<Col>
      */
     protected array $columns = [];
 
@@ -15,7 +18,7 @@ class FormRow
     }
 
     /**
-     * @param array<FormColumn> $columns
+     * @param array<Col> $columns
      */
     public function columns(array $columns): static
     {
@@ -24,7 +27,7 @@ class FormRow
         return $this;
     }
 
-    public function addColumn(FormColumn $column): static
+    public function addColumn(Col $column): static
     {
         $this->columns[] = $column;
 
@@ -32,7 +35,7 @@ class FormRow
     }
 
     /**
-     * @return array<FormColumn>
+     * @return array<Col>
      */
     public function getColumns(): array
     {
@@ -42,7 +45,7 @@ class FormRow
     public function toArray(): array
     {
         return [
-            'columns' => array_map(static fn (FormColumn $column) => $column->toArray(), $this->columns),
+            'columns' => array_map(static fn (Col $column) => $column->toArray(), $this->columns),
         ];
     }
 }

@@ -5,12 +5,12 @@ namespace Monstrex\Ave\Core\Components\Concerns;
 use InvalidArgumentException;
 use Monstrex\Ave\Core\Components\FormComponent;
 use Monstrex\Ave\Core\Components\RowComponent;
-use Monstrex\Ave\Core\FormRow;
+use Monstrex\Ave\Core\Row;
 
 /**
  * Trait for components that contain child components
  *
- * Used by container components like Tabs, Panel, Group, Columns
+ * Used by container components like Tabs, Group, Columns
  */
 trait HasComponents
 {
@@ -30,8 +30,8 @@ trait HasComponents
         $this->components = [];
 
         foreach ($components as $component) {
-            if ($component instanceof FormRow) {
-                $component = RowComponent::fromFormRow($component);
+            if ($component instanceof Row) {
+                $component = RowComponent::fromRow($component);
             }
 
             if (!$component instanceof FormComponent) {

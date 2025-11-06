@@ -4,7 +4,10 @@ namespace Monstrex\Ave\Core;
 
 use Monstrex\Ave\Contracts\FormField;
 
-class FormColumn
+/**
+ * Col - column container within Row with span control (1-12, Bootstrap-like)
+ */
+class Col
 {
     /**
      * @var array<FormField>
@@ -13,9 +16,12 @@ class FormColumn
 
     protected int $span = 12; // 1-12 (Bootstrap-like grid)
 
-    public static function make(): static
+    public static function make(int $span = 12): static
     {
-        return new static();
+        $instance = new static();
+        $instance->span = max(1, min(12, $span));
+
+        return $instance;
     }
 
     /**
@@ -31,16 +37,6 @@ class FormColumn
     public function addField(FormField $field): static
     {
         $this->fields[] = $field;
-
-        return $this;
-    }
-
-    /**
-     * Set column width (1-12).
-     */
-    public function span(int $span): static
-    {
-        $this->span = max(1, min(12, $span));
 
         return $this;
     }

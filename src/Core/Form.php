@@ -39,9 +39,9 @@ class Form
     /**
      * Add single row to form.
      */
-    public function addRow(FormRow $row): static
+    public function addRow(Row $row): static
     {
-        $this->layout[] = RowComponent::fromFormRow($row);
+        $this->layout[] = RowComponent::fromRow($row);
 
         return $this;
     }
@@ -53,8 +53,8 @@ class Form
      */
     public function fields(array $fields): static
     {
-        $row = FormRow::make()->columns([
-            FormColumn::make()->fields($fields)->span(12),
+        $row = Row::make()->columns([
+            Col::make(12)->fields($fields),
         ]);
 
         return $this->addRow($row);
@@ -171,8 +171,8 @@ class Form
             return $component;
         }
 
-        if ($component instanceof FormRow) {
-            return RowComponent::fromFormRow($component);
+        if ($component instanceof Row) {
+            return RowComponent::fromRow($component);
         }
 
         if ($component instanceof FormComponent) {
@@ -180,11 +180,11 @@ class Form
         }
 
         if (is_array($component)) {
-            $row = FormRow::make()->columns([
-                FormColumn::make()->fields($component)->span(12),
+            $row = Row::make()->columns([
+                Col::make(12)->fields($component),
             ]);
 
-            return RowComponent::fromFormRow($row);
+            return RowComponent::fromRow($row);
         }
 
         throw new InvalidArgumentException('Unsupported form schema component.');
