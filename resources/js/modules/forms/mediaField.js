@@ -1,4 +1,5 @@
 import Sortable from 'sortablejs';
+import Cropper from 'cropperjs';
 import { confirm, createModal, destroyModal } from '../ui/modals.js';
 import { showToast } from '../ui/toast.js';
 import { aveEvents } from '../../core/EventBus.js';
@@ -143,7 +144,7 @@ export default function initMediaFields(root = document) {
             handleFiles(e.dataTransfer.files);
         });
 
-        // Media item actions (delete and edit)
+        // Media item actions (delete, edit, and crop)
         grid?.addEventListener('click', (e) => {
             const action = e.target.closest('[data-action]');
             if (!action) return;
@@ -157,6 +158,9 @@ export default function initMediaFields(root = document) {
             } else if (action.dataset.action === 'edit') {
                 e.stopPropagation(); // Prevent bubbling
                 editMedia(mediaItem, mediaId);
+            } else if (action.dataset.action === 'crop') {
+                e.stopPropagation(); // Prevent bubbling
+                cropMedia(mediaItem, mediaId);
             }
         });
 
@@ -458,6 +462,161 @@ export default function initMediaFields(root = document) {
             .catch(error => {
                 console.error('Delete error:', error);
                 showToast('danger', 'Failed to delete file. Please try again.');
+            });
+        }
+
+        function cropMedia(mediaItem, mediaId) {
+            const fileName = mediaItem?.querySelector('.media-filename')?.textContent || 'Media';
+            const imgElement = mediaItem?.querySelector('img');
+
+            if (!imgElement) {
+                showToast('danger', 'Could not load image for cropping');
+                return;
+            }
+
+            const imageUrl = imgElement.src;
+
+            // Create crop modal with image preview
+            const cropModalBody = `
+                <div class="cropper-modal-content">
+                    <div class="cropper-image-container">
+                        <img id="cropper-image-${mediaId}" src="${imageUrl}" alt="Crop image" class="cropper-image">
+                    </div>
+                    <div class="cropper-options">
+                        <div class="option-group">
+                            <label>Aspect Ratio:</label>
+                            <select id="cropper-ratio-${mediaId}" class="form-control">
+                                <option value="">Free</option>
+                                <option value="16/9">16:9</option>
+                                <option value="4/3">4:3</option>
+                                <option value="1/1">1:1</option>
+                                <option value="3/2">3:2</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            const modal = createModal({
+                title: `Crop: ${fileName}`,
+                body: cropModalBody,
+                type: 'form',
+                confirmText: 'Crop',
+                cancelText: 'Cancel',
+                size: 'large',
+                autoClose: false,
+                onConfirm: (modalElement) => {
+                    saveCroppedImage(modalElement, mediaId, mediaItem);
+                }
+            });
+
+            // Initialize Cropper after modal is shown
+            setTimeout(() => {
+                const cropperImage = document.getElementById(`cropper-image-${mediaId}`);
+                const ratioSelect = document.getElementById(`cropper-ratio-${mediaId}`);
+
+                if (!cropperImage) {
+                    console.error('Cropper image element not found');
+                    return;
+                }
+
+                const cropper = new Cropper(cropperImage, {
+                    aspectRatio: NaN,
+                    viewMode: 1,
+                    autoCropArea: 1,
+                    responsive: true,
+                    guides: true,
+                    grid: true,
+                    highlight: true,
+                    cropBoxMovable: true,
+                    cropBoxResizable: true,
+                    toggleDragModeOnDblclick: true,
+                });
+
+                // Store cropper instance on modal element
+                modal.cropper = cropper;
+
+                // Handle aspect ratio changes
+                ratioSelect?.addEventListener('change', (e) => {
+                    const ratio = e.target.value;
+                    if (ratio === '') {
+                        cropper.setAspectRatio(NaN);
+                    } else {
+                        const [width, height] = ratio.split('/').map(Number);
+                        cropper.setAspectRatio(width / height);
+                    }
+                });
+            }, 100);
+        }
+
+        function saveCroppedImage(modalElement, mediaId, mediaItem) {
+            const cropper = modalElement.cropper;
+
+            if (!cropper) {
+                showToast('danger', 'Cropper not initialized');
+                return;
+            }
+
+            // Get crop data
+            const canvasData = cropper.getCanvasData();
+            const cropData = cropper.getData(true);
+
+            // Validate crop data
+            if (cropData.width <= 0 || cropData.height <= 0) {
+                showToast('danger', 'Invalid crop area');
+                return;
+            }
+
+            // Round to integers
+            const x = Math.round(cropData.x);
+            const y = Math.round(cropData.y);
+            const width = Math.round(cropData.width);
+            const height = Math.round(cropData.height);
+
+            // Send crop request to server
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+            const baseUrl = uploadUrl.replace('/upload', '');
+
+            fetch(`${baseUrl}/${mediaId}/crop`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    x: x,
+                    y: y,
+                    width: width,
+                    height: height
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(data => {
+                        throw new Error(data.message || `HTTP ${response.status}`);
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    // Update image preview in media item
+                    const img = mediaItem.querySelector('img');
+                    if (img) {
+                        // Add cache-busting query parameter
+                        const timestamp = new Date().getTime();
+                        img.src = data.media.url + '?t=' + timestamp;
+                    }
+
+                    showToast('success', 'Image cropped successfully');
+                    destroyModal(modalElement);
+                } else {
+                    throw new Error(data.message || 'Crop failed');
+                }
+            })
+            .catch(error => {
+                showToast('danger', 'Failed to crop image: ' + error.message);
             });
         }
 

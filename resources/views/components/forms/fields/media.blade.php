@@ -77,6 +77,11 @@
                         @endif
 
                         <div class="media-action-holder">
+                            @if(str_starts_with($media->mime_type, 'image/'))
+                                <button type="button" class="media-action" data-action="crop" title="Crop">
+                                    <svg class="icon"><use href="{{ asset('vendor/ave/assets/images/icons/sprite.svg#crop') }}"></use></svg>
+                                </button>
+                            @endif
                             @if(!empty($propNames))
                                 <button type="button" class="media-action" data-action="edit" title="Edit">
                                     <svg class="icon"><use href="{{ asset('vendor/ave/assets/images/icons/sprite.svg#edit') }}"></use></svg>
@@ -148,6 +153,9 @@
             </div>
 
             <div class="media-action-holder">
+                <button type="button" class="media-action" data-action="crop" title="Crop" style="display: none;">
+                    <svg class="icon"><use href="{{ asset('vendor/ave/assets/images/icons/sprite.svg#crop') }}"></use></svg>
+                </button>
                 @if(!empty($propNames))
                     <button type="button" class="media-action" data-action="edit" title="Edit">
                         <svg class="icon"><use href="{{ asset('vendor/ave/assets/images/icons/sprite.svg#edit') }}"></use></svg>

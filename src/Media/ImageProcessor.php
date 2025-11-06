@@ -173,6 +173,58 @@ class ImageProcessor
     }
 
     /**
+     * Crop image at specified coordinates and dimensions
+     *
+     * @param int $x X coordinate of crop area
+     * @param int $y Y coordinate of crop area
+     * @param int $width Width of crop area
+     * @param int $height Height of crop area
+     * @return self
+     */
+    public function crop(int $x, int $y, int $width, int $height): self
+    {
+        if (!$this->imageResource) {
+            throw new RuntimeException("No image loaded");
+        }
+
+        if ($width <= 0 || $height <= 0) {
+            throw new RuntimeException("Crop width and height must be positive integers");
+        }
+
+        if ($x < 0 || $y < 0) {
+            throw new RuntimeException("Crop coordinates cannot be negative");
+        }
+
+        // Clamp crop area to image bounds
+        $x = max(0, min($x, $this->currentWidth - 1));
+        $y = max(0, min($y, $this->currentHeight - 1));
+        $width = min($width, $this->currentWidth - $x);
+        $height = min($height, $this->currentHeight - $y);
+
+        if ($width <= 0 || $height <= 0) {
+            throw new RuntimeException("Crop area is outside image bounds");
+        }
+
+        $croppedImage = imagecrop($this->imageResource, [
+            'x' => $x,
+            'y' => $y,
+            'width' => $width,
+            'height' => $height,
+        ]);
+
+        if (!$croppedImage) {
+            throw new RuntimeException("Failed to crop image");
+        }
+
+        imagedestroy($this->imageResource);
+        $this->imageResource = $croppedImage;
+        $this->currentWidth = $width;
+        $this->currentHeight = $height;
+
+        return $this;
+    }
+
+    /**
      * Scale image preserving aspect ratio
      * If only width specified, height scales proportionally (and vice versa)
      */

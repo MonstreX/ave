@@ -1,0 +1,72 @@
+// Import Cropper.js styles
+@import 'cropperjs/dist/cropper.css';
+
+// Cropper modal styles
+.cropper-modal-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    max-height: 600px;
+}
+
+.cropper-image-container {
+    flex: 1;
+    min-height: 300px;
+    max-height: 500px;
+    overflow: hidden;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    background: #f5f5f5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+
+    img {
+        max-width: 100%;
+        max-height: 100%;
+        display: block;
+    }
+}
+
+.cropper-image {
+    display: block;
+    max-width: 100%;
+}
+
+.cropper-options {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.option-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+
+    label {
+        font-weight: 500;
+        font-size: 0.875rem;
+        color: #666;
+    }
+
+    .form-control {
+        min-height: 36px;
+        font-size: 0.875rem;
+    }
+}
+
+// Adjust modal size for cropper
+.modal {
+    &.modal-large {
+        .modal-dialog {
+            max-width: 800px;
+        }
+
+        .modal-body {
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+    }
+}

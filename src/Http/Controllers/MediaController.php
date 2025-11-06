@@ -8,6 +8,7 @@ use Illuminate\Routing\Controller;
 use Illuminate\Validation\ValidationException;
 use Monstrex\Ave\Media\Facades\Media;
 use Monstrex\Ave\Models\Media as MediaModel;
+use Monstrex\Ave\Media\ImageProcessor;
 
 /**
  * MediaController - Unified media upload/management endpoint
@@ -404,6 +405,97 @@ class MediaController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Update failed: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Crop image file
+     *
+     * Request body (JSON):
+     * - x: int - X coordinate of crop area
+     * - y: int - Y coordinate of crop area
+     * - width: int - Width of crop area
+     * - height: int - Height of crop area
+     */
+    public function cropImage(Request $request, int $id): JsonResponse
+    {
+        try {
+            $media = MediaModel::findOrFail($id);
+
+            // Validate that media is an image
+            if (!in_array($media->mime_type, ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'])) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Only image files can be cropped',
+                ], 400);
+            }
+
+            // Validate crop parameters
+            $data = $request->validate([
+                'x' => 'required|integer|min:0',
+                'y' => 'required|integer|min:0',
+                'width' => 'required|integer|min:1',
+                'height' => 'required|integer|min:1',
+            ]);
+
+            // Get the file path from media disk
+            $disk = \Storage::disk('public');
+            $filePath = $media->getPath();
+
+            if (!$disk->exists($filePath)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Media file not found on disk',
+                ], 404);
+            }
+
+            // Create absolute path for ImageProcessor
+            $absolutePath = $disk->path($filePath);
+
+            // Process the image
+            $processor = new ImageProcessor();
+            $croppedImageData = $processor
+                ->read($absolutePath)
+                ->crop((int)$data['x'], (int)$data['y'], (int)$data['width'], (int)$data['height'])
+                ->encode();
+
+            // Save cropped image back to file
+            $disk->put($filePath, $croppedImageData);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Image cropped successfully',
+                'media' => [
+                    'id' => $media->id,
+                    'url' => $media->url(),
+                    'dimensions' => [
+                        'width' => $data['width'],
+                        'height' => $data['height'],
+                    ],
+                ],
+            ]);
+
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Media not found',
+            ], 404);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed: ' . implode(', ', $e->validator->errors()->all()),
+            ], 422);
+        } catch (\Exception $e) {
+            \Log::error('[MediaController] Crop error', [
+                'media_id' => $id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Crop failed: ' . $e->getMessage(),
             ], 500);
         }
     }

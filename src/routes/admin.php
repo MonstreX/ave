@@ -65,4 +65,7 @@ Route::prefix($prefix)
 
         Route::post('/media/{id}/props', [MediaController::class, 'updateProps'])
             ->name('ave.media.update-props');
+
+        Route::post('/media/{id}/crop', [MediaController::class, 'cropImage'])
+            ->name('ave.media.crop');
     });
