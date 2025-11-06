@@ -201,15 +201,6 @@ class CodeEditor extends AbstractField
     }
 
     /**
-     * Prepare for display
-     */
-    public function prepareForDisplay(FormContext $context): void
-    {
-        // Fill value from data source
-        $this->fillFromDataSource($context->dataSource());
-    }
-
-    /**
      * Convert to array for Blade template
      */
     public function toArray(): array
@@ -240,11 +231,12 @@ class CodeEditor extends AbstractField
      */
     public function render(FormContext $context): string
     {
+        // Fill from data source if not already filled
         if (is_null($this->getValue())) {
-            $this->prepareForDisplay($context);
+            $this->fillFromDataSource($context->dataSource());
         }
 
-        $view = $this->view ?: 'ave::components.forms.code-editor';
+        $view = $this->view ?? $this->resolveDefaultView();
 
         // Extract error information from context
         $hasError = $context->hasError($this->key);

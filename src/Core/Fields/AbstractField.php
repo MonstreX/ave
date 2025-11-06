@@ -227,7 +227,7 @@ abstract class AbstractField implements FormField, NestableField
         $type = Str::kebab($this->type());
         $template = $map[$type] ?? $type;
 
-        return "ave::components.forms.{$template}";
+        return "ave::components.forms.fields.{$template}";
     }
 
     public function baseKey(): string

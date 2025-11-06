@@ -36,12 +36,4 @@ class Select extends AbstractField
             'searchable' => $this->searchable,
         ]);
     }
-
-    public function extract(mixed $raw): mixed
-    {
-        if ($this->multiple && is_string($raw)) {
-            return explode(',', $raw);
-        }
-        return $raw;
-    }
 }

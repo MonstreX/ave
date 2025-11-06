@@ -27,23 +27,38 @@ class ResourceController extends Controller
     ) {}
 
     /**
-     * Display resource index page with table
+     * Resolve resource class and check authorization
      *
-     * GET /admin/resource/{slug}
+     * @throws ResourceException
      */
-    public function index(Request $request, string $slug)
-    {
+    private function resolveAndAuthorize(
+        string $slug,
+        string $ability,
+        Request $request,
+        mixed $model = null
+    ): array {
         $resourceClass = $this->resources->resource($slug);
 
         if (!$resourceClass) {
             throw ResourceException::notFound($slug);
         }
 
-        // Authorization check
         $resource = new $resourceClass();
-        if (!$resource->can('viewAny', $request->user())) {
-            throw ResourceException::unauthorized($slug, 'viewAny');
+        if (!$resource->can($ability, $request->user(), $model)) {
+            throw ResourceException::unauthorized($slug, $ability);
         }
+
+        return [$resourceClass, $resource];
+    }
+
+    /**
+     * Display resource index page with table
+     *
+     * GET /admin/resource/{slug}
+     */
+    public function index(Request $request, string $slug)
+    {
+        [$resourceClass, $resource] = $this->resolveAndAuthorize($slug, 'viewAny', $request);
 
         $table = $resourceClass::table($request);
         $modelClass = $resourceClass::$model;
@@ -74,17 +89,7 @@ class ResourceController extends Controller
      */
     public function create(Request $request, string $slug)
     {
-        $resourceClass = $this->resources->resource($slug);
-
-        if (!$resourceClass) {
-            throw ResourceException::notFound($slug);
-        }
-
-        // Authorization check
-        $resource = new $resourceClass();
-        if (!$resource->can('create', $request->user())) {
-            throw ResourceException::unauthorized($slug, 'create');
-        }
+        [$resourceClass, $resource] = $this->resolveAndAuthorize($slug, 'create', $request);
 
         $form = $resourceClass::form($request);
         $modelClass = $resourceClass::$model;
@@ -105,17 +110,7 @@ class ResourceController extends Controller
      */
     public function store(Request $request, string $slug)
     {
-        $resourceClass = $this->resources->resource($slug);
-
-        if (!$resourceClass) {
-            throw ResourceException::notFound($slug);
-        }
-
-        // Authorization check
-        $resource = new $resourceClass();
-        if (!$resource->can('create', $request->user())) {
-            throw ResourceException::unauthorized($slug, 'create');
-        }
+        [$resourceClass, $resource] = $this->resolveAndAuthorize($slug, 'create', $request);
 
         $form = $resourceClass::form($request);
         $context = FormContext::forCreate([], $request);
@@ -167,11 +162,7 @@ class ResourceController extends Controller
             throw ResourceException::modelNotFound($slug, $id);
         }
 
-        // Authorization check
-        $resource = new $resourceClass();
-        if (!$resource->can('update', $request->user(), $model)) {
-            throw ResourceException::unauthorized($slug, 'update');
-        }
+        [$resourceClass, $resource] = $this->resolveAndAuthorize($slug, 'update', $request, $model);
 
         $form = $resourceClass::form($request);
 
@@ -203,11 +194,7 @@ class ResourceController extends Controller
             throw ResourceException::modelNotFound($slug, $id);
         }
 
-        // Authorization check
-        $resource = new $resourceClass();
-        if (!$resource->can('update', $request->user(), $model)) {
-            throw ResourceException::unauthorized($slug, 'update');
-        }
+        [$resourceClass, $resource] = $this->resolveAndAuthorize($slug, 'update', $request, $model);
 
         $form = $resourceClass::form($request);
         $context = FormContext::forEdit($model, [], $request);
@@ -259,11 +246,7 @@ class ResourceController extends Controller
             throw ResourceException::modelNotFound($slug, $id);
         }
 
-        // Authorization check
-        $resource = new $resourceClass();
-        if (!$resource->can('delete', $request->user(), $model)) {
-            throw ResourceException::unauthorized($slug, 'delete');
-        }
+        [$resourceClass, $resource] = $this->resolveAndAuthorize($slug, 'delete', $request, $model);
 
         $this->persistence->delete($resourceClass, $model);
 
@@ -311,11 +294,7 @@ class ResourceController extends Controller
      */
     public function bulk(Request $request, string $slug)
     {
-        $resourceClass = $this->resources->resource($slug);
-
-        if (!$resourceClass) {
-            throw ResourceException::notFound($slug);
-        }
+        [$resourceClass, $resource] = $this->resolveAndAuthorize($slug, 'update', $request);
 
         // Validate input
         $validated = $request->validate([
@@ -352,7 +331,6 @@ class ResourceController extends Controller
         }
 
         // Authorization check for each model
-        $resource = new $resourceClass();
         foreach ($ids as $id) {
             try {
                 $model = $modelClass::findOrFail($id);
