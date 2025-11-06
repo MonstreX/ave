@@ -493,8 +493,10 @@ class RichEditor extends AbstractField
      */
     public function prepareForDisplay(FormContext $context): void
     {
-        // Fill value from data source
-        $this->fillFromDataSource($context->dataSource());
+        // Only fill if value is not already set (e.g., from fillFromDataSource in nested context)
+        if (is_null($this->getValue())) {
+            $this->fillFromDataSource($context->dataSource());
+        }
     }
 
     /**
@@ -510,7 +512,7 @@ class RichEditor extends AbstractField
         }
 
         return array_merge(parent::toArray(), [
-            'type' => 'rich-editor',
+            'type' => $this->type(),
             'height' => $this->getHeight(),
             'toolbar' => $this->getToolbar(),
             'showMenuBar' => $this->hasMenuBar(),

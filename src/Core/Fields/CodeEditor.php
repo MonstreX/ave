@@ -213,7 +213,7 @@ class CodeEditor extends AbstractField
         }
 
         return array_merge(parent::toArray(), [
-            'type' => 'code-editor',
+            'type' => $this->type(),
             'height' => $this->getHeight(),
             'language' => $this->getLanguage(),
             'theme' => $this->getTheme(),
