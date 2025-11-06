@@ -3,7 +3,6 @@
 namespace Monstrex\Ave\Core\Fields\Fieldset;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Log;
 use Monstrex\Ave\Contracts\HandlesNestedValue;
 use Monstrex\Ave\Core\DataSources\ArrayDataSource;
 use Monstrex\Ave\Core\FormContext;
@@ -72,15 +71,6 @@ class ItemFactory
 
             $fields[] = $nestedField;
         }
-
-        Log::debug('Fieldset item prepared', [
-            'fieldset' => $this->fieldset->getKey(),
-            'item_id' => $itemId,
-            'field_keys' => array_map(
-                static fn (AbstractField $field): string => $field->getKey(),
-                $fields
-            ),
-        ]);
 
         // Create a context for this item with itemData as the data source
         $itemContext = FormContext::forData($itemData);
