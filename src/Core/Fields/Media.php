@@ -541,7 +541,7 @@ class Media extends AbstractField implements ProvidesValidationRules, HandlesPer
         }
 
         $renderer = new MediaRenderer();
-        $view = $this->view ?: 'ave::components.forms.media';
+        $view = $this->view ?? $this->resolveDefaultView();
         $fieldData = array_merge($this->toArray(), ['field' => $this]);
 
         return $renderer->render($view, $fieldData, $context, $this);

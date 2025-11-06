@@ -1,15 +1,9 @@
-{{-- resources/views/components/forms/fields/media-field.blade.php --}}
-@php
-    $labelText = $label ?? $field->getLabel();
-    $helpText = ($help ?? null) ?: $field->getHelpText();
-    $isRequired = $required ?? $field->isRequired();
-@endphp
-
+{{-- resources/views/components/forms/fields/media.blade.php --}}
 <div class="form-field media-field @if($hasError) has-error @endif" data-field-name="{{ $key }}">
-    @if($labelText)
+    @if($label)
         <label for="{{ $key }}" class="form-label">
-            {{ $labelText }}
-            @if($isRequired)
+            {{ $label }}
+            @if($required)
                 <span class="required">*</span>
             @endif
         </label>
@@ -134,8 +128,8 @@
         </div>
     @endif
 
-    @if(!empty($helpText))
-        <div class="help-text">{{ $helpText }}</div>
+    @if($help)
+        <div class="help-text">{{ $help }}</div>
     @endif
 </div>
 
@@ -176,3 +170,5 @@
         </div>
     </div>
 </template>
+
+@include('ave::partials.editors-assets')
