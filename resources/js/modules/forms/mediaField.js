@@ -494,12 +494,8 @@ export default function initMediaFields(root = document) {
                             </select>
                         </div>
                         <div class="option-group">
-                            <label>Max Width (px):</label>
-                            <input type="number" id="cropper-max-width-${mediaId}" class="form-control" placeholder="No limit" min="1">
-                        </div>
-                        <div class="option-group">
-                            <label>Max Height (px):</label>
-                            <input type="number" id="cropper-max-height-${mediaId}" class="form-control" placeholder="No limit" min="1">
+                            <label>Max Size (px):</label>
+                            <input type="number" id="cropper-max-size-${mediaId}" class="form-control" placeholder="No limit" min="1">
                         </div>
                     </div>
                 </div>
@@ -581,11 +577,9 @@ export default function initMediaFields(root = document) {
             const width = Math.round(cropData.width);
             const height = Math.round(cropData.height);
 
-            // Get max width/height from form inputs
-            const maxWidthInput = document.getElementById(`cropper-max-width-${mediaId}`);
-            const maxHeightInput = document.getElementById(`cropper-max-height-${mediaId}`);
-            const maxWidth = maxWidthInput?.value ? parseInt(maxWidthInput.value, 10) : null;
-            const maxHeight = maxHeightInput?.value ? parseInt(maxHeightInput.value, 10) : null;
+            // Get max size from form input
+            const maxSizeInput = document.getElementById(`cropper-max-size-${mediaId}`);
+            const maxSize = maxSizeInput?.value ? parseInt(maxSizeInput.value, 10) : null;
 
             // Send crop request to server
             const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
@@ -598,8 +592,7 @@ export default function initMediaFields(root = document) {
                 height: height
             };
 
-            if (maxWidth) requestBody.maxWidth = maxWidth;
-            if (maxHeight) requestBody.maxHeight = maxHeight;
+            if (maxSize) requestBody.maxSize = maxSize;
 
             fetch(`${baseUrl}/${mediaId}/crop`, {
                 method: 'POST',

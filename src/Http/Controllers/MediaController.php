@@ -439,29 +439,28 @@ class MediaController extends Controller
                 'y' => 'required|integer|min:0',
                 'width' => 'required|integer|min:1',
                 'height' => 'required|integer|min:1',
-                'maxWidth' => 'nullable|integer|min:1',
-                'maxHeight' => 'nullable|integer|min:1',
+                'maxSize' => 'nullable|integer|min:1',
             ]);
 
-            // Apply max width/height constraints
+            // Apply max size constraint
             $cropWidth = (int)$data['width'];
             $cropHeight = (int)$data['height'];
 
-            if ($data['maxWidth'] || $data['maxHeight']) {
-                $maxWidth = $data['maxWidth'] ? (int)$data['maxWidth'] : PHP_INT_MAX;
-                $maxHeight = $data['maxHeight'] ? (int)$data['maxHeight'] : PHP_INT_MAX;
-
-                // Scale down while maintaining aspect ratio if exceeds max
+            if (isset($data['maxSize']) && $data['maxSize']) {
+                $maxSize = (int)$data['maxSize'];
                 $aspectRatio = $cropWidth / $cropHeight;
 
-                if ($cropWidth > $maxWidth) {
-                    $cropWidth = $maxWidth;
-                    $cropHeight = (int)($cropWidth / $aspectRatio);
-                }
-
-                if ($cropHeight > $maxHeight) {
-                    $cropHeight = $maxHeight;
-                    $cropWidth = (int)($cropHeight * $aspectRatio);
+                // Scale down to fit within maxSize on both dimensions
+                if ($cropWidth > $maxSize || $cropHeight > $maxSize) {
+                    if ($cropWidth > $cropHeight) {
+                        // Width is larger, scale by width
+                        $cropWidth = $maxSize;
+                        $cropHeight = (int)($cropWidth / $aspectRatio);
+                    } else {
+                        // Height is larger or equal, scale by height
+                        $cropHeight = $maxSize;
+                        $cropWidth = (int)($cropHeight * $aspectRatio);
+                    }
                 }
             }
 
