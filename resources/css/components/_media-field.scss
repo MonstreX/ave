@@ -174,44 +174,9 @@
     width: calc((100% / var(--columns)) - (1rem * (var(--columns) - 1) / var(--columns)));
     min-width: 150px;
     flex-shrink: 0;
-    background-color: #fff;
-    border-radius: 0.5rem;
-    overflow: hidden;
     // NO transition here! SortableJS handles it
-
-    &.selected {
-        box-shadow: 0 0 0 3px #4299e1, 0 0 0 5px #dbeafe;
-        background-color: #ebf8ff;
-    }
 }
 
-// ============================================
-// MEDIA ITEM CHECKBOX
-// ============================================
-
-.media-checkbox {
-    position: absolute;
-    top: 8px;
-    left: 8px;
-    z-index: 10;
-    width: 24px;
-    height: 24px;
-    background-color: #fff;
-    border: 1px solid #cbd5e0;
-    border-radius: 4px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-
-    input[type="checkbox"] {
-        margin: 0;
-        cursor: pointer;
-        width: 16px;
-        height: 16px;
-        accent-color: #4299e1;
-    }
-}
 
 .media-item-footer {
     font-size: .75rem;
@@ -284,11 +249,16 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    cursor: pointer;
 
     img {
         width: 100%;
         height: 100%;
         object-fit: contain; // Show full image without cropping
+    }
+
+    .media-item.selected & {
+        background-color: #f0281a2e;
     }
 }
 

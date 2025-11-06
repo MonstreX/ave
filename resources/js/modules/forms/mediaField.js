@@ -139,23 +139,51 @@ export default function initMediaFields(root = document) {
             handleFiles(e.dataTransfer.files);
         });
 
-        // Checkbox handling for bulk selection
-        grid?.addEventListener('change', (e) => {
-            if (e.target.classList.contains('media-item-checkbox')) {
-                const checkbox = e.target;
-                const mediaId = checkbox.dataset.mediaId;
-                const mediaItem = checkbox.closest('.media-item');
+        // Track if dragging happened (for distinguishing drag from click)
+        let isDragging = false;
+        let dragStartTime = 0;
 
-                if (checkbox.checked) {
-                    selectedMediaIds.add(parseInt(mediaId));
-                    mediaItem.classList.add('selected');
-                } else {
-                    selectedMediaIds.delete(parseInt(mediaId));
-                    mediaItem.classList.remove('selected');
-                }
+        // Media item click handling - toggle selection or perform drag
+        grid?.addEventListener('mousedown', (e) => {
+            // Don't select if clicking on action buttons
+            if (e.target.closest('[data-action]')) return;
 
-                updateBulkActionsBar();
+            isDragging = false;
+            dragStartTime = Date.now();
+        });
+
+        grid?.addEventListener('mousemove', () => {
+            if (Date.now() - dragStartTime > 200) {
+                isDragging = true;
             }
+        });
+
+        grid?.addEventListener('mouseup', (e) => {
+            // If it was a drag (not just a click), don't toggle selection
+            if (isDragging) {
+                isDragging = false;
+                return;
+            }
+
+            const mediaItem = e.target.closest('.media-item');
+            if (!mediaItem) return;
+
+            // Don't toggle if clicking on action buttons
+            if (e.target.closest('[data-action]')) return;
+
+            const mediaId = mediaItem.dataset.mediaId;
+            if (!mediaId) return;
+
+            // Toggle selection on click (not on drag)
+            if (mediaItem.classList.contains('selected')) {
+                mediaItem.classList.remove('selected');
+                selectedMediaIds.delete(parseInt(mediaId));
+            } else {
+                mediaItem.classList.add('selected');
+                selectedMediaIds.add(parseInt(mediaId));
+            }
+
+            updateBulkActionsBar();
         });
 
         // Bulk actions bar buttons

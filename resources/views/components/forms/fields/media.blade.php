@@ -77,9 +77,6 @@
         <div class="media-items-grid" data-media-grid>
             @foreach($mediaItems as $index => $media)
                 <div class="media-item" data-media-id="{{ $media->id }}">
-                    <div class="media-checkbox">
-                        <input type="checkbox" class="media-item-checkbox" data-media-id="{{ $media->id }}">
-                    </div>
                     <div class="media-order">
                         {{ $index + 1 }}
                     </div>
@@ -158,9 +155,6 @@
 {{-- Template for dynamically added media items --}}
 <template id="media-item-template-{{ $key }}">
     <div class="media-item" data-media-id="">
-        <div class="media-checkbox">
-            <input type="checkbox" class="media-item-checkbox" data-media-id="">
-        </div>
         <div class="media-order"></div>
         <div class="media-preview @if($multiple) media-drag-handle @endif">
             {{-- Image preview (shown for images) --}}
