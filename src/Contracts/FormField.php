@@ -19,9 +19,9 @@ interface FormField
     /**
      * Get field label
      *
-     * @return string
+     * @return string|null
      */
-    public function getLabel(): string;
+    public function getLabel(): ?string;
 
     /**
      * Check if field is required

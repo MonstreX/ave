@@ -123,9 +123,9 @@ abstract class AbstractField implements FormField, NestableField
         return $this;
     }
 
-    public function getLabel(): string
+    public function getLabel(): ?string
     {
-        return $this->label ?? $this->key;
+        return $this->label;
     }
 
     public function getHelpText(): ?string
