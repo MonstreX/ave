@@ -4,8 +4,6 @@ namespace Monstrex\Ave\Core\Fields;
 
 class Toggle extends AbstractField
 {
-    public const TYPE = 'toggle';
-
     public function toArray(): array
     {
         return parent::toArray();

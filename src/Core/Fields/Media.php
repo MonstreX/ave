@@ -31,8 +31,6 @@ use Monstrex\Ave\Media\Facades\Media as MediaFacade;
  */
 class Media extends AbstractField implements ProvidesValidationRules, HandlesPersistence, HandlesFormRequest, HandlesNestedValue, HandlesNestedCleanup
 {
-    public const TYPE = 'media';
-
     protected MediaConfiguration $config;
 
     protected ?MediaRequestPayload $pendingPayload = null;

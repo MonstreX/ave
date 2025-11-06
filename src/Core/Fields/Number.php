@@ -4,8 +4,6 @@ namespace Monstrex\Ave\Core\Fields;
 
 class Number extends AbstractField
 {
-    public const TYPE = 'number';
-
     protected ?float $min = null;
     protected ?float $max = null;
     protected ?float $step = null;

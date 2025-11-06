@@ -4,8 +4,6 @@ namespace Monstrex\Ave\Core\Fields;
 
 class Textarea extends AbstractField
 {
-    public const TYPE = 'textarea';
-
     protected ?int $rows = null;
     protected ?int $maxLength = null;
 

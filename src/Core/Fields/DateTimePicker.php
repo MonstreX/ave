@@ -4,8 +4,6 @@ namespace Monstrex\Ave\Core\Fields;
 
 class DateTimePicker extends AbstractField
 {
-    public const TYPE = 'datetime';
-
     protected string $format = 'Y-m-d H:i:s';
     protected bool $withTime = true;
     protected ?string $minDate = null;

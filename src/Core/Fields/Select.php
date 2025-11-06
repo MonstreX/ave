@@ -4,8 +4,6 @@ namespace Monstrex\Ave\Core\Fields;
 
 class Select extends AbstractField
 {
-    public const TYPE = 'select';
-
     protected array $options = [];
     protected bool $multiple = false;
     protected bool $searchable = true;

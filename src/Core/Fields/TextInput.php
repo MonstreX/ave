@@ -4,8 +4,6 @@ namespace Monstrex\Ave\Core\Fields;
 
 class TextInput extends AbstractField
 {
-    public const TYPE = 'text';
-
     protected ?string $maxLength = null;
     protected ?string $minLength = null;
     protected ?string $pattern = null;

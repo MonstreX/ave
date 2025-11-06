@@ -17,7 +17,6 @@ abstract class AbstractField implements FormField, NestableField
     use HasContainer;
     use HasStatePath;
     use IsTemplate;
-    public const TYPE = 'abstract';
 
     protected string $key;
     protected string $baseKey;
@@ -61,7 +60,7 @@ abstract class AbstractField implements FormField, NestableField
 
     public function type(): string
     {
-        return static::TYPE;
+        return Str::kebab(class_basename($this));
     }
 
     public function label(?string $label): static
