@@ -127,7 +127,21 @@
 
                                 @if(!empty($item['fields']))
                                     @foreach($item['fields'] as $itemField)
-                                        {!! $itemField->render($item['context']) !!}
+                                        @if($itemField instanceof \Monstrex\Ave\Core\Row)
+                                            {{-- Render Row with processed columns --}}
+                                            <div class="row">
+                                                @foreach($itemField->getColumns() as $column)
+                                                    <div class="col-{{ $column->getSpan() }}">
+                                                        @foreach($column->getFields() as $field)
+                                                            {!! $field->render($item['context']) !!}
+                                                        @endforeach
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        @else
+                                            {{-- Render regular field --}}
+                                            {!! $itemField->render($item['context']) !!}
+                                        @endif
                                     @endforeach
                                 @endif
                             </div>
@@ -206,7 +220,21 @@
                 {{-- Template fields with __ITEM__ placeholder --}}
                 @if(!empty($templateFields))
                     @foreach($templateFields as $templateField)
-                        {!! $templateField->render($context) !!}
+                        @if($templateField instanceof \Monstrex\Ave\Core\Row)
+                            {{-- Render Row with processed columns --}}
+                            <div class="row">
+                                @foreach($templateField->getColumns() as $column)
+                                    <div class="col-{{ $column->getSpan() }}">
+                                        @foreach($column->getFields() as $field)
+                                            {!! $field->render($context) !!}
+                                        @endforeach
+                                    </div>
+                                @endforeach
+                            </div>
+                        @else
+                            {{-- Render regular field --}}
+                            {!! $templateField->render($context) !!}
+                        @endif
                     @endforeach
                 @endif
             </div>

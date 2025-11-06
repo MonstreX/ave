@@ -8,6 +8,8 @@ use Monstrex\Ave\Core\DataSources\ArrayDataSource;
 use Monstrex\Ave\Core\FormContext;
 use Monstrex\Ave\Core\Fields\AbstractField;
 use Monstrex\Ave\Core\Fields\Fieldset as FieldsetField;
+use Monstrex\Ave\Core\Row;
+use Monstrex\Ave\Core\Col;
 
 /**
  * Responsible for cloning and preparing child fields for Fieldset items.
@@ -28,6 +30,12 @@ class ItemFactory
         $itemStatePath = $this->fieldset->getItemStatePath($itemId);
 
         foreach ($this->fieldset->getChildSchema() as $definition) {
+            // Handle Row/Col containers
+            if ($definition instanceof Row) {
+                $fields[] = $this->processRow($definition, $itemStatePath, $itemData, $record);
+                continue;
+            }
+
             if (!$definition instanceof AbstractField) {
                 continue;
             }
@@ -79,7 +87,78 @@ class ItemFactory
     }
 
     /**
-     * @return array<int,AbstractField>
+     * Process Row/Col structure: flatten fields while preserving layout.
+     *
+     * When Fieldset schema contains Row with Cols, we need to:
+     * 1. Extract all fields from all columns
+     * 2. Process each field (state path, data loading, etc.)
+     * 3. Store fields as flat list (layout is for display, not data structure)
+     *
+     * @return Row with processed Col/Field structure
+     */
+    private function processRow(Row $row, string $itemStatePath, array &$itemData, ?Model $record): Row
+    {
+        $processedColumns = [];
+
+        foreach ($row->getColumns() as $col) {
+            $processedFields = [];
+
+            foreach ($col->getFields() as $field) {
+                // Only process AbstractField instances
+                if (!$field instanceof AbstractField) {
+                    $processedFields[] = $field;
+                    continue;
+                }
+
+                // Use same processing logic as regular fields
+                $childStatePath = "{$itemStatePath}.{$field->baseKey()}";
+                $nestedField = $field
+                    ->statePath($childStatePath)
+                    ->container($this->fieldset);
+
+                // Keep HTML key for form rendering
+                $nestedField = $nestedField->nestWithin($this->fieldset->getKey(), (string) $itemData['_id'] ?? 0);
+
+                $baseKey = $field->baseKey();
+                $storedValue = $itemData[$baseKey] ?? null;
+
+                $handledViaContract = false;
+
+                if ($nestedField instanceof HandlesNestedValue) {
+                    $nestedField->applyNestedValue($storedValue, $record);
+                    $handledViaContract = true;
+                }
+
+                if (!$handledViaContract) {
+                    $dataSource = new ArrayDataSource($itemData);
+                    $originalKey = $nestedField->getKey();
+
+                    $nestedField->setKey($baseKey);
+                    $nestedField->fillFromDataSource($dataSource);
+                    $nestedField->setKey($originalKey);
+                }
+
+                if (method_exists($nestedField, 'prepareForDisplay')) {
+                    $originalKey = $nestedField->getKey();
+                    $nestedField->setKey($baseKey);
+                    $nestedField->prepareForDisplay(FormContext::forData($itemData));
+                    $nestedField->setKey($originalKey);
+                }
+
+                $processedFields[] = $nestedField;
+            }
+
+            // Create new Col with processed fields
+            $processedCol = Col::make($col->getSpan())->fields($processedFields);
+            $processedColumns[] = $processedCol;
+        }
+
+        // Return new Row with processed columns
+        return Row::make()->columns($processedColumns);
+    }
+
+    /**
+     * @return array<int,AbstractField|Row>
      */
     public function makeTemplateFields(): array
     {
@@ -89,6 +168,12 @@ class ItemFactory
         $templatePath = "{$this->fieldset->getStatePath()}.__TEMPLATE__";
 
         foreach ($this->fieldset->getChildSchema() as $definition) {
+            // Handle Row/Col containers in templates
+            if ($definition instanceof Row) {
+                $templateFields[] = $this->processTemplateRow($definition, $templatePath);
+                continue;
+            }
+
             if (!$definition instanceof AbstractField) {
                 continue;
             }
@@ -107,6 +192,47 @@ class ItemFactory
         }
 
         return $templateFields;
+    }
+
+    /**
+     * Process Row/Col structure for template fields.
+     *
+     * Similar to processRow() but uses __TEMPLATE__ path for template marker.
+     */
+    private function processTemplateRow(Row $row, string $templatePath): Row
+    {
+        $processedColumns = [];
+
+        foreach ($row->getColumns() as $col) {
+            $processedFields = [];
+
+            foreach ($col->getFields() as $field) {
+                // Only process AbstractField instances
+                if (!$field instanceof AbstractField) {
+                    $processedFields[] = $field;
+                    continue;
+                }
+
+                // Use template path with __TEMPLATE__ marker
+                $childTemplatePath = "{$templatePath}.{$field->baseKey()}";
+                $templateField = $field
+                    ->statePath($childTemplatePath)
+                    ->markAsTemplate()
+                    ->container($this->fieldset);
+
+                // Keep HTML key for form rendering
+                $templateField = $templateField->nestWithin($this->fieldset->getKey(), '__ITEM__');
+
+                $processedFields[] = $templateField;
+            }
+
+            // Create new Col with processed fields
+            $processedCol = Col::make($col->getSpan())->fields($processedFields);
+            $processedColumns[] = $processedCol;
+        }
+
+        // Return new Row with processed columns
+        return Row::make()->columns($processedColumns);
     }
 
     private function resolveItemId(array &$itemData, int $fallbackIndex): int

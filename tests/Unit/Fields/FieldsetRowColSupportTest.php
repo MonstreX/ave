@@ -9,19 +9,20 @@ use Monstrex\Ave\Core\Fields\Fieldset;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Test that demonstrates Row/Col limitations in Fieldset schema
+ * Test that Row/Col are now fully supported in Fieldset schema
  *
- * Row and Col are not supported in Fieldset because ItemFactory checks:
- * if (!$definition instanceof AbstractField) { continue; }
- *
- * Row and Col don't extend AbstractField, so they are silently skipped.
+ * ItemFactory now handles Row/Col containers by:
+ * 1. Detecting Row instances in schema
+ * 2. Extracting columns and fields
+ * 3. Processing each field (state path, data loading, etc.)
+ * 4. Returning Row with processed columns for rendering
  */
 class FieldsetRowColSupportTest extends TestCase
 {
     /**
-     * Test: Fieldset with Row/Col silently ignores them
+     * Test: Fieldset with Row/Col now works properly
      */
-    public function test_fieldset_ignores_row_col_in_schema()
+    public function test_fieldset_supports_row_col_in_schema()
     {
         $fieldset = Fieldset::make('items')->schema([
             Row::make()->columns([
@@ -36,11 +37,11 @@ class FieldsetRowColSupportTest extends TestCase
 
         $childSchema = $fieldset->getChildSchema();
 
-        // Row is in the schema but...
+        // Row is in the schema
         $this->assertCount(1, $childSchema);
         $this->assertInstanceOf(Row::class, $childSchema[0]);
 
-        // ...ItemFactory will skip it because Row doesn't extend AbstractField
+        // ItemFactory now processes Row/Col properly
         $itemFactory = new \Monstrex\Ave\Core\Fields\Fieldset\ItemFactory($fieldset);
         $itemData = [
             '_id' => 0,
@@ -49,12 +50,31 @@ class FieldsetRowColSupportTest extends TestCase
         ];
         $item = $itemFactory->makeFromData(0, $itemData, null);
 
-        // Result: no fields in the item (Row was skipped)
-        $this->assertCount(0, $item->fields);
+        // Result: Row object is in fields with processed columns and fields
+        $this->assertCount(1, $item->fields);
+        $this->assertInstanceOf(Row::class, $item->fields[0]);
+
+        // Check that Row contains 2 columns
+        $row = $item->fields[0];
+        $this->assertCount(2, $row->getColumns());
+
+        // Check that each column has 1 processed field
+        $col1 = $row->getColumns()[0];
+        $col2 = $row->getColumns()[1];
+        $this->assertCount(1, $col1->getFields());
+        $this->assertCount(1, $col2->getFields());
+
+        // Check that fields are TextInput instances
+        $this->assertInstanceOf(TextInput::class, $col1->getFields()[0]);
+        $this->assertInstanceOf(TextInput::class, $col2->getFields()[0]);
+
+        // Check that fields have correct data
+        $this->assertEquals('Test Name', $col1->getFields()[0]->getValue());
+        $this->assertEquals('Test Value', $col2->getFields()[0]->getValue());
     }
 
     /**
-     * Test: Fieldset properly handles flat field list
+     * Test: Fieldset still works with flat field list
      */
     public function test_fieldset_works_with_flat_fields()
     {
@@ -71,47 +91,54 @@ class FieldsetRowColSupportTest extends TestCase
         ];
         $item = $itemFactory->makeFromData(0, $itemData, null);
 
-        // Result: all fields are present
+        // Result: all fields are present (backward compatible)
         $this->assertCount(2, $item->fields);
         $this->assertInstanceOf(TextInput::class, $item->fields[0]);
         $this->assertInstanceOf(TextInput::class, $item->fields[1]);
     }
 
     /**
-     * Test: Demonstrate the difference
-     *
-     * This test shows why Row/Col don't work in Fieldset:
-     *
-     * ❌ Wrong (Row/Col ignored):
-     *   Fieldset::make('items')->schema([
-     *       Row::make()->columns([Col::make(6)->fields([...]), ...]),
-     *   ])
-     *
-     * ✅ Correct (flat fields):
-     *   Fieldset::make('items')->schema([
-     *       TextInput::make('name'),
-     *       TextInput::make('value'),
-     *   ])
+     * Test: Row/Col with multiple columns and various spans
      */
-    public function test_row_col_cannot_be_used_in_fieldset_schema()
+    public function test_fieldset_row_col_with_different_spans()
     {
-        // ItemFactory only processes AbstractField instances
-        $fieldset = Fieldset::make('items');
-
-        // Simulate what ItemFactory does
-        $definitions = [
+        $fieldset = Fieldset::make('items')->schema([
             Row::make()->columns([
-                Col::make(6)->fields([TextInput::make('name')]),
+                Col::make(4)->fields([
+                    TextInput::make('col1')->label('Column 1'),
+                ]),
+                Col::make(4)->fields([
+                    TextInput::make('col2')->label('Column 2'),
+                ]),
+                Col::make(4)->fields([
+                    TextInput::make('col3')->label('Column 3'),
+                ]),
             ]),
+        ]);
+
+        $itemFactory = new \Monstrex\Ave\Core\Fields\Fieldset\ItemFactory($fieldset);
+        $itemData = [
+            '_id' => 0,
+            'col1' => 'Value 1',
+            'col2' => 'Value 2',
+            'col3' => 'Value 3',
         ];
+        $item = $itemFactory->makeFromData(0, $itemData, null);
 
-        $processedFields = array_filter(
-            $definitions,
-            fn ($def) => $def instanceof \Monstrex\Ave\Core\Fields\AbstractField
-        );
+        // Check Row structure
+        $this->assertCount(1, $item->fields);
+        $row = $item->fields[0];
+        $columns = $row->getColumns();
 
-        // Row is not AbstractField, so it gets filtered out
-        $this->assertCount(0, $processedFields);
-        $this->assertCount(1, $definitions); // But it's still in the original list
+        // Check 3 columns with correct spans
+        $this->assertCount(3, $columns);
+        $this->assertEquals(4, $columns[0]->getSpan());
+        $this->assertEquals(4, $columns[1]->getSpan());
+        $this->assertEquals(4, $columns[2]->getSpan());
+
+        // Check all fields are processed
+        $this->assertEquals('Value 1', $columns[0]->getFields()[0]->getValue());
+        $this->assertEquals('Value 2', $columns[1]->getFields()[0]->getValue());
+        $this->assertEquals('Value 3', $columns[2]->getFields()[0]->getValue());
     }
 }
