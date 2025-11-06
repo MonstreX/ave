@@ -19,6 +19,8 @@
 
 <body class="ave-admin">
 
+@include('ave::partials.icons')
+
 <div id="toast-container"></div>
 
 @if(session('toast'))

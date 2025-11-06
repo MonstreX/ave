@@ -33,7 +33,7 @@
                    style="display: none;">
 
             <div class="upload-prompt">
-                <svg class="upload-icon"><use href="{{ asset('vendor/ave/assets/images/icons/sprite.svg#upload') }}"></use></svg>
+                <svg class="upload-icon"><use href="#upload"></use></svg>
                 <div class="upload-messages">
                     <p class="upload-text">
                         <span class="upload-link">Click to upload</span> or drag and drop
@@ -71,7 +71,7 @@
                             <img src="{{ $media->url() }}" alt="{{ $media->prop('title') ?? $media->file_name }}">
                         @else
                             <div class="media-file-icon">
-                                <svg class="icon"><use href="{{ asset('vendor/ave/assets/images/icons/sprite.svg#file') }}"></use></svg>
+                                <svg class="icon"><use href="#file"></use></svg>
                                 <span class="media-file-name">{{ $media->file_name }}</span>
                             </div>
                         @endif
@@ -79,16 +79,16 @@
                         <div class="media-action-holder">
                             @if(str_starts_with($media->mime_type, 'image/'))
                                 <button type="button" class="media-action" data-action="crop" title="Crop">
-                                    <svg class="icon"><use href="{{ asset('vendor/ave/assets/images/icons/sprite.svg#crop') }}"></use></svg>
+                                    <svg class="icon"><use href="#crop"></use></svg>
                                 </button>
                             @endif
                             @if(!empty($propNames))
                                 <button type="button" class="media-action" data-action="edit" title="Edit">
-                                    <svg class="icon"><use href="{{ asset('vendor/ave/assets/images/icons/sprite.svg#edit') }}"></use></svg>
+                                    <svg class="icon"><use href="#edit"></use></svg>
                                 </button>
                             @endif
                             <button type="button" class="media-action" data-action="delete" title="Delete">
-                                <svg class="icon"><use href="{{ asset('vendor/ave/assets/images/icons/sprite.svg#delete') }}"></use></svg>
+                                <svg class="icon"><use href="#delete"></use></svg>
                             </button>
                         </div>
                     </div>
@@ -148,21 +148,21 @@
 
             {{-- File icon (shown for non-images) --}}
             <div class="media-file-icon" style="display: none;">
-                <svg class="icon"><use href="{{ asset('vendor/ave/assets/images/icons/sprite.svg#file') }}"></use></svg>
+                <svg class="icon"><use href="#file"></use></svg>
                 <span class="media-file-name"></span>
             </div>
 
             <div class="media-action-holder">
                 <button type="button" class="media-action" data-action="crop" title="Crop" style="display: none;">
-                    <svg class="icon"><use href="{{ asset('vendor/ave/assets/images/icons/sprite.svg#crop') }}"></use></svg>
+                    <svg class="icon"><use href="#crop"></use></svg>
                 </button>
                 @if(!empty($propNames))
                     <button type="button" class="media-action" data-action="edit" title="Edit">
-                        <svg class="icon"><use href="{{ asset('vendor/ave/assets/images/icons/sprite.svg#edit') }}"></use></svg>
+                        <svg class="icon"><use href="#edit"></use></svg>
                     </button>
                 @endif
                 <button type="button" class="media-action" data-action="delete" title="Delete">
-                    <svg class="icon"><use href="{{ asset('vendor/ave/assets/images/icons/sprite.svg#delete') }}"></use></svg>
+                    <svg class="icon"><use href="#delete"></use></svg>
                 </button>
             </div>
         </div>
