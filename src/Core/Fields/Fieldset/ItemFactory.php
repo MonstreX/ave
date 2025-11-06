@@ -63,7 +63,11 @@ class ItemFactory
             }
 
             if (method_exists($nestedField, 'prepareForDisplay')) {
+                // Temporarily set key to baseKey for prepareForDisplay to work with itemData
+                $originalKey = $nestedField->getKey();
+                $nestedField->setKey($baseKey);
                 $nestedField->prepareForDisplay(FormContext::forData($itemData));
+                $nestedField->setKey($originalKey);
             }
 
             $fields[] = $nestedField;
