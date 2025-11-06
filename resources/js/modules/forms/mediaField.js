@@ -324,6 +324,12 @@ export default function initMediaFields(root = document) {
                 img.src = media.url || media.preview_url;
                 img.alt = media.file_name;
                 img.style.display = 'block';
+
+                // Show crop button for images
+                const cropButton = item.querySelector('[data-action="crop"]');
+                if (cropButton) {
+                    cropButton.style.display = '';
+                }
             } else {
                 const fileIcon = item.querySelector('.media-file-icon');
                 const fileName = fileIcon.querySelector('.media-file-name');
