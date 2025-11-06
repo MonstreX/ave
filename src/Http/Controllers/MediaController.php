@@ -450,27 +450,44 @@ class MediaController extends Controller
                 'width' => 'required|integer|min:1',
                 'height' => 'required|integer|min:1',
                 'maxSize' => 'nullable|integer|min:1',
+                'aspectRatio' => 'nullable|string',
             ]);
 
-            // Apply max size constraint
             $cropWidth = (int)$data['width'];
             $cropHeight = (int)$data['height'];
+            $aspectRatio = $data['aspectRatio'] ?? '';
 
-            if (isset($data['maxSize']) && $data['maxSize']) {
+            \Log::debug('[MediaController.cropImage] Received crop request', [
+                'media_id' => $id,
+                'x' => $data['x'],
+                'y' => $data['y'],
+                'width' => $cropWidth,
+                'height' => $cropHeight,
+                'maxSize' => $data['maxSize'] ?? null,
+                'aspectRatio' => $aspectRatio,
+            ]);
+
+            // Check if this is Free aspect ratio with maxSize - just scale instead of crop
+            $isFreeRatio = empty($aspectRatio);
+            $hasMaxSize = isset($data['maxSize']) && $data['maxSize'];
+
+            if ($isFreeRatio && $hasMaxSize) {
+                // Free aspect ratio with max size - just scale the cropped area
                 $maxSize = (int)$data['maxSize'];
-                $aspectRatio = $cropWidth / $cropHeight;
+                $maxDimension = max($cropWidth, $cropHeight);
 
-                // Scale down to fit within maxSize on both dimensions
-                if ($cropWidth > $maxSize || $cropHeight > $maxSize) {
-                    if ($cropWidth > $cropHeight) {
-                        // Width is larger, scale by width
-                        $cropWidth = $maxSize;
-                        $cropHeight = (int)($cropWidth / $aspectRatio);
-                    } else {
-                        // Height is larger or equal, scale by height
-                        $cropHeight = $maxSize;
-                        $cropWidth = (int)($cropHeight * $aspectRatio);
-                    }
+                if ($maxDimension > $maxSize) {
+                    $scale = $maxSize / $maxDimension;
+                    $cropWidth = (int)($cropWidth * $scale);
+                    $cropHeight = (int)($cropHeight * $scale);
+
+                    \Log::debug('[MediaController.cropImage] Free ratio with maxSize - scaling instead of cropping', [
+                        'original_width' => (int)$data['width'],
+                        'original_height' => (int)$data['height'],
+                        'scaled_width' => $cropWidth,
+                        'scaled_height' => $cropHeight,
+                        'max_size' => $maxSize,
+                    ]);
                 }
             }
 
@@ -490,13 +507,34 @@ class MediaController extends Controller
 
             // Process the image
             $processor = new ImageProcessor();
-            $croppedImageData = $processor
-                ->read($absolutePath)
-                ->crop((int)$data['x'], (int)$data['y'], $cropWidth, $cropHeight)
-                ->encode();
+            $image = $processor->read($absolutePath);
+
+            // Crop first
+            $croppedImageData = $image
+                ->crop((int)$data['x'], (int)$data['y'], (int)$data['width'], (int)$data['height']);
+
+            // Then resize if needed
+            if ($cropWidth != (int)$data['width'] || $cropHeight != (int)$data['height']) {
+                $croppedImageData = $croppedImageData->resize($cropWidth, $cropHeight);
+                \Log::debug('[MediaController.cropImage] Resizing cropped image', [
+                    'from_width' => (int)$data['width'],
+                    'from_height' => (int)$data['height'],
+                    'to_width' => $cropWidth,
+                    'to_height' => $cropHeight,
+                ]);
+            }
+
+            $croppedImageData = $croppedImageData->encode();
 
             // Save cropped image back to file
             $disk->put($filePath, $croppedImageData);
+
+            \Log::info('[MediaController] Image crop completed', [
+                'media_id' => $id,
+                'final_width' => $cropWidth,
+                'final_height' => $cropHeight,
+                'aspect_ratio' => $aspectRatio ?: 'free',
+            ]);
 
             return response()->json([
                 'success' => true,
@@ -542,12 +580,22 @@ class MediaController extends Controller
     {
         // Get max image size from config
         $maxSize = config('ave.media.max_image_size', 2000);
+
+        \Log::debug('[MediaController.processImageBeforeUpload] Starting', [
+            'file' => $file->getClientOriginalName(),
+            'mime_type' => $file->getMimeType(),
+            'max_size_config' => $maxSize,
+        ]);
+
         if (!$maxSize || $maxSize <= 0) {
+            \Log::debug('[MediaController.processImageBeforeUpload] Skipping - maxSize not configured');
             return;
         }
 
         try {
             $absolutePath = $file->getRealPath();
+            \Log::debug('[MediaController.processImageBeforeUpload] File path', ['path' => $absolutePath]);
+
             $processor = new ImageProcessor();
 
             // Read image and get dimensions
@@ -555,9 +603,20 @@ class MediaController extends Controller
             $width = $image->width;
             $height = $image->height;
 
+            \Log::debug('[MediaController.processImageBeforeUpload] Image dimensions read', [
+                'width' => $width,
+                'height' => $height,
+                'max_dimension' => max($width, $height),
+                'max_size' => $maxSize,
+            ]);
+
             // Check if scaling is needed
             $maxDimension = max($width, $height);
             if ($maxDimension <= $maxSize) {
+                \Log::debug('[MediaController.processImageBeforeUpload] Scaling not needed', [
+                    'max_dimension' => $maxDimension,
+                    'max_size' => $maxSize,
+                ]);
                 return;
             }
 
@@ -573,6 +632,13 @@ class MediaController extends Controller
                 $newWidth = (int)($maxSize * $aspectRatio);
             }
 
+            \Log::debug('[MediaController.processImageBeforeUpload] Scaling calculated', [
+                'original_width' => $width,
+                'original_height' => $height,
+                'new_width' => $newWidth,
+                'new_height' => $newHeight,
+            ]);
+
             // Resize image
             $scaledImageData = $image
                 ->resize($newWidth, $newHeight)
@@ -582,15 +648,17 @@ class MediaController extends Controller
             file_put_contents($absolutePath, $scaledImageData);
 
             \Log::info('[MediaController] Image scaled on upload', [
+                'file' => $file->getClientOriginalName(),
                 'original' => "{$width}x{$height}",
                 'scaled' => "{$newWidth}x{$newHeight}",
                 'max_size' => $maxSize,
             ]);
 
         } catch (\Exception $e) {
-            \Log::warning('[MediaController] Failed to scale image on upload', [
+            \Log::error('[MediaController] Failed to scale image on upload', [
                 'error' => $e->getMessage(),
                 'file' => $file->getClientOriginalName(),
+                'trace' => $e->getTraceAsString(),
             ]);
             // Continue without scaling if it fails - don't break upload
         }

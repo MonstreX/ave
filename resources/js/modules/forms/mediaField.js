@@ -590,6 +590,10 @@ export default function initMediaFields(root = document) {
             const maxSizeInput = document.getElementById(`cropper-max-size-${mediaId}`);
             const maxSize = maxSizeInput?.value ? parseInt(maxSizeInput.value, 10) : null;
 
+            // Get selected aspect ratio
+            const ratioSelect = document.getElementById(`cropper-ratio-${mediaId}`);
+            const selectedRatio = ratioSelect?.value || '';
+
             // Send crop request to server
             const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
             const baseUrl = uploadUrl.replace('/upload', '');
@@ -598,7 +602,8 @@ export default function initMediaFields(root = document) {
                 x: x,
                 y: y,
                 width: width,
-                height: height
+                height: height,
+                aspectRatio: selectedRatio  // 'Free' (empty string) or ratio like '16/9'
             };
 
             if (maxSize) requestBody.maxSize = maxSize;
