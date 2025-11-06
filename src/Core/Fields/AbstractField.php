@@ -216,17 +216,7 @@ abstract class AbstractField implements FormField, NestableField
 
     protected function resolveDefaultView(): string
     {
-        $map = [
-            'text' => 'text-input',
-            'number' => 'number-input',
-            'datetime' => 'datetime-input',
-            'richtext' => 'rich-editor',
-            'file' => 'media-field',
-        ];
-
-        $type = Str::kebab($this->type());
-        $template = $map[$type] ?? $type;
-
+        $template = Str::kebab($this->type());
         return "ave::components.forms.fields.{$template}";
     }
 
