@@ -507,15 +507,14 @@ class MediaController extends Controller
 
             // Process the image
             $processor = new ImageProcessor();
-            $image = $processor->read($absolutePath);
+            $processor->read($absolutePath);
 
             // Crop first
-            $croppedImageData = $image
-                ->crop((int)$data['x'], (int)$data['y'], (int)$data['width'], (int)$data['height']);
+            $processor->crop((int)$data['x'], (int)$data['y'], (int)$data['width'], (int)$data['height']);
 
             // Then resize if needed
             if ($cropWidth != (int)$data['width'] || $cropHeight != (int)$data['height']) {
-                $croppedImageData = $croppedImageData->resize($cropWidth, $cropHeight);
+                $processor->scale($cropWidth, $cropHeight);
                 \Log::debug('[MediaController.cropImage] Resizing cropped image', [
                     'from_width' => (int)$data['width'],
                     'from_height' => (int)$data['height'],
@@ -524,7 +523,7 @@ class MediaController extends Controller
                 ]);
             }
 
-            $croppedImageData = $croppedImageData->encode();
+            $croppedImageData = $processor->encode();
 
             // Save cropped image back to file
             $disk->put($filePath, $croppedImageData);
@@ -605,9 +604,10 @@ class MediaController extends Controller
             $processor = new ImageProcessor();
 
             // Read image and get dimensions
-            $image = $processor->read($absolutePath);
-            $width = $image->width;
-            $height = $image->height;
+            $processor->read($absolutePath);
+            $dimensions = $processor->getDimensions();
+            $width = $dimensions['width'];
+            $height = $dimensions['height'];
 
             \Log::debug('[MediaController.processImageBeforeUpload] Image dimensions read', [
                 'width' => $width,
@@ -645,9 +645,9 @@ class MediaController extends Controller
                 'new_height' => $newHeight,
             ]);
 
-            // Resize image
-            $scaledImageData = $image
-                ->resize($newWidth, $newHeight)
+            // Resize image and encode
+            $scaledImageData = $processor
+                ->scale($newWidth, $newHeight)
                 ->encode();
 
             // Write back to temporary uploaded file
