@@ -1,6 +1,6 @@
-<div class="form-row">
+<div class="row">
     @foreach($columns as $column)
-        <div class="form-column" style="grid-column: span {{ $column['span'] }}">
+        <div class="col-{{ $column['span'] }}">
             @foreach($column['fields'] as $field)
                 {!! $field->render($context) !!}
             @endforeach
