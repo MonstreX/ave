@@ -30,7 +30,7 @@
             @if($isDisabled) disabled @endif
             @if($isReadonly) readonly @endif
             {!! $attributes !!}
-        >{{ $value ?? '' }}</textarea>
+        >{!! $value ?? '' !!}</textarea>
     </div>
 
     @if(!empty($errors))
