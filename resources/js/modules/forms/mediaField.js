@@ -80,13 +80,6 @@ export default function initMediaFields(root = document) {
         // Use collection name from data-collection attribute (already properly set by server/fieldSet.js)
         const collection = container.dataset.collection || 'default';
 
-        console.debug('Init media field container', {
-            rawFieldName: container.closest('[data-field-name]')?.getAttribute('data-field-name') || null,
-            datasetFieldName: fieldName,
-            metaKey,
-            collection,
-        });
-
         const uploadArea = container.querySelector('[data-media-dropzone]');
         const fileInput = container.querySelector('.media-file-input');
         const grid = container.querySelector('[data-media-grid]');
@@ -777,12 +770,6 @@ export default function initMediaFields(root = document) {
         function updateHiddenInputs() {
             if (uploadedIdsInput) {
                 uploadedIdsInput.value = uploadedIds.join(',');
-                console.debug('Media uploaded IDs updated', {
-                    fieldName,
-                    metaKey,
-                    uploadedIds: [...uploadedIds],
-                    inputName: uploadedIdsInput.name,
-                });
             }
             if (deletedIdsInput) {
                 deletedIdsInput.value = deletedIds.join(',');
