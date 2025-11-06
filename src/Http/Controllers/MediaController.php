@@ -417,6 +417,8 @@ class MediaController extends Controller
      * - y: int - Y coordinate of crop area
      * - width: int - Width of crop area
      * - height: int - Height of crop area
+     * - maxWidth: int (optional) - Maximum width constraint
+     * - maxHeight: int (optional) - Maximum height constraint
      */
     public function cropImage(Request $request, int $id): JsonResponse
     {
@@ -437,11 +439,35 @@ class MediaController extends Controller
                 'y' => 'required|integer|min:0',
                 'width' => 'required|integer|min:1',
                 'height' => 'required|integer|min:1',
+                'maxWidth' => 'nullable|integer|min:1',
+                'maxHeight' => 'nullable|integer|min:1',
             ]);
 
+            // Apply max width/height constraints
+            $cropWidth = (int)$data['width'];
+            $cropHeight = (int)$data['height'];
+
+            if ($data['maxWidth'] || $data['maxHeight']) {
+                $maxWidth = $data['maxWidth'] ? (int)$data['maxWidth'] : PHP_INT_MAX;
+                $maxHeight = $data['maxHeight'] ? (int)$data['maxHeight'] : PHP_INT_MAX;
+
+                // Scale down while maintaining aspect ratio if exceeds max
+                $aspectRatio = $cropWidth / $cropHeight;
+
+                if ($cropWidth > $maxWidth) {
+                    $cropWidth = $maxWidth;
+                    $cropHeight = (int)($cropWidth / $aspectRatio);
+                }
+
+                if ($cropHeight > $maxHeight) {
+                    $cropHeight = $maxHeight;
+                    $cropWidth = (int)($cropHeight * $aspectRatio);
+                }
+            }
+
             // Get the file path from media disk
-            $disk = \Storage::disk('public');
-            $filePath = $media->getPath();
+            $disk = \Storage::disk($media->disk ?: 'public');
+            $filePath = $media->path;
 
             if (!$disk->exists($filePath)) {
                 return response()->json([
@@ -457,7 +483,7 @@ class MediaController extends Controller
             $processor = new ImageProcessor();
             $croppedImageData = $processor
                 ->read($absolutePath)
-                ->crop((int)$data['x'], (int)$data['y'], (int)$data['width'], (int)$data['height'])
+                ->crop((int)$data['x'], (int)$data['y'], $cropWidth, $cropHeight)
                 ->encode();
 
             // Save cropped image back to file
@@ -470,8 +496,8 @@ class MediaController extends Controller
                     'id' => $media->id,
                     'url' => $media->url(),
                     'dimensions' => [
-                        'width' => $data['width'],
-                        'height' => $data['height'],
+                        'width' => $cropWidth,
+                        'height' => $cropHeight,
                     ],
                 ],
             ]);

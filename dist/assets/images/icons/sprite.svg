@@ -27,7 +27,7 @@
 
     <!-- Crop icon -->
     <symbol id="crop" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 4h10a2 2 0 012 2v10m0-6V6a2 2 0 00-2-2H4m0 10v4a2 2 0 002 2h10a2 2 0 002-2v-4m-6-8h4v4m-4-4v-2a2 2 0 012-2h2" />
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6v14a2 2 0 002 2h14M3 6h4V3m14 3v4h4M3 6l18 18" />
     </symbol>
 
 </svg>

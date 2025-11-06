@@ -493,6 +493,14 @@ export default function initMediaFields(root = document) {
                                 <option value="3/2">3:2</option>
                             </select>
                         </div>
+                        <div class="option-group">
+                            <label>Max Width (px):</label>
+                            <input type="number" id="cropper-max-width-${mediaId}" class="form-control" placeholder="No limit" min="1">
+                        </div>
+                        <div class="option-group">
+                            <label>Max Height (px):</label>
+                            <input type="number" id="cropper-max-height-${mediaId}" class="form-control" placeholder="No limit" min="1">
+                        </div>
                     </div>
                 </div>
             `;
@@ -573,9 +581,25 @@ export default function initMediaFields(root = document) {
             const width = Math.round(cropData.width);
             const height = Math.round(cropData.height);
 
+            // Get max width/height from form inputs
+            const maxWidthInput = document.getElementById(`cropper-max-width-${mediaId}`);
+            const maxHeightInput = document.getElementById(`cropper-max-height-${mediaId}`);
+            const maxWidth = maxWidthInput?.value ? parseInt(maxWidthInput.value, 10) : null;
+            const maxHeight = maxHeightInput?.value ? parseInt(maxHeightInput.value, 10) : null;
+
             // Send crop request to server
             const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
             const baseUrl = uploadUrl.replace('/upload', '');
+
+            const requestBody = {
+                x: x,
+                y: y,
+                width: width,
+                height: height
+            };
+
+            if (maxWidth) requestBody.maxWidth = maxWidth;
+            if (maxHeight) requestBody.maxHeight = maxHeight;
 
             fetch(`${baseUrl}/${mediaId}/crop`, {
                 method: 'POST',
@@ -584,12 +608,7 @@ export default function initMediaFields(root = document) {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({
-                    x: x,
-                    y: y,
-                    width: width,
-                    height: height
-                })
+                body: JSON.stringify(requestBody)
             })
             .then(response => {
                 if (!response.ok) {
