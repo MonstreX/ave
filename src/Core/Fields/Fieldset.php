@@ -322,7 +322,7 @@ class Fieldset extends AbstractField implements HandlesFormRequest, ProvidesVali
     public function toArray(): array
     {
         return array_merge(parent::toArray(), [
-            'type' => 'fieldset',
+            'type' => $this->type(),
             'childSchema' => $this->childSchema,
             'itemInstances' => $this->itemInstances,
             'itemIds' => $this->itemIds,
