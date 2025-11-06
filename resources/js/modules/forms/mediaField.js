@@ -483,22 +483,28 @@ export default function initMediaFields(root = document) {
                         <img id="cropper-image-${mediaId}" src="${imageUrl}" alt="Crop image" class="cropper-image">
                     </div>
                     <div class="cropper-options">
-                        <div class="option-group">
-                            <label>Aspect Ratio:</label>
-                            <select id="cropper-ratio-${mediaId}" class="form-control">
-                                <option value="">Free</option>
-                                <option value="16/9">16:9 (landscape)</option>
-                                <option value="9/16">9:16 (portrait)</option>
-                                <option value="4/3">4:3 (landscape)</option>
-                                <option value="3/4">3:4 (portrait)</option>
-                                <option value="1/1">1:1 (square)</option>
-                                <option value="3/2">3:2 (landscape)</option>
-                                <option value="2/3">2:3 (portrait)</option>
-                            </select>
-                        </div>
-                        <div class="option-group">
-                            <label>Max Size (px):</label>
-                            <input type="number" id="cropper-max-size-${mediaId}" class="form-control" placeholder="No limit" min="1">
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="form-field">
+                                    <label>Aspect Ratio:</label>
+                                    <select id="cropper-ratio-${mediaId}" class="form-control">
+                                        <option value="">Free</option>
+                                        <option value="16/9">16:9 (landscape)</option>
+                                        <option value="9/16">9:16 (portrait)</option>
+                                        <option value="4/3">4:3 (landscape)</option>
+                                        <option value="3/4">3:4 (portrait)</option>
+                                        <option value="1/1">1:1 (square)</option>
+                                        <option value="3/2">3:2 (landscape)</option>
+                                        <option value="2/3">2:3 (portrait)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="form-field">
+                                    <label>Max Size (px):</label>
+                                    <input type="number" id="cropper-max-size-${mediaId}" class="form-control" placeholder="No limit" min="1">
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
