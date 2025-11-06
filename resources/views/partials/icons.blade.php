@@ -30,4 +30,15 @@
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3H5a2 2 0 00-2 2v4m0 6v4a2 2 0 002 2h4m6 0h4a2 2 0 002-2v-4m0-6V5a2 2 0 00-2-2h-4m-6 9h12V9H9v3z" />
     </symbol>
 
+    <!-- Checkbox unchecked icon -->
+    <symbol id="checkbox-unchecked" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2m0 0V3a1 1 0 00-1-1h-2a1 1 0 00-1 1v2m0 0h6" />
+    </symbol>
+
+    <!-- Checkbox checked icon -->
+    <symbol id="checkbox-checked" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+        <rect x="5" y="3" width="14" height="18" rx="2" fill="none" stroke="currentColor" stroke-width="2"/>
+    </symbol>
+
 </svg>

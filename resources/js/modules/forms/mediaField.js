@@ -83,12 +83,14 @@ export default function initMediaFields(root = document) {
         const uploadArea = container.querySelector('[data-media-dropzone]');
         const fileInput = container.querySelector('.media-file-input');
         const grid = container.querySelector('[data-media-grid]');
+        const bulkActionsBar = container.querySelector('.media-bulk-actions');
         const uploadedIdsInput = container.querySelector('[data-uploaded-ids]');
         const deletedIdsInput = container.querySelector('[data-deleted-ids]');
         const fieldValueInput = container.querySelector('[data-media-value]');
 
         const uploadedIds = [];
         const deletedIds = [];
+        const selectedMediaIds = new Set(); // Track selected media for bulk operations
         const containerKey = metaKey || fieldName;
 
         // Store reference for later use
@@ -135,6 +137,39 @@ export default function initMediaFields(root = document) {
             e.preventDefault();
             uploadArea.classList.remove('dragover');
             handleFiles(e.dataTransfer.files);
+        });
+
+        // Checkbox handling for bulk selection
+        grid?.addEventListener('change', (e) => {
+            if (e.target.classList.contains('media-item-checkbox')) {
+                const checkbox = e.target;
+                const mediaId = checkbox.dataset.mediaId;
+                const mediaItem = checkbox.closest('.media-item');
+
+                if (checkbox.checked) {
+                    selectedMediaIds.add(parseInt(mediaId));
+                    mediaItem.classList.add('selected');
+                } else {
+                    selectedMediaIds.delete(parseInt(mediaId));
+                    mediaItem.classList.remove('selected');
+                }
+
+                updateBulkActionsBar();
+            }
+        });
+
+        // Bulk actions bar buttons
+        bulkActionsBar?.addEventListener('click', (e) => {
+            const action = e.target.closest('[data-action]');
+            if (!action) return;
+
+            if (action.dataset.action === 'select-all') {
+                selectAllMedia();
+            } else if (action.dataset.action === 'deselect-all') {
+                deselectAllMedia();
+            } else if (action.dataset.action === 'delete-selected') {
+                deleteSelectedMedia();
+            }
         });
 
         // Media item actions (delete, edit, and crop)
@@ -839,6 +874,121 @@ export default function initMediaFields(root = document) {
             .catch(error => {
                 console.error('Order update error:', error);
                 showToast('danger', 'Failed to reorder files.');
+            });
+        }
+
+        function updateBulkActionsBar() {
+            const selectedCount = selectedMediaIds.size;
+
+            if (selectedCount > 0) {
+                bulkActionsBar.style.display = 'block';
+                bulkActionsBar.querySelector('.selected-count').textContent = selectedCount;
+            } else {
+                bulkActionsBar.style.display = 'none';
+                selectedMediaIds.clear();
+            }
+        }
+
+        function selectAllMedia() {
+            const mediaItems = grid.querySelectorAll('.media-item');
+            mediaItems.forEach(item => {
+                const checkbox = item.querySelector('.media-item-checkbox');
+                const mediaId = item.dataset.mediaId;
+
+                if (mediaId && checkbox && !checkbox.checked) {
+                    checkbox.checked = true;
+                    selectedMediaIds.add(parseInt(mediaId));
+                    item.classList.add('selected');
+                }
+            });
+            updateBulkActionsBar();
+        }
+
+        function deselectAllMedia() {
+            const mediaItems = grid.querySelectorAll('.media-item');
+            mediaItems.forEach(item => {
+                const checkbox = item.querySelector('.media-item-checkbox');
+
+                if (checkbox && checkbox.checked) {
+                    checkbox.checked = false;
+                    item.classList.remove('selected');
+                }
+            });
+            selectedMediaIds.clear();
+            updateBulkActionsBar();
+        }
+
+        async function deleteSelectedMedia() {
+            const selectedArray = Array.from(selectedMediaIds);
+
+            if (selectedArray.length === 0) {
+                showToast('warning', 'No files selected');
+                return;
+            }
+
+            const confirmed = await confirm(`You are going to remove ${selectedArray.length} file(s):`, {
+                title: 'Delete Files',
+                variant: 'error',
+                confirmText: 'Delete',
+                cancelText: 'Cancel'
+            });
+
+            if (!confirmed) return;
+
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+            const baseUrl = uploadUrl.replace('/upload', '');
+
+            fetch(`${baseUrl}/bulk-delete`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    ids: selectedArray
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(data => {
+                        throw new Error(data.message || `HTTP ${response.status}`);
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    // Remove items from DOM and tracking arrays
+                    selectedArray.forEach(mediaId => {
+                        const mediaItem = grid.querySelector(`[data-media-id="${mediaId}"]`);
+                        if (mediaItem) {
+                            mediaItem.remove();
+                        }
+
+                        const numericId = parseInt(mediaId, 10);
+                        const uploadedIndex = uploadedIds.indexOf(numericId);
+                        if (uploadedIndex !== -1) {
+                            uploadedIds.splice(uploadedIndex, 1);
+                        }
+                        if (!deletedIds.includes(numericId)) {
+                            deletedIds.push(numericId);
+                        }
+                    });
+
+                    // Clear selection and update UI
+                    selectedMediaIds.clear();
+                    updateBulkActionsBar();
+                    updateMediaNumbers();
+                    updateHiddenInputs();
+
+                    showToast('success', `${data.deleted} file(s) deleted successfully.`);
+                } else {
+                    throw new Error(data.message || 'Delete failed');
+                }
+            })
+            .catch(error => {
+                showToast('danger', 'Failed to delete files: ' + error.message);
             });
         }
     });

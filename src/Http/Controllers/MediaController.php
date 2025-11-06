@@ -301,6 +301,64 @@ class MediaController extends Controller
     }
 
     /**
+     * Bulk delete media by IDs
+     */
+    public function bulkDestroy(Request $request): JsonResponse
+    {
+        try {
+            $request->validate([
+                'ids' => 'required|array',
+                'ids.*' => 'integer|min:1',
+            ]);
+
+            $ids = $request->input('ids', []);
+
+            if (empty($ids)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No IDs provided',
+                ], 400);
+            }
+
+            $deleted = 0;
+
+            // Delete each media item
+            foreach ($ids as $id) {
+                try {
+                    $media = MediaModel::find($id);
+                    if ($media) {
+                        $media->delete();
+                        $deleted++;
+                    }
+                } catch (\Exception $e) {
+                    \Log::error('[MediaController.bulkDestroy] Failed to delete media', [
+                        'media_id' => $id,
+                        'error' => $e->getMessage(),
+                    ]);
+                    // Continue with next item
+                }
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => "{$deleted} file(s) deleted successfully",
+                'deleted' => $deleted,
+            ]);
+
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed: ' . implode(', ', $e->validator->errors()->all()),
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Bulk delete failed: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
      * Delete entire media collection (used by Fieldset item removal)
      */
     public function destroyCollection(Request $request): JsonResponse

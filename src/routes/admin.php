@@ -68,4 +68,7 @@ Route::prefix($prefix)
 
         Route::post('/media/{id}/crop', [MediaController::class, 'cropImage'])
             ->name('ave.media.crop');
+
+        Route::post('/media/bulk-delete', [MediaController::class, 'bulkDestroy'])
+            ->name('ave.media.bulk-destroy');
     });

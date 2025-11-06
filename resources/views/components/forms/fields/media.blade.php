@@ -59,10 +59,27 @@
             </div>
         </div>
 
+        {{-- Bulk Actions Bar --}}
+        <div class="media-bulk-actions" style="display: none;">
+            <div class="bulk-actions-content">
+                <span class="bulk-info">
+                    <span class="selected-count">0</span> selected
+                </span>
+                <div class="bulk-buttons">
+                    <button type="button" class="btn btn-secondary btn-sm" data-action="select-all">Select All</button>
+                    <button type="button" class="btn btn-secondary btn-sm" data-action="deselect-all">Deselect All</button>
+                    <button type="button" class="btn btn-danger btn-sm" data-action="delete-selected">Delete Selected</button>
+                </div>
+            </div>
+        </div>
+
         {{-- Media Items Grid --}}
         <div class="media-items-grid" data-media-grid>
             @foreach($mediaItems as $index => $media)
                 <div class="media-item" data-media-id="{{ $media->id }}">
+                    <div class="media-checkbox">
+                        <input type="checkbox" class="media-item-checkbox" data-media-id="{{ $media->id }}">
+                    </div>
                     <div class="media-order">
                         {{ $index + 1 }}
                     </div>
@@ -141,6 +158,9 @@
 {{-- Template for dynamically added media items --}}
 <template id="media-item-template-{{ $key }}">
     <div class="media-item" data-media-id="">
+        <div class="media-checkbox">
+            <input type="checkbox" class="media-item-checkbox" data-media-id="">
+        </div>
         <div class="media-order"></div>
         <div class="media-preview @if($multiple) media-drag-handle @endif">
             {{-- Image preview (shown for images) --}}
