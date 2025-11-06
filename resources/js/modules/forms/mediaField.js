@@ -327,8 +327,16 @@ export default function initMediaFields(root = document) {
 
                 // Show crop button for images
                 const cropButton = item.querySelector('[data-action="crop"]');
+                console.log('Looking for crop button:', cropButton);
+                console.log('isImage:', isImage, 'mime_type:', media.mime_type);
                 if (cropButton) {
+                    console.log('Found crop button, showing it');
                     cropButton.style.display = '';
+                    cropButton.removeAttribute('style');
+                    cropButton.style.display = 'inline-block';
+                } else {
+                    console.log('Crop button NOT found in item');
+                    console.log('Available actions:', item.querySelectorAll('[data-action]'));
                 }
             } else {
                 const fileIcon = item.querySelector('.media-file-icon');
