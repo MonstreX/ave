@@ -54,10 +54,13 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
                             <label>Aspect Ratio:</label>
                             <select id="cropper-ratio-${x}" class="form-control">
                                 <option value="">Free</option>
-                                <option value="16/9">16:9</option>
-                                <option value="4/3">4:3</option>
-                                <option value="1/1">1:1</option>
-                                <option value="3/2">3:2</option>
+                                <option value="16/9">16:9 (landscape)</option>
+                                <option value="9/16">9:16 (portrait)</option>
+                                <option value="4/3">4:3 (landscape)</option>
+                                <option value="3/4">3:4 (portrait)</option>
+                                <option value="1/1">1:1 (square)</option>
+                                <option value="3/2">3:2 (landscape)</option>
+                                <option value="2/3">2:3 (portrait)</option>
                             </select>
                         </div>
                         <div class="option-group">
