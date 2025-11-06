@@ -635,6 +635,23 @@ export default function initMediaFields(root = document) {
                         img.src = data.media.url + '?t=' + timestamp;
                     }
 
+                    // Update file size display
+                    if (data.media.size) {
+                        const sizeEl = mediaItem.querySelector('.media-size');
+                        if (sizeEl) {
+                            // Convert bytes to human readable format
+                            const sizes = ['B', 'KB', 'MB', 'GB'];
+                            let size = data.media.size;
+                            let sizeIndex = 0;
+                            while (size >= 1024 && sizeIndex < sizes.length - 1) {
+                                size /= 1024;
+                                sizeIndex++;
+                            }
+                            const humanSize = size.toFixed(1) + sizes[sizeIndex];
+                            sizeEl.textContent = humanSize;
+                        }
+                    }
+
                     showToast('success', 'Image cropped successfully');
                     destroyModal(modalElement);
                 } else {

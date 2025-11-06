@@ -529,11 +529,16 @@ class MediaController extends Controller
             // Save cropped image back to file
             $disk->put($filePath, $croppedImageData);
 
+            // Update media record with new file size
+            $newFileSize = $disk->size($filePath);
+            $media->update(['size' => $newFileSize]);
+
             \Log::info('[MediaController] Image crop completed', [
                 'media_id' => $id,
                 'final_width' => $cropWidth,
                 'final_height' => $cropHeight,
                 'aspect_ratio' => $aspectRatio ?: 'free',
+                'new_file_size' => $newFileSize,
             ]);
 
             return response()->json([
@@ -546,6 +551,7 @@ class MediaController extends Controller
                         'width' => $cropWidth,
                         'height' => $cropHeight,
                     ],
+                    'size' => $newFileSize,
                 ],
             ]);
 
