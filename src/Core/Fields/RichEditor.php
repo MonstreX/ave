@@ -493,10 +493,7 @@ class RichEditor extends AbstractField
      */
     public function prepareForDisplay(FormContext $context): void
     {
-        // Only fill if value is not already set (e.g., from fillFromDataSource in nested context)
-        if (is_null($this->getValue())) {
-            $this->fillFromDataSource($context->dataSource());
-        }
+        $this->fillFromDataSource($context->dataSource());
     }
 
     /**
