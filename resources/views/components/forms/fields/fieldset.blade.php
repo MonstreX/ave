@@ -127,7 +127,7 @@
 
                                 @if(!empty($item['fields']))
                                     @foreach($item['fields'] as $itemField)
-                                        {!! $itemField->render($context) !!}
+                                        {!! $itemField->render($item['context']) !!}
                                     @endforeach
                                 @endif
                             </div>

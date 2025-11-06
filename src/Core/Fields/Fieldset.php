@@ -298,6 +298,7 @@ class Fieldset extends AbstractField implements HandlesFormRequest, ProvidesVali
                 'index' => $item->index,
                 'fields' => $item->fields,
                 'data' => $item->data,
+                'context' => $item->context,
             ],
             $this->items
         );

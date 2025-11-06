@@ -82,7 +82,10 @@ class ItemFactory
             ),
         ]);
 
-        return new Item($index, $itemId, $itemData, $fields);
+        // Create a context for this item with itemData as the data source
+        $itemContext = FormContext::forData($itemData);
+
+        return new Item($index, $itemId, $itemData, $fields, $itemContext);
     }
 
     /**
