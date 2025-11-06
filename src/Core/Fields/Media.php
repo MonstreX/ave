@@ -513,7 +513,7 @@ class Media extends AbstractField implements ProvidesValidationRules, HandlesPer
         $actualCollection = $this->resolveCollectionName();
 
         return array_merge(parent::toArray(), [
-            'type' => self::TYPE,
+            'type' => $this->type(),
             'collection' => $actualCollection,
             'multiple' => $this->isMultiple(),
             'accept' => $this->getAccept(),
