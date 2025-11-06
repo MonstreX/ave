@@ -1,6 +1,7 @@
-/vendor/c
+/vendor/
 /node_modules/
 /.phpunit.cache/
 .env
 .env.backup
 .phpunit.result.cache
+composer.lock
