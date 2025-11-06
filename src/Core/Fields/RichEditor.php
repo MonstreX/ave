@@ -530,7 +530,7 @@ class RichEditor extends AbstractField
             $this->prepareForDisplay($context);
         }
 
-        $view = $this->view ?: 'ave::components.forms.rich-editor';
+        $view = $this->view ?? $this->resolveDefaultView();
 
         // Extract error information from context
         $hasError = $context->hasError($this->key);

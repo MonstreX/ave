@@ -365,7 +365,7 @@ class Fieldset extends AbstractField implements HandlesFormRequest, ProvidesVali
             $this->prepareForDisplay($context);
         }
 
-        $view = $this->view ?? 'ave::components.forms.fieldset';
+        $view = $this->view ?? $this->resolveDefaultView();
 
         return view($view, [
             'field' => $this,
