@@ -35,11 +35,16 @@ class Media extends AbstractField implements ProvidesValidationRules, HandlesPer
 
     protected ?MediaRequestPayload $pendingPayload = null;
 
+    protected ?string $presetClass = null;
+
     public function __construct(string $key)
     {
         parent::__construct($key);
 
         $this->config = new MediaConfiguration();
+
+        // If collection not explicitly set, use field key as collection name
+        $this->config->setCollection($key);
     }
 
     public function __clone()
@@ -173,6 +178,22 @@ class Media extends AbstractField implements ProvidesValidationRules, HandlesPer
         $this->config->setPropNames($propNames);
 
         return $this;
+    }
+
+    /**
+     * Apply a preset configuration to this field.
+     *
+     * Presets provide pre-configured settings for common media field use cases.
+     *
+     * @param string|object $preset Preset class name or instance
+     * @return static
+     */
+    public function preset(string|object $preset): static
+    {
+        $presetClass = is_string($preset) ? $preset : $preset::class;
+        $presetInstance = new $presetClass();
+
+        return $presetInstance->apply($this);
     }
 
     /**

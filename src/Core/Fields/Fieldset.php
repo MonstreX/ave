@@ -14,6 +14,9 @@ use Monstrex\Ave\Core\Fields\Fieldset\Item;
 use Monstrex\Ave\Core\Fields\Fieldset\ItemFactory;
 use Monstrex\Ave\Core\Fields\Fieldset\Renderer;
 use Monstrex\Ave\Core\Fields\Fieldset\RequestProcessor;
+use Monstrex\Ave\Core\Row;
+use Monstrex\Ave\Core\Col;
+use Monstrex\Ave\Core\Validation\FieldValidationRuleExtractor;
 
 /**
  * Fieldset - repeatable group of fields stored within a single JSON column.
@@ -25,7 +28,7 @@ use Monstrex\Ave\Core\Fields\Fieldset\RequestProcessor;
  */
 class Fieldset extends AbstractField implements HandlesFormRequest, ProvidesValidationRules, HandlesPersistence
 {
-    /** @var array<int,AbstractField> */
+    /** @var array<int,AbstractField|Row> */
     protected array $childSchema = [];
 
     protected bool $sortable = true;
@@ -67,7 +70,7 @@ class Fieldset extends AbstractField implements HandlesFormRequest, ProvidesVali
     }
 
     /**
-     * @param  array<int,AbstractField>  $fields
+     * @param  array<int,AbstractField|Row>  $fields
      */
     public function schema(array $fields): static
     {
@@ -77,7 +80,7 @@ class Fieldset extends AbstractField implements HandlesFormRequest, ProvidesVali
     }
 
     /**
-     * @return array<int,AbstractField>
+     * @return array<int,AbstractField|Row>
      */
     public function getChildSchema(): array
     {
@@ -165,23 +168,58 @@ class Fieldset extends AbstractField implements HandlesFormRequest, ProvidesVali
 
         $rules[$this->key()] = $this->formatRulesForValidation($baseRules, $this->isRequired());
 
-        foreach ($this->childSchema as $child) {
-            if (!$child instanceof AbstractField) {
+        foreach ($this->childSchema as $schemaItem) {
+            // Handle Row containers - iterate through columns and fields
+            if ($schemaItem instanceof Row) {
+                foreach ($schemaItem->getColumns() as $column) {
+                    foreach ($column->getFields() as $child) {
+                        if (!$child instanceof AbstractField) {
+                            continue;
+                        }
+
+                        $this->addChildValidationRules($rules, $child);
+                    }
+                }
                 continue;
             }
 
-            $childRules = $child->getRules();
-            if (empty($childRules) && !$child->isRequired()) {
+            // Handle regular AbstractField
+            if (!$schemaItem instanceof AbstractField) {
                 continue;
             }
 
-            $rules[sprintf('%s.*.%s', $this->key(), $child->key())] = $this->formatRulesForValidation(
-                $childRules,
-                $child->isRequired()
-            );
+            $this->addChildValidationRules($rules, $schemaItem);
         }
 
         return $rules;
+    }
+
+    /**
+     * Add validation rules for a child field to the rules array.
+     *
+     * Handles conversion of field-specific properties (minLength, maxLength, pattern, etc.)
+     * to Laravel validation rules using FieldValidationRuleExtractor.
+     *
+     * @param array<string,string> $rules Reference to the rules array
+     * @param AbstractField $child The field to extract rules from
+     * @return void
+     */
+    private function addChildValidationRules(array &$rules, AbstractField $child): void
+    {
+        $childRules = $child->getRules();
+
+        // Extract field-specific validation rules (minLength, maxLength, pattern, min, max)
+        // using FieldValidationRuleExtractor for consistency with FormValidator
+        $childRules = FieldValidationRuleExtractor::extract($child, $childRules);
+
+        if (empty($childRules) && !$child->isRequired()) {
+            return;
+        }
+
+        $rules[sprintf('%s.*.%s', $this->key(), $child->key())] = $this->formatRulesForValidation(
+            $childRules,
+            $child->isRequired()
+        );
     }
 
     public function prepareForSave(mixed $value, Request $request, FormContext $context): FieldPersistenceResult

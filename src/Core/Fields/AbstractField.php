@@ -203,11 +203,14 @@ abstract class AbstractField implements FormField, NestableField
         $fieldData = $this->toArray();
         $fieldData['value'] = $this->getValue();
 
+        $hasError = $context->hasError($this->key);
+        $errors = $context->getErrors($this->key);
+
         return view($view, [
             'field' => $this,
             'context' => $context,
-            'hasError' => $context->hasError($this->key),
-            'errors' => $context->getErrors($this->key),
+            'hasError' => $hasError,
+            'errors' => $errors,
             'attributes' => '',
             ...$fieldData,
         ])->render();

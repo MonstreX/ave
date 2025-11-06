@@ -7,6 +7,7 @@ use Illuminate\Contracts\Support\MessageBag;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
+use Illuminate\Support\MessageBag as LaravelMessageBag;
 use Illuminate\Support\ViewErrorBag;
 use Monstrex\Ave\Core\DataSources\ArrayDataSource;
 use Monstrex\Ave\Core\DataSources\DataSourceInterface;
@@ -233,6 +234,41 @@ class FormContext
     public function errors(): ViewErrorBag
     {
         return $this->errors;
+    }
+
+    /**
+     * Add a validation error for a specific field
+     *
+     * @param string $key The field key
+     * @param string $message The error message
+     * @return void
+     */
+    public function addError(string $key, string $message): void
+    {
+        // Get the current 'default' bag from ViewErrorBag
+        $messageBag = $this->errors->getBag('default');
+
+        if (!$messageBag instanceof LaravelMessageBag) {
+            // If no default bag exists, create a new one with this error
+            $messageBag = new LaravelMessageBag([$key => [$message]]);
+        } else {
+            // Get existing errors for this key
+            $existingErrors = $messageBag->get($key, []);
+
+            // Add the new message
+            if (!is_array($existingErrors)) {
+                $existingErrors = [];
+            }
+            $existingErrors[] = $message;
+
+            // Create new MessageBag with updated errors
+            $allErrors = $messageBag->messages();
+            $allErrors[$key] = $existingErrors;
+            $messageBag = new LaravelMessageBag($allErrors);
+        }
+
+        // Put the updated MessageBag back into ViewErrorBag under 'default' key
+        $this->errors->put('default', $messageBag);
     }
 
     /**

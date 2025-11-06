@@ -9,6 +9,8 @@ use Monstrex\Ave\Contracts\HandlesNestedCleanup;
 use Monstrex\Ave\Core\FormContext;
 use Monstrex\Ave\Core\Fields\AbstractField;
 use Monstrex\Ave\Core\Fields\Fieldset as FieldsetField;
+use Monstrex\Ave\Core\Row;
+use Monstrex\Ave\Core\Col;
 
 /**
  * Normalises incoming request payload for Fieldset fields.
@@ -42,6 +44,43 @@ class RequestProcessor
             $hasMeaningfulData = false;
 
             foreach ($this->fieldset->getChildSchema() as $schemaField) {
+                // Handle Row/Col containers
+                if ($schemaField instanceof Row) {
+                    foreach ($schemaField->getColumns() as $col) {
+                        foreach ($col->getFields() as $field) {
+                            if (!$field instanceof AbstractField) {
+                                continue;
+                            }
+
+                            $itemStatePath = $this->fieldset->getItemStatePath($itemId);
+                            $childStatePath = "{$itemStatePath}.{$field->baseKey()}";
+
+                            $nestedField = $field
+                                ->statePath($childStatePath)
+                                ->container($this->fieldset)
+                                ->nestWithin($this->fieldset->getKey(), $itemId);
+
+                            $baseKey = $field->baseKey();
+                            $rawValue = $itemData[$baseKey] ?? null;
+
+                            if ($nestedField instanceof HandlesPersistence) {
+                                $result = $nestedField->prepareForSave($rawValue, $request, $context);
+                                $normalizedValue = $result->value();
+                                $deferred = array_merge($deferred, $result->deferredActions());
+                            } else {
+                                $normalizedValue = $nestedField->extract($rawValue);
+                            }
+
+                            if ($this->fieldset->valueIsMeaningful($normalizedValue)) {
+                                $hasMeaningfulData = true;
+                            }
+
+                            $normalizedItem[$baseKey] = $normalizedValue;
+                        }
+                    }
+                    continue;
+                }
+
                 if (!$schemaField instanceof AbstractField) {
                     continue;
                 }
@@ -159,6 +198,34 @@ class RequestProcessor
         $itemStatePath = $this->fieldset->getItemStatePath($itemId);
 
         foreach ($this->fieldset->getChildSchema() as $schemaField) {
+            // Handle Row/Col containers
+            if ($schemaField instanceof Row) {
+                foreach ($schemaField->getColumns() as $col) {
+                    foreach ($col->getFields() as $field) {
+                        if (!$field instanceof AbstractField) {
+                            continue;
+                        }
+
+                        $childStatePath = "{$itemStatePath}.{$field->baseKey()}";
+                        $nestedField = $field
+                            ->statePath($childStatePath)
+                            ->container($this->fieldset)
+                            ->nestWithin($this->fieldset->getKey(), $itemId);
+
+                        if (!$nestedField instanceof HandlesNestedCleanup) {
+                            continue;
+                        }
+
+                        $baseKey = $field->baseKey();
+                        $fieldValue = $itemData[$baseKey] ?? null;
+
+                        $actions = $nestedField->getNestedCleanupActions($fieldValue, $itemData, $context);
+                        $deferredActions = array_merge($deferredActions, $actions);
+                    }
+                }
+                continue;
+            }
+
             if (!$schemaField instanceof AbstractField) {
                 continue;
             }

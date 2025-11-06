@@ -29,6 +29,7 @@
         @if($isDisabled) disabled @endif
         @if($isReadonly) readonly @endif
         @if($placeholderText) placeholder="{{ $placeholderText }}" @endif
+        @if(!empty($maxLength)) maxlength="{{ $maxLength }}" @endif
         @if(!empty($autosize)) data-autosize="true" @endif
         class="form-control {{ $class ?? '' }}"
         {!! $attributes !!}

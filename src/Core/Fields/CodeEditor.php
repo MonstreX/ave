@@ -61,6 +61,11 @@ class CodeEditor extends AbstractField
     protected bool $autoHeight = false;
 
     /**
+     * Preset class name
+     */
+    protected ?string $presetClass = null;
+
+    /**
      * Set editor height
      */
     public function height(int $height): static
@@ -133,6 +138,28 @@ class CodeEditor extends AbstractField
     public function autoHeight(bool $enabled = true): static
     {
         $this->autoHeight = $enabled;
+        return $this;
+    }
+
+    /**
+     * Apply a preset configuration to this field
+     *
+     * Presets provide pre-configured settings for common code editing use cases.
+     *
+     * @param string|object $preset Preset class name or instance
+     * @return static
+     */
+    public function preset(string|object $preset): static
+    {
+        $presetClass = is_string($preset) ? $preset : $preset::class;
+        $presetInstance = new $presetClass();
+
+        // Apply preset settings
+        $this->language($presetInstance->language());
+        $this->height($presetInstance->height());
+        $this->theme($presetInstance->theme());
+        $this->autoHeight($presetInstance->autoHeight());
+
         return $this;
     }
 

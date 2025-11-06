@@ -52,6 +52,40 @@ class ResourceController extends Controller
     }
 
     /**
+     * Format validation errors for toast notification
+     *
+     * @param array $errors
+     * @return string
+     */
+    private function formatValidationErrors(array $errors): string
+    {
+        if (empty($errors)) {
+            return 'Validation failed. Please check the form for errors.';
+        }
+
+        $messages = [];
+        foreach ($errors as $field => $fieldErrors) {
+            if (is_array($fieldErrors)) {
+                foreach ($fieldErrors as $error) {
+                    $messages[] = $error;
+                }
+            }
+        }
+
+        if (empty($messages)) {
+            return 'Validation failed. Please check the form for errors.';
+        }
+
+        // Limit to first 3 errors to avoid extremely long toast messages
+        if (count($messages) > 3) {
+            $messages = array_slice($messages, 0, 3);
+            $messages[] = sprintf('... and %d more error(s)', count($errors) - 3);
+        }
+
+        return implode("\n", $messages);
+    }
+
+    /**
      * Display resource index page with table
      *
      * GET /admin/resource/{slug}
@@ -124,6 +158,13 @@ class ResourceController extends Controller
                 'errors' => $exception->errors(),
                 'input' => $request->all(),
                 'rules' => $rules,
+            ]);
+
+            // Add toast notification for validation errors
+            $errorMessages = $this->formatValidationErrors($exception->errors());
+            $request->session()->flash('toast', [
+                'type' => 'danger',
+                'message' => $errorMessages,
             ]);
 
             throw $exception;
@@ -209,6 +250,13 @@ class ResourceController extends Controller
                 'errors' => $exception->errors(),
                 'input' => $request->all(),
                 'rules' => $rules,
+            ]);
+
+            // Add toast notification for validation errors
+            $errorMessages = $this->formatValidationErrors($exception->errors());
+            $request->session()->flash('toast', [
+                'type' => 'danger',
+                'message' => $errorMessages,
             ]);
 
             throw $exception;

@@ -41,6 +41,9 @@
                 @if($isDisabled) disabled @endif
                 @if($isReadonly) readonly @endif
                 @if($placeholderText) placeholder="{{ $placeholderText }}" @endif
+                @if(!empty($minLength)) minlength="{{ $minLength }}" @endif
+                @if(!empty($maxLength)) maxlength="{{ $maxLength }}" @endif
+                @if(!empty($pattern)) pattern="{{ $pattern }}" @endif
                 class="form-control {{ $class ?? '' }} input-affix-control"
                 @if(!empty($slugSource)) data-ave-slug-source="{{ $slugSource }}" @endif
                 {!! $attributes !!}
@@ -60,6 +63,9 @@
             @if($isDisabled) disabled @endif
             @if($isReadonly) readonly @endif
             @if($placeholderText) placeholder="{{ $placeholderText }}" @endif
+            @if(!empty($minLength)) minlength="{{ $minLength }}" @endif
+            @if(!empty($maxLength)) maxlength="{{ $maxLength }}" @endif
+            @if(!empty($pattern)) pattern="{{ $pattern }}" @endif
             class="form-control {{ $class ?? '' }}"
             @if(!empty($slugSource)) data-ave-slug-source="{{ $slugSource }}" @endif
             {!! $attributes !!}

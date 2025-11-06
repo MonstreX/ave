@@ -3,6 +3,7 @@
 namespace Monstrex\Ave\Core\Fields\Fieldset;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Log;
 use Monstrex\Ave\Contracts\HandlesNestedValue;
 use Monstrex\Ave\Core\DataSources\ArrayDataSource;
 use Monstrex\Ave\Core\FormContext;
@@ -21,7 +22,7 @@ class ItemFactory
     ) {
     }
 
-    public function makeFromData(int $index, array &$itemData, ?Model $record): Item
+    public function makeFromData(int $index, array &$itemData, ?Model $record, ?FormContext $parentContext = null): Item
     {
         $itemId = $this->resolveItemId($itemData, $index);
         $fields = [];
@@ -82,6 +83,13 @@ class ItemFactory
 
         // Create a context for this item with itemData as the data source
         $itemContext = FormContext::forData($itemData);
+
+        // Transfer errors from parent context to item context
+        // Errors are keyed like "fieldset.*.title" for fieldset items, so we need to extract
+        // errors for this specific item index
+        if ($parentContext) {
+            $this->transferItemErrors($itemContext, $parentContext, $itemStatePath, $this->fieldset->getKey());
+        }
 
         return new Item($index, $itemId, $itemData, $fields, $itemContext);
     }
@@ -233,6 +241,59 @@ class ItemFactory
 
         // Return new Row with processed columns
         return Row::make()->columns($processedColumns);
+    }
+
+    /**
+     * Transfer validation errors from parent context to item context.
+     *
+     * Validation errors come from Laravel as 'fieldset_key.INDEX.field_key'
+     * We need to extract errors for this specific item and make them available to the field's key() method.
+     *
+     * @param FormContext $itemContext The context for this specific item
+     * @param FormContext $parentContext The parent form context containing all errors
+     * @param string $itemStatePath The state path for this item (e.g., 'features.0')
+     * @param string $fieldsetKey The fieldset field key
+     * @return void
+     */
+    private function transferItemErrors(
+        FormContext $itemContext,
+        FormContext $parentContext,
+        string $itemStatePath,
+        string $fieldsetKey
+    ): void {
+        // Extract item index and ID from itemStatePath (e.g., "features.0" → index=0)
+        if (!preg_match('/\.(\d+)$/', $itemStatePath, $indexMatches)) {
+            return; // Can't extract index, skip error transfer
+        }
+
+        $currentItemIndex = (int) $indexMatches[1];
+
+        // Get all errors from parent context
+        $allErrors = $parentContext->errors();
+
+        // Extract errors that belong to this specific item
+        // Pattern: 'fieldset_key.INDEX.field_key'
+        foreach ($allErrors->messages() as $errorKey => $messages) {
+            // Format: "features.0.title", "features.1.content", etc.
+            $pattern = '/^' . preg_quote($fieldsetKey) . '\.(\d+)\.(.+)$/';
+
+            if (preg_match($pattern, $errorKey, $matches)) {
+                $errorItemIndex = (int) $matches[1];
+                $baseFieldKey = $matches[2];
+
+                // Only add errors that belong to this specific item
+                if ($errorItemIndex === $currentItemIndex) {
+                    // Convert baseKey (title) to the HTML format key that field->key() will use
+                    // field->key() returns something like "features[0][title]"
+                    // So we need to construct the same format for the error key
+                    $htmlFormattedKey = sprintf('%s[%d][%s]', $fieldsetKey, $currentItemIndex, $baseFieldKey);
+
+                    foreach ($messages as $message) {
+                        $itemContext->addError($htmlFormattedKey, $message);
+                    }
+                }
+            }
+        }
     }
 
     private function resolveItemId(array &$itemData, int $fallbackIndex): int

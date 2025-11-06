@@ -132,8 +132,8 @@
                                             <div class="row">
                                                 @foreach($itemField->getColumns() as $column)
                                                     <div class="col-{{ $column->getSpan() }}">
-                                                        @foreach($column->getFields() as $field)
-                                                            {!! $field->render($item['context']) !!}
+                                                        @foreach($column->getFields() as $colField)
+                                                            {!! $colField->render($item['context']) !!}
                                                         @endforeach
                                                     </div>
                                                 @endforeach
@@ -168,7 +168,8 @@
 {{-- Template for new items --}}
 <template id="fieldset-template-{{ $key ?? 'fieldset' }}">
     @php
-        $templateFields = $field?->prepareTemplateFields() ?? [];
+        $fieldsetInstance = $field; // Save fieldset instance before it gets overwritten in loops
+        $templateFields = $fieldsetInstance?->prepareTemplateFields() ?? [];
     @endphp
     <div class="fieldset-item{{ !empty($collapsed) ? ' collapsed' : '' }}" data-item-index="__INDEX__">
         @if(!empty($sortable))
@@ -225,8 +226,8 @@
                             <div class="row">
                                 @foreach($templateField->getColumns() as $column)
                                     <div class="col-{{ $column->getSpan() }}">
-                                        @foreach($column->getFields() as $field)
-                                            {!! $field->render($context) !!}
+                                        @foreach($column->getFields() as $templateItemField)
+                                            {!! $templateItemField->render($context) !!}
                                         @endforeach
                                     </div>
                                 @endforeach

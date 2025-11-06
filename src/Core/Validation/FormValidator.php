@@ -31,6 +31,11 @@ class FormValidator
             ? FormContext::forEdit($model, [], $request)
             : FormContext::forCreate([], $request);
 
+        Log::debug('FormValidator::rulesFromForm() START', [
+            'resource' => $resourceClass,
+            'mode' => $mode,
+        ]);
+
         foreach ($form->getAllFields() as $field) {
             if ($field instanceof HandlesFormRequest) {
                 $field->prepareRequest($request, $context);
@@ -72,6 +77,9 @@ class FormValidator
     {
         $fieldRules = $baseRules ?? $field->getRules();
 
+        // Convert field-specific validation attributes to Laravel rules
+        $fieldRules = $this->extractFieldValidationRules($field, $fieldRules);
+
         if (empty($fieldRules) && !$field->isRequired()) {
             return $rules;
         }
@@ -79,6 +87,21 @@ class FormValidator
         $rules[$key] = $this->formatRules($fieldRules, $field->isRequired());
 
         return $rules;
+    }
+
+    /**
+     * Extract field-specific validation rules based on field type.
+     * Converts field attributes (minLength, maxLength, pattern, min, max) to Laravel rules.
+     *
+     * Uses FieldValidationRuleExtractor for consistent rule extraction across the codebase.
+     *
+     * @param AbstractField $field
+     * @param array<int,string> $baseRules
+     * @return array<int,string>
+     */
+    protected function extractFieldValidationRules(AbstractField $field, array $baseRules): array
+    {
+        return FieldValidationRuleExtractor::extract($field, $baseRules);
     }
 
     /**

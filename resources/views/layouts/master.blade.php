@@ -21,6 +21,15 @@
 
 <div id="toast-container"></div>
 
+@if(session('toast'))
+    <script type="application/json" id="ave-toast-data">
+        {
+            "type": "{{ session('toast.type', 'info') }}",
+            "message": "{{ session('toast.message', '') }}"
+        }
+    </script>
+@endif
+
 <div id="ave-loader">
     <img src="{{ asset('vendor/ave/assets/images/logo-icon-light.png') }}" alt="Ave Loader">
 </div>

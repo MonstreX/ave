@@ -34,7 +34,7 @@ class Renderer
 
         foreach ($normalized as $index => &$itemData) {
             $itemData = is_array($itemData) ? $itemData : [];
-            $items[] = $this->itemFactory->makeFromData($index, $itemData, $record);
+            $items[] = $this->itemFactory->makeFromData($index, $itemData, $record, $context);
         }
         unset($itemData);
 
