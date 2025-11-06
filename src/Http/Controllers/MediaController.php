@@ -93,6 +93,11 @@ class MediaController extends Controller
             $modelId = $request->input('model_id');
             $collection = $request->input('collection');
 
+            // Scale image if needed before uploading
+            if ($file && str_starts_with($file->getMimeType(), 'image/')) {
+                $this->processImageBeforeUpload($file);
+            }
+
             // If model context provided, bind to model
             if ($modelClass && $modelId) {
                 // Load model
@@ -204,6 +209,11 @@ class MediaController extends Controller
             // Upload each file
             foreach ($request->file('files') as $file) {
                 try {
+                    // Scale image if needed before uploading
+                    if ($file && str_starts_with($file->getMimeType(), 'image/')) {
+                        $this->processImageBeforeUpload($file);
+                    }
+
                     if ($model) {
                         // Bind to model if available
                         $mediaCollection = Media::add($file)
@@ -522,6 +532,67 @@ class MediaController extends Controller
                 'success' => false,
                 'message' => 'Crop failed: ' . $e->getMessage(),
             ], 500);
+        }
+    }
+
+    /**
+     * Process image before upload (resize if needed)
+     */
+    protected function processImageBeforeUpload(\Illuminate\Http\UploadedFile $file): void
+    {
+        // Get max image size from config
+        $maxSize = config('ave.media.max_image_size', 2000);
+        if (!$maxSize || $maxSize <= 0) {
+            return;
+        }
+
+        try {
+            $absolutePath = $file->getRealPath();
+            $processor = new ImageProcessor();
+
+            // Read image and get dimensions
+            $image = $processor->read($absolutePath);
+            $width = $image->width;
+            $height = $image->height;
+
+            // Check if scaling is needed
+            $maxDimension = max($width, $height);
+            if ($maxDimension <= $maxSize) {
+                return;
+            }
+
+            // Calculate new dimensions maintaining aspect ratio
+            $aspectRatio = $width / $height;
+            if ($width > $height) {
+                // Width is limiting factor
+                $newWidth = $maxSize;
+                $newHeight = (int)($maxSize / $aspectRatio);
+            } else {
+                // Height is limiting factor
+                $newHeight = $maxSize;
+                $newWidth = (int)($maxSize * $aspectRatio);
+            }
+
+            // Resize image
+            $scaledImageData = $image
+                ->resize($newWidth, $newHeight)
+                ->encode();
+
+            // Write back to temporary uploaded file
+            file_put_contents($absolutePath, $scaledImageData);
+
+            \Log::info('[MediaController] Image scaled on upload', [
+                'original' => "{$width}x{$height}",
+                'scaled' => "{$newWidth}x{$newHeight}",
+                'max_size' => $maxSize,
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::warning('[MediaController] Failed to scale image on upload', [
+                'error' => $e->getMessage(),
+                'file' => $file->getClientOriginalName(),
+            ]);
+            // Continue without scaling if it fails - don't break upload
         }
     }
 }

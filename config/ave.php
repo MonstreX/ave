@@ -27,6 +27,9 @@ return [
             'root' => 'media',
             'disk' => 'public',
         ],
+        // Global maximum image size (in pixels, by longest side)
+        // Used for automatic image scaling on upload
+        'max_image_size' => env('AVE_MEDIA_MAX_IMAGE_SIZE', 2000),
         'transliterations' => [
             'ru' => [
                 'А' => 'A',

@@ -171,6 +171,17 @@ class Media extends AbstractField implements ProvidesValidationRules, HandlesPer
     }
 
     /**
+     * Set maximum image size (in pixels, by longest side).
+     * Takes priority over global config setting.
+     */
+    public function maxImageSize(int $sizeInPx): static
+    {
+        $this->config->setMaxImageSize($sizeInPx);
+
+        return $this;
+    }
+
+    /**
      * Define media properties for editing (title, alt, etc.).
      */
     public function props(string ...$propNames): static

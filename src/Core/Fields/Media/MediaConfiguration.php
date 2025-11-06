@@ -30,6 +30,8 @@ class MediaConfiguration
 
     protected array $propNames = [];
 
+    protected ?int $maxImageSize = null;
+
     public function __clone()
     {
         $this->accept = array_values($this->accept);
@@ -139,6 +141,16 @@ class MediaConfiguration
     public function propNames(): array
     {
         return $this->propNames;
+    }
+
+    public function setMaxImageSize(?int $sizeInPx): void
+    {
+        $this->maxImageSize = $sizeInPx;
+    }
+
+    public function maxImageSize(): ?int
+    {
+        return $this->maxImageSize;
     }
 }
 
