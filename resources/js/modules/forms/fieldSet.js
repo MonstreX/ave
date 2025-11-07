@@ -4,6 +4,7 @@ import { reinitFormComponents, reinitEditors } from './formReinit.js';
 import { aveEvents } from '../../core/EventBus.js';
 import { updateItemHeader } from './fieldset/headerUpdater.js';
 import { registerSortable } from './fieldset/sortableManager.js';
+import { ANIMATION_DURATIONS, ANIMATION_EASING } from './formConstants.js';
 
 /**
  * Initialize FieldSet functionality
@@ -89,8 +90,8 @@ export default function initFieldSet(root = document) {
             const isCardsBased = container.classList.contains('fieldset-cards-view');
 
             const sortableConfig = {
-                animation: 400,
-                easing: 'cubic-bezier(0.25, 0.8, 0.25, 1)',
+                animation: ANIMATION_DURATIONS.SORTABLE,
+                easing: ANIMATION_EASING.SORTABLE,
                 ghostClass: 'sortable-ghost',
                 dragClass: 'sortable-drag',
                 disabled: !isCardsBased, // Cards start enabled, others disabled
@@ -219,7 +220,7 @@ export default function initFieldSet(root = document) {
                     // Remove max-height after animation completes
                     setTimeout(() => {
                         fieldsContainer.style.maxHeight = '';
-                    }, 300);
+                    }, ANIMATION_DURATIONS.COLLAPSE);
                 } else {
                     // Collapse
                     fieldsContainer.style.maxHeight = fieldsContainer.scrollHeight + 'px';

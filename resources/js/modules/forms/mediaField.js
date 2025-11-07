@@ -3,15 +3,16 @@ import Cropper from 'cropperjs';
 import { confirm, createModal, destroyModal } from '../ui/modals.js';
 import { showToast } from '../ui/toast.js';
 import { aveEvents } from '../../core/EventBus.js';
+import { ANIMATION_DURATIONS, ANIMATION_EASING, HTTP_STATUS, FILE_SIZE } from './formConstants.js';
 
 /**
  * Convert bytes to human-readable format
  */
-function humanFileSize(bytes, decimals = 1) {
+function humanFileSize(bytes, decimals = FILE_SIZE.DECIMAL_PLACES) {
     const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
     if (bytes <= 0) return '0B';
-    const factor = Math.floor(Math.log(bytes) / Math.log(1024));
-    return (bytes / Math.pow(1024, factor)).toFixed(decimals) + sizes[factor];
+    const factor = Math.floor(Math.log(bytes) / Math.log(FILE_SIZE.BYTE_FACTOR));
+    return (bytes / Math.pow(FILE_SIZE.BYTE_FACTOR, factor)).toFixed(decimals) + sizes[factor];
 }
 
 // Store all media field containers for later reference
@@ -289,8 +290,8 @@ export default function initMediaFields(root = document) {
         // Initialize Sortable for drag-to-reorder (if multiple files allowed)
         if (multiple && grid) {
             Sortable.create(grid, {
-                animation: 400,
-                easing: 'cubic-bezier(0.25, 0.8, 0.25, 1)',
+                animation: ANIMATION_DURATIONS.SORTABLE,
+                easing: ANIMATION_EASING.SORTABLE,
                 handle: '.media-drag-handle',
                 onEnd: () => {
                     updateMediaNumbers();
@@ -383,7 +384,7 @@ export default function initMediaFields(root = document) {
             });
 
             xhr.addEventListener('load', () => {
-                if (xhr.status === 200) {
+                if (xhr.status === HTTP_STATUS.OK) {
                     try {
                         const response = JSON.parse(xhr.responseText);
 
