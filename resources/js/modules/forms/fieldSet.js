@@ -120,19 +120,34 @@ export default function initFieldSet(root = document) {
             });
         };
 
-        // Initialize Sortable.js for drag-and-drop (disabled by default)
+        // Initialize Sortable.js for drag-and-drop
         if (sortable) {
-            sortableInstance = Sortable.create(itemsContainer, {
+            // Check if this is a cards-based fieldset
+            const isCardsBased = container.classList.contains('fieldset-cards-view');
+
+            const sortableConfig = {
                 animation: 400,
                 easing: 'cubic-bezier(0.25, 0.8, 0.25, 1)',
-                handle: '.fieldset-drag-handle',
                 ghostClass: 'sortable-ghost',
                 dragClass: 'sortable-drag',
-                disabled: true, // Disabled by default, enabled via Sort Mode toggle
+                disabled: !isCardsBased, // Cards start enabled, others disabled
                 onEnd: () => {
                     updateItemNumbers();
                 }
-            });
+            };
+
+            // Only use drag-handle for non-cards fieldsets
+            if (!isCardsBased) {
+                sortableConfig.handle = '.fieldset-drag-handle';
+            }
+
+            sortableInstance = Sortable.create(itemsContainer, sortableConfig);
+
+            // Store sortable instance globally for other modules (e.g., fieldsetCards.js)
+            if (!window.sortableInstances) {
+                window.sortableInstances = {};
+            }
+            window.sortableInstances[fieldName] = sortableInstance;
         }
 
         // Add new item
