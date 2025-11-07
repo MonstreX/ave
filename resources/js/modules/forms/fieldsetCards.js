@@ -14,18 +14,43 @@ export default function initFieldsetCards(root = document) {
             updateAllItemHeaders();
         });
 
-        // Handle Edit button
+        // Handle Edit button - show sidebar
         container.addEventListener('click', (e) => {
             const editBtn = e.target.closest('[data-action="edit"]');
             if (editBtn) {
                 const item = editBtn.closest('[data-item-index]');
                 if (item) {
-                    item.classList.toggle('is-editing');
+                    const isEditing = item.classList.toggle('is-editing');
+                    if (isEditing) {
+                        document.body.classList.add('fieldset-editing');
+                    } else {
+                        document.body.classList.remove('fieldset-editing');
+                    }
                 }
             }
         });
 
-        // ===== FUNCTIONS =====
+        // Close sidebar on Escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                const editing = container.querySelector('.fieldset-item.is-editing');
+                if (editing) {
+                    editing.classList.remove('is-editing');
+                    document.body.classList.remove('fieldset-editing');
+                }
+            }
+        });
+
+        // Close sidebar on overlay click
+        document.addEventListener('click', (e) => {
+            if (e.target === document.body || e.target.tagName === 'HTML') {
+                const editing = container.querySelector('.fieldset-item.is-editing');
+                if (editing) {
+                    editing.classList.remove('is-editing');
+                    document.body.classList.remove('fieldset-editing');
+                }
+            }
+        });
 
         function updateAllItemHeaders() {
             container.querySelectorAll('[data-item-index]').forEach(item => {

@@ -47,19 +47,6 @@
             @if(!empty($itemInstances))
                 @foreach($itemInstances as $index => $item)
                     <div class="fieldset-item fieldset-card" data-item-index="{{ $index }}" data-item-id="{{ $item['id'] }}">
-                        @if(!empty($sortable))
-                            <div class="fieldset-drag-handle" title="Drag to reorder">
-                                <svg class="icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                    <circle cx="6" cy="4" r="1" fill="currentColor"/>
-                                    <circle cx="10" cy="4" r="1" fill="currentColor"/>
-                                    <circle cx="6" cy="8" r="1" fill="currentColor"/>
-                                    <circle cx="10" cy="8" r="1" fill="currentColor"/>
-                                    <circle cx="6" cy="12" r="1" fill="currentColor"/>
-                                    <circle cx="10" cy="12" r="1" fill="currentColor"/>
-                                </svg>
-                            </div>
-                        @endif
-
                         <div class="fieldset-item-content">
                             {{-- CARD VIEW: Header with preview and title --}}
                             <div class="fieldset-item-header fieldset-card-header"
@@ -146,19 +133,6 @@
         $templateFields = $fieldsetInstance?->prepareTemplateFields() ?? [];
     @endphp
     <div class="fieldset-item fieldset-card" data-item-index="__INDEX__">
-        @if(!empty($sortable))
-            <div class="fieldset-drag-handle" title="Drag to reorder">
-                <svg class="icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
-                    <circle cx="6" cy="4" r="1" fill="currentColor"/>
-                    <circle cx="10" cy="4" r="1" fill="currentColor"/>
-                    <circle cx="6" cy="8" r="1" fill="currentColor"/>
-                    <circle cx="10" cy="8" r="1" fill="currentColor"/>
-                    <circle cx="6" cy="12" r="1" fill="currentColor"/>
-                    <circle cx="10" cy="12" r="1" fill="currentColor"/>
-                </svg>
-            </div>
-        @endif
-
         <div class="fieldset-item-content">
             <div class="fieldset-item-header fieldset-card-header"
                  data-head-title-field="{{ $field->getHeadTitle() }}"
