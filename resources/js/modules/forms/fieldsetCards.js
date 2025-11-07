@@ -6,7 +6,12 @@ export default function initFieldsetCards(root = document) {
         }
 
         const itemsContainer = container.querySelector('[data-fieldset-items]');
-        let sortableInstance = null;
+        const fieldName = container.dataset.fieldName;
+
+        // Helper to get sortable instance
+        const getSortable = () => {
+            return window.sortableInstances && window.sortableInstances[fieldName];
+        };
 
         updateAllItemHeaders();
 
@@ -26,8 +31,9 @@ export default function initFieldsetCards(root = document) {
                     item.classList.add('is-editing');
                     document.body.classList.add('fieldset-editing');
                     // Disable sortable when editing
-                    if (sortableInstance) {
-                        sortableInstance.option('disabled', true);
+                    const sortable = getSortable();
+                    if (sortable) {
+                        sortable.option('disabled', true);
                     }
                     itemsContainer.classList.add('sortable-disabled');
                 }
@@ -41,8 +47,9 @@ export default function initFieldsetCards(root = document) {
                     item.classList.remove('is-editing');
                     document.body.classList.remove('fieldset-editing');
                     // Re-enable sortable
-                    if (sortableInstance) {
-                        sortableInstance.option('disabled', false);
+                    const sortable = getSortable();
+                    if (sortable) {
+                        sortable.option('disabled', false);
                     }
                     itemsContainer.classList.remove('sortable-disabled');
                 }
@@ -56,8 +63,9 @@ export default function initFieldsetCards(root = document) {
                 if (editing) {
                     editing.classList.remove('is-editing');
                     document.body.classList.remove('fieldset-editing');
-                    if (sortableInstance) {
-                        sortableInstance.option('disabled', false);
+                    const sortable = getSortable();
+                    if (sortable) {
+                        sortable.option('disabled', false);
                     }
                     itemsContainer.classList.remove('sortable-disabled');
                 }
@@ -71,19 +79,12 @@ export default function initFieldsetCards(root = document) {
                 if (editing) {
                     editing.classList.remove('is-editing');
                     document.body.classList.remove('fieldset-editing');
-                    if (sortableInstance) {
-                        sortableInstance.option('disabled', false);
+                    const sortable = getSortable();
+                    if (sortable) {
+                        sortable.option('disabled', false);
                     }
                     itemsContainer.classList.remove('sortable-disabled');
                 }
-            }
-        });
-
-        // Store sortable instance for later use
-        // It will be initialized by standard fieldSet.js
-        container.addEventListener('dom:updated', () => {
-            if (window.sortableInstances && window.sortableInstances[container.dataset.fieldName]) {
-                sortableInstance = window.sortableInstances[container.dataset.fieldName];
             }
         });
 
