@@ -17,9 +17,10 @@
 // ============================================
 
 .fieldset-items.fieldset-cards-grid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1rem;
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    gap: 1rem !important;
 }
 
 // ============================================
