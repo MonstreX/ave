@@ -107,6 +107,13 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+
+    // Empty state placeholder
+    &.is-empty {
+        font-style: italic;
+        opacity: 0.7;
+        background: #3c3c3c5a;
+    }
 }
 
 // ============================================

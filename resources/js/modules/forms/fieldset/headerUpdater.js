@@ -58,8 +58,11 @@ export function updateItemTitle(item, fieldName) {
 
     if (input && input.value) {
         titleElement.textContent = input.value;
+        titleElement.classList.remove('is-empty');
     } else {
-        titleElement.textContent = '';
+        // Show placeholder when empty
+        titleElement.textContent = 'Click to edit';
+        titleElement.classList.add('is-empty');
     }
 }
 
