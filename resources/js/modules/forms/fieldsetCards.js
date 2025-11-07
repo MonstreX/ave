@@ -17,39 +17,6 @@ export default function initFieldsetCards(root = document) {
         container.addEventListener('input', handleFieldChange, true);
         container.addEventListener('change', handleFieldChange, true);
         container.addEventListener('mediaChanged', handleMediaChange, true);
-        container.addEventListener('dom:updated', () => {
-            updateAllItemHeaders();
-            setupMediaWatchers();
-        });
-
-        // Watch for media changes in sidebar
-        function setupMediaWatchers() {
-            container.querySelectorAll('[data-item-index]').forEach(item => {
-
-                const cardFields = item.querySelector('.fieldset-card-fields');
-                if (!cardFields) return;
-
-                // Disconnect old observer if exists
-                if (item._fieldsetMediaObserver) {
-                    item._fieldsetMediaObserver.disconnect();
-                }
-                // Watch for img src changes in sidebar media container
-                const observer = new MutationObserver(() => {
-                    updateItemHeader(item);
-                });
-
-                observer.observe(cardFields, {
-                    childList: true,
-                    subtree: true,
-                    attributes: true,
-                    attributeFilter: ['src', 'style']
-                });
-                // Store observer reference
-                item._fieldsetMediaObserver = observer;
-            });
-        }
-
-        setupMediaWatchers();
 
         container.addEventListener('click', (e) => {
             const closeBtn = e.target.closest('[data-action="close-sidebar"]');
@@ -160,22 +127,21 @@ export default function initFieldsetCards(root = document) {
             const previewElement = item.querySelector('[data-item-preview]');
             if (!previewElement) return;
 
-            const allContainers = item.querySelectorAll(`[data-field-name*="${fieldName}"]`);
-            if (allContainers.length === 0) {
+            const mediaContainer = item.querySelector(`[data-field-name*="${fieldName}"]`);
+            if (!mediaContainer) {
                 previewElement.style.backgroundImage = '';
-                previewElement.textContent = '';
+                previewElement.style.display = 'none';
                 return;
             }
 
-            const mediaContainer = allContainers[0];
-            const firstImg = mediaContainer.querySelector('img');
+            const firstImg = mediaContainer.querySelector('.media-preview img');
 
             if (firstImg && firstImg.src && firstImg.src.length > 0) {
                 previewElement.style.backgroundImage = "url('" + firstImg.src + "')";
-                previewElement.textContent = '';
+                previewElement.style.display = 'block';
             } else {
                 previewElement.style.backgroundImage = '';
-                previewElement.textContent = '';
+                previewElement.style.display = 'none';
             }
         }
 
