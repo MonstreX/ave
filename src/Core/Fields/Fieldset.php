@@ -42,6 +42,7 @@ class Fieldset extends AbstractField implements HandlesFormRequest, ProvidesVali
     protected string $deleteButtonLabel = 'Delete';
     protected ?string $headTitle = null;
     protected ?string $headPreview = null;
+    protected int $columns = 3;
 
     /** @var array<int,array<string,mixed>> */
     protected array $preparedItems = [];
@@ -321,6 +322,18 @@ class Fieldset extends AbstractField implements HandlesFormRequest, ProvidesVali
         $this->headPreview = $fieldName;
 
         return $this;
+    }
+
+    public function columns(int $columns): static
+    {
+        $this->columns = max(1, $columns);
+
+        return $this;
+    }
+
+    public function getColumns(): int
+    {
+        return $this->columns;
     }
 
     public function prepareForDisplay(FormContext $context): void

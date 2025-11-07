@@ -1,6 +1,7 @@
 import initFormFields from './formFields';
 import initMediaField, { updateAllMediaHiddenInputs } from './mediaField';
 import initFieldSet from './fieldSet';
+import initFieldsetCards from './fieldsetCards';
 import initChipInputs from './chips';
 import initOptionCards from './optionCards';
 import initCustomSelects from './customSelects';
@@ -23,6 +24,7 @@ export default function initForms(container = document) {
     initSlugFields(container);
     initMediaField(container);
     initFieldSet(container);
+    initFieldsetCards(container);
 
     // Add form submit handler to update all media hidden inputs before submission
     container.querySelectorAll('form').forEach((form) => {

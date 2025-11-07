@@ -29,6 +29,7 @@ abstract class AbstractField implements FormField, NestableField
     protected bool $disabled = false;
     protected ?string $placeholder = null;
     protected ?string $view = null;
+    protected string $displayVariant = 'default';
 
     public function __construct(string $key)
     {
@@ -119,6 +120,13 @@ abstract class AbstractField implements FormField, NestableField
     public function template(string $view): static
     {
         $this->view = $view;
+
+        return $this;
+    }
+
+    public function displayAs(string $variant): static
+    {
+        $this->displayVariant = $variant;
 
         return $this;
     }
@@ -219,6 +227,23 @@ abstract class AbstractField implements FormField, NestableField
     protected function resolveDefaultView(): string
     {
         $template = Str::kebab($this->type());
+        $variant = $this->displayVariant;
+
+        // If not default variant, try to find variant-specific view
+        if ($variant !== 'default') {
+            $variantView = "ave::components.forms.fields.{$template}.{$variant}";
+            if (view()->exists($variantView)) {
+                return $variantView;
+            }
+        }
+
+        // Try default variant view (fieldset/default.blade.php pattern)
+        $defaultView = "ave::components.forms.fields.{$template}.default";
+        if (view()->exists($defaultView)) {
+            return $defaultView;
+        }
+
+        // Fallback to base view
         return "ave::components.forms.fields.{$template}";
     }
 
