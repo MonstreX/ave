@@ -52,6 +52,8 @@ export default function initFieldsetCards(root = document) {
                 if (item) {
                     item.classList.remove('is-editing');
                     document.body.classList.remove('fieldset-editing');
+                    // Update preview before closing (in case media was just added)
+                    updateItemHeader(item);
                     // Re-enable sortable
                     const sortable = getSortable();
                     if (sortable) {
@@ -67,6 +69,8 @@ export default function initFieldsetCards(root = document) {
             if (e.key === 'Escape') {
                 const editing = container.querySelector('.fieldset-item.is-editing');
                 if (editing) {
+                    // Update preview before closing
+                    updateItemHeader(editing);
                     editing.classList.remove('is-editing');
                     document.body.classList.remove('fieldset-editing');
                     const sortable = getSortable();
@@ -83,6 +87,8 @@ export default function initFieldsetCards(root = document) {
             if (e.target === document.body || e.target.tagName === 'HTML') {
                 const editing = container.querySelector('.fieldset-item.is-editing');
                 if (editing) {
+                    // Update preview before closing
+                    updateItemHeader(editing);
                     editing.classList.remove('is-editing');
                     document.body.classList.remove('fieldset-editing');
                     const sortable = getSortable();
@@ -132,10 +138,15 @@ export default function initFieldsetCards(root = document) {
             const previewElement = item.querySelector('[data-item-preview]');
             if (!previewElement) return;
 
+            // Look for media field in the entire item (not just visible part)
             const mediaContainer = item.querySelector(`[data-field-name*="${fieldName}"]`);
             if (!mediaContainer) return;
 
-            const img = mediaContainer.querySelector('img');
+            // Try to find first image - check all possible selectors
+            const img = mediaContainer.querySelector('.media-preview img') || 
+                       mediaContainer.querySelector('img[src]') ||
+                       mediaContainer.querySelector('img');
+            
             if (img && img.src) {
                 previewElement.style.backgroundImage = `url('${img.src}')`;
                 previewElement.textContent = '';
