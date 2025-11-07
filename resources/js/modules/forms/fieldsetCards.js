@@ -130,13 +130,17 @@ export default function initFieldsetCards(root = document) {
             const previewElement = item.querySelector('[data-item-preview]');
             if (!previewElement) return;
 
-            const mediaContainer = item.querySelector(`[data-field-name*="${fieldName}"]`);
-            if (!mediaContainer) return;
+            // Search ALL descendants of item for media container (including hidden sidebar)
+            const allContainers = item.querySelectorAll(`[data-field-name*="${fieldName}"]`);
+            if (allContainers.length === 0) return;
 
-            const firstImg = mediaContainer.querySelector('.media-preview:first-child img') ||
-                            mediaContainer.querySelector('img:first-of-type');
+            // Get first matching container
+            const mediaContainer = allContainers[0];
 
-            if (firstImg && firstImg.src) {
+            // Find FIRST image in container - this is from first media item
+            const firstImg = mediaContainer.querySelector('img');
+
+            if (firstImg && firstImg.src && firstImg.src.length > 0) {
                 previewElement.style.backgroundImage = "url('" + firstImg.src + "')";
                 previewElement.textContent = '';
             } else {
