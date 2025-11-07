@@ -60,12 +60,6 @@
                                     <span class="fieldset-item-title" data-item-title></span>
                                 @endif
 
-                                <button type="button" class="btn-fieldset-edit" data-action="edit" title="Edit">
-                                    <svg class="icon" width="18" height="18" viewBox="0 0 16 16" fill="none">
-                                        <path d="M3 14h10M11.5 2.5l2 2M2.5 13.5l8.5-8.5l2-2l-2-2l-8.5 8.5l-2 4z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                    </svg>
-                                </button>
-
                                 <button type="button" class="btn-fieldset-delete" data-action="delete" title="Delete">
                                     <svg class="icon" width="18" height="18" viewBox="0 0 16 16" fill="none">
                                         <path d="M2 4h12M5.5 4V2.5A1.5 1.5 0 0 1 7 1h2a1.5 1.5 0 0 1 1.5 1.5V4m2 0v10a1.5 1.5 0 0 1-1.5 1.5h-7A1.5 1.5 0 0 1 2.5 14V4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
@@ -162,12 +156,6 @@
                 @if($field->getHeadTitle())
                     <span class="fieldset-item-title" data-item-title></span>
                 @endif
-
-                <button type="button" class="btn-fieldset-edit" data-action="edit" title="Edit">
-                    <svg class="icon" width="18" height="18" viewBox="0 0 16 16" fill="none">
-                        <path d="M3 14h10M11.5 2.5l2 2M2.5 13.5l8.5-8.5l2-2l-2-2l-8.5 8.5l-2 4z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                </button>
 
                 <button type="button" class="btn-fieldset-delete" data-action="delete" title="Delete">
                     <svg class="icon" width="18" height="18" viewBox="0 0 16 16" fill="none">

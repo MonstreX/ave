@@ -22,11 +22,17 @@ export default function initFieldsetCards(root = document) {
             updateAllItemHeaders();
         });
 
-        // Handle Edit button - show sidebar and disable sortable
+        // Handle card click - show sidebar and disable sortable
         container.addEventListener('click', (e) => {
-            const editBtn = e.target.closest('[data-action="edit"]');
-            if (editBtn) {
-                const item = editBtn.closest('[data-item-index]');
+            // Ignore clicks on buttons (delete button)
+            if (e.target.closest('button')) {
+                return;
+            }
+
+            // Get the fieldset item if clicking on the card header
+            const cardHeader = e.target.closest('.fieldset-card-header');
+            if (cardHeader) {
+                const item = cardHeader.closest('[data-item-index]');
                 if (item) {
                     item.classList.add('is-editing');
                     document.body.classList.add('fieldset-editing');
