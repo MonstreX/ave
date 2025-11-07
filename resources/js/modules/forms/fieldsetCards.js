@@ -1,5 +1,6 @@
 import { updateItemHeader, updateAllItemHeaders } from './fieldset/headerUpdater.js';
 import { getSortable } from './fieldset/sortableManager.js';
+import { showOverlay, hideOverlay } from '../ui/overlayManager.js';
 
 export default function initFieldsetCards(root = document) {
     root.querySelectorAll('[data-fieldset].fieldset-cards-view').forEach(container => {
@@ -24,7 +25,7 @@ export default function initFieldsetCards(root = document) {
                 if (item) {
                     e.stopPropagation();
                     item.classList.remove('is-editing');
-                    document.body.classList.remove('fieldset-editing');
+                    hideOverlay();
                     updateItemHeader(item);
                     const sortable = getSortable(fieldName);
                     if (sortable) {
@@ -45,7 +46,7 @@ export default function initFieldsetCards(root = document) {
                 const item = cardHeader.closest('[data-item-index]');
                 if (item) {
                     item.classList.add('is-editing');
-                    document.body.classList.add('fieldset-editing');
+                    showOverlay();
                     const sortable = getSortable(fieldName);
                     if (sortable) {
                         sortable.option('disabled', true);
@@ -62,7 +63,7 @@ export default function initFieldsetCards(root = document) {
                 if (editing) {
                     updateItemHeader(editing);
                     editing.classList.remove('is-editing');
-                    document.body.classList.remove('fieldset-editing');
+                    hideOverlay();
                     const sortable = getSortable(fieldName);
                     if (sortable) {
                         sortable.option('disabled', false);
@@ -78,7 +79,7 @@ export default function initFieldsetCards(root = document) {
                 if (editing) {
                     updateItemHeader(editing);
                     editing.classList.remove('is-editing');
-                    document.body.classList.remove('fieldset-editing');
+                    hideOverlay();
                     const sortable = getSortable(fieldName);
                     if (sortable) {
                         sortable.option('disabled', false);
