@@ -14,6 +14,9 @@ use Monstrex\Ave\Core\Col;
 
 /**
  * Normalises incoming request payload for Fieldset fields.
+ *
+ * Note: Uses TraversesChildSchema trait via FieldsetField for consistent schema traversal.
+ * See TraversesChildSchema trait for the unified schema traversal interface.
  */
 class RequestProcessor
 {

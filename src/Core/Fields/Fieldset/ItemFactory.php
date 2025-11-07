@@ -14,6 +14,9 @@ use Monstrex\Ave\Core\Col;
 
 /**
  * Responsible for cloning and preparing child fields for Fieldset items.
+ *
+ * Note: Uses TraversesChildSchema trait via FieldsetField for consistent schema traversal.
+ * See TraversesChildSchema trait for the unified schema traversal interface.
  */
 class ItemFactory
 {

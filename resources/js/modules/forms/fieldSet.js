@@ -28,20 +28,6 @@ export default function initFieldSet(root = document) {
             return;
         }
 
-        const computeMetaKey = (value = '') => {
-            if (!value) {
-                return '';
-            }
-
-            return value
-                .replace(/\]/g, '')
-                .replace(/\[/g, '.')
-                .replace(/\.+/g, '.')
-                .replace(/^\./, '')
-                .replace(/\.$/, '')
-                .toLowerCase();
-        };
-
         let sortableInstance = null;
 
         const collectUsedItemIds = () =>
@@ -91,33 +77,8 @@ export default function initFieldSet(root = document) {
             element.dataset.itemIndex = displayIndex;
             element.dataset.itemId = itemId;
 
-            // Update data-meta-key for media field containers
-            // Convert state path format (e.g., "features.__ITEM__.icon") to metaKey format (e.g., "features_0_icon")
-            element.querySelectorAll('[data-meta-key*=".__ITEM__."]').forEach(mediaContainer => {
-                const oldMetaKey = mediaContainer.dataset.metaKey;
-                // Replace __ITEM__ placeholder with actual item ID, then normalize to metaKey format
-                const updatedPath = replacePlaceholders(oldMetaKey, itemId);
-                // Convert state path with dots to metaKey with underscores
-                const normalizedMetaKey = computeMetaKey(updatedPath);
-                mediaContainer.dataset.metaKey = normalizedMetaKey;
-
-                // Also update data-collection with the same item ID replacement
-                if (mediaContainer.dataset.collection && mediaContainer.dataset.collection.includes('__ITEM__')) {
-                    const updatedCollection = replacePlaceholders(mediaContainer.dataset.collection, itemId);
-                    mediaContainer.dataset.collection = updatedCollection;
-                }
-
-                // Update name attributes of hidden inputs for uploaded/deleted/props data
-                // This ensures request data is sent with the correct key that server expects
-                mediaContainer.querySelectorAll('input[data-uploaded-ids], input[data-deleted-ids], input[data-media-props="true"]').forEach(input => {
-                    if (input.name && input.name.includes(oldMetaKey)) {
-                        input.name = input.name.replace(oldMetaKey, normalizedMetaKey);
-                    }
-                });
-
-                // Reset the initialized flag so the field can be re-initialized with the new metaKey
-                delete mediaContainer.dataset.initialized;
-            });
+            // Note: Media field placeholder updates are now handled by mediaField.js listening to dom:updated event
+            // This removes the hard dependency between Fieldset and MediaField modules
         };
 
         // Initialize Sortable.js for drag-and-drop

@@ -31,6 +31,72 @@ const computeMetaKey = (value = '') => {
         .toLowerCase();
 };
 
+/**
+ * Replace placeholders (__ITEM__, __INDEX__, etc.) in a value
+ * Used for updating attributes when fieldset items are cloned
+ * @param {string} value - The value to process
+ * @param {number|string} itemId - The item ID to replace placeholders with
+ * @returns {string} - The value with placeholders replaced
+ */
+const replacePlaceholders = (value, itemId) => {
+    return value
+        .replace(/__INDEX__/g, itemId)
+        .replace(/__index__/g, itemId)
+        .replace(/__ITEM__/g, itemId)
+        .replace(/__item__/g, itemId);
+};
+
+/**
+ * Update media field placeholders when added to a Fieldset
+ * This method is called automatically when dom:updated event is emitted
+ * It replaces __ITEM__ placeholders with actual item IDs
+ * @param {HTMLElement} container - The media field container
+ * @returns {void}
+ */
+export function updateMediaFieldPlaceholders(container) {
+    if (!container || !container.classList.contains('media-field-container')) {
+        return;
+    }
+
+    const oldMetaKey = container.dataset.metaKey;
+    if (!oldMetaKey || !oldMetaKey.includes('__ITEM__')) {
+        return; // No placeholders to replace
+    }
+
+    // Get the fieldset item this media field belongs to
+    const fieldsetItem = container.closest('[data-fieldset-item]');
+    if (!fieldsetItem) {
+        return;
+    }
+
+    const itemId = fieldsetItem.dataset.itemId;
+    if (itemId === undefined) {
+        return;
+    }
+
+    // Replace placeholders in metaKey
+    const updatedPath = replacePlaceholders(oldMetaKey, itemId);
+    const normalizedMetaKey = computeMetaKey(updatedPath);
+
+    container.dataset.metaKey = normalizedMetaKey;
+
+    // Update data-collection if it has placeholders
+    if (container.dataset.collection && container.dataset.collection.includes('__ITEM__')) {
+        const updatedCollection = replacePlaceholders(container.dataset.collection, itemId);
+        container.dataset.collection = updatedCollection;
+    }
+
+    // Update hidden input names (uploaded-ids, deleted-ids, media-props)
+    container.querySelectorAll('input[data-uploaded-ids], input[data-deleted-ids], input[data-media-props="true"]').forEach(input => {
+        if (input.name && input.name.includes(oldMetaKey)) {
+            input.name = input.name.replace(oldMetaKey, normalizedMetaKey);
+        }
+    });
+
+    // Reset the initialized flag so the field can be re-initialized with the new metaKey
+    delete container.dataset.initialized;
+}
+
 export function updateAllMediaHiddenInputs() {
     mediaContainers.forEach((data) => {
         if (data.uploadedIdsInput) {
@@ -1012,6 +1078,25 @@ export default function initMediaFields(root = document) {
                 showToast('danger', 'Failed to delete files: ' + error.message);
             });
         }
+
+        // Listen for dom:updated events and update placeholders for media fields in dynamically added content
+        aveEvents.on('dom:updated', (element) => {
+            if (element.classList?.contains('media-field-container')) {
+                updateMediaFieldPlaceholders(element);
+                // Re-initialize if placeholders were updated
+                initMediaFields(element);
+            } else {
+                // Check if element contains media fields
+                const mediaFields = element.querySelectorAll?.('.media-field-container') || [];
+                mediaFields.forEach(mediaField => {
+                    updateMediaFieldPlaceholders(mediaField);
+                });
+                // Re-initialize nested media fields
+                if (mediaFields.length > 0) {
+                    initMediaFields(element);
+                }
+            }
+        });
     });
 }
 

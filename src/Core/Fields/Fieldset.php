@@ -14,6 +14,7 @@ use Monstrex\Ave\Core\Fields\Fieldset\Item;
 use Monstrex\Ave\Core\Fields\Fieldset\ItemFactory;
 use Monstrex\Ave\Core\Fields\Fieldset\Renderer;
 use Monstrex\Ave\Core\Fields\Fieldset\RequestProcessor;
+use Monstrex\Ave\Core\Fields\Fieldset\TraversesChildSchema;
 use Monstrex\Ave\Core\Row;
 use Monstrex\Ave\Core\Col;
 use Monstrex\Ave\Core\Validation\FieldValidationRuleExtractor;
@@ -28,6 +29,7 @@ use Monstrex\Ave\Core\Validation\FieldValidationRuleExtractor;
  */
 class Fieldset extends AbstractField implements HandlesFormRequest, ProvidesValidationRules, HandlesPersistence
 {
+    use TraversesChildSchema;
     /** @var array<int,AbstractField|Row> */
     protected array $childSchema = [];
 
@@ -169,28 +171,10 @@ class Fieldset extends AbstractField implements HandlesFormRequest, ProvidesVali
 
         $rules[$this->key()] = $this->formatRulesForValidation($baseRules, $this->isRequired());
 
-        foreach ($this->childSchema as $schemaItem) {
-            // Handle Row containers - iterate through columns and fields
-            if ($schemaItem instanceof Row) {
-                foreach ($schemaItem->getColumns() as $column) {
-                    foreach ($column->getFields() as $child) {
-                        if (!$child instanceof AbstractField) {
-                            continue;
-                        }
-
-                        $this->addChildValidationRules($rules, $child);
-                    }
-                }
-                continue;
-            }
-
-            // Handle regular AbstractField
-            if (!$schemaItem instanceof AbstractField) {
-                continue;
-            }
-
-            $this->addChildValidationRules($rules, $schemaItem);
-        }
+        // Use trait method to iterate through child schema
+        $this->forEachChildInSchema(function (AbstractField $field) use (&$rules) {
+            $this->addChildValidationRules($rules, $field);
+        });
 
         return $rules;
     }
