@@ -3,6 +3,7 @@ import { confirm, alert as showAlert } from '../ui/modals.js';
 import { reinitFormComponents, reinitEditors } from './formReinit.js';
 import { aveEvents } from '../../core/EventBus.js';
 import { updateItemHeader } from './fieldset/headerUpdater.js';
+import { registerSortable } from './fieldset/sortableManager.js';
 
 /**
  * Initialize FieldSet functionality
@@ -105,11 +106,9 @@ export default function initFieldSet(root = document) {
 
             sortableInstance = Sortable.create(itemsContainer, sortableConfig);
 
-            // Store sortable instance globally for other modules (e.g., fieldsetCards.js)
-            if (!window.sortableInstances) {
-                window.sortableInstances = {};
-            }
-            window.sortableInstances[fieldName] = sortableInstance;
+            // Register sortable instance with the manager
+            // This replaces the old window.sortableInstances global storage
+            registerSortable(container, fieldName, sortableInstance);
         }
 
         // Add new item

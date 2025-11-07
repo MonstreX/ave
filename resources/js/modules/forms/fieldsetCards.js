@@ -1,4 +1,5 @@
 import { updateItemHeader, updateAllItemHeaders } from './fieldset/headerUpdater.js';
+import { getSortable } from './fieldset/sortableManager.js';
 
 export default function initFieldsetCards(root = document) {
     root.querySelectorAll('[data-fieldset].fieldset-cards-view').forEach(container => {
@@ -9,10 +10,6 @@ export default function initFieldsetCards(root = document) {
 
         const itemsContainer = container.querySelector('[data-fieldset-items]');
         const fieldName = container.dataset.fieldName;
-
-        const getSortable = () => {
-            return window.sortableInstances && window.sortableInstances[fieldName];
-        };
 
         updateAllItemHeaders();
 
@@ -29,7 +26,7 @@ export default function initFieldsetCards(root = document) {
                     item.classList.remove('is-editing');
                     document.body.classList.remove('fieldset-editing');
                     updateItemHeader(item);
-                    const sortable = getSortable();
+                    const sortable = getSortable(fieldName);
                     if (sortable) {
                         sortable.option('disabled', false);
                     }
@@ -49,7 +46,7 @@ export default function initFieldsetCards(root = document) {
                 if (item) {
                     item.classList.add('is-editing');
                     document.body.classList.add('fieldset-editing');
-                    const sortable = getSortable();
+                    const sortable = getSortable(fieldName);
                     if (sortable) {
                         sortable.option('disabled', true);
                     }
@@ -66,7 +63,7 @@ export default function initFieldsetCards(root = document) {
                     updateItemHeader(editing);
                     editing.classList.remove('is-editing');
                     document.body.classList.remove('fieldset-editing');
-                    const sortable = getSortable();
+                    const sortable = getSortable(fieldName);
                     if (sortable) {
                         sortable.option('disabled', false);
                     }
@@ -82,7 +79,7 @@ export default function initFieldsetCards(root = document) {
                     updateItemHeader(editing);
                     editing.classList.remove('is-editing');
                     document.body.classList.remove('fieldset-editing');
-                    const sortable = getSortable();
+                    const sortable = getSortable(fieldName);
                     if (sortable) {
                         sortable.option('disabled', false);
                     }
