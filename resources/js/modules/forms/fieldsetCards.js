@@ -29,7 +29,10 @@ export default function initFieldsetCards(root = document) {
                     e.stopPropagation();
                     item.classList.remove('is-editing');
                     document.body.classList.remove('fieldset-editing');
-                    updateItemHeader(item);
+                    // Update preview after DOM settles (media might still be loading)
+                    setTimeout(() => {
+                        updateItemHeader(item);
+                    }, 100);
                     const sortable = getSortable();
                     if (sortable) {
                         sortable.option('disabled', false);
@@ -64,7 +67,9 @@ export default function initFieldsetCards(root = document) {
             if (e.key === 'Escape') {
                 const editing = container.querySelector('.fieldset-item.is-editing');
                 if (editing) {
-                    updateItemHeader(editing);
+                    setTimeout(() => {
+                        updateItemHeader(editing);
+                    }, 100);
                     editing.classList.remove('is-editing');
                     document.body.classList.remove('fieldset-editing');
                     const sortable = getSortable();
@@ -80,7 +85,9 @@ export default function initFieldsetCards(root = document) {
             if (e.target === document.body || e.target.tagName === 'HTML') {
                 const editing = container.querySelector('.fieldset-item.is-editing');
                 if (editing) {
-                    updateItemHeader(editing);
+                    setTimeout(() => {
+                        updateItemHeader(editing);
+                    }, 100);
                     editing.classList.remove('is-editing');
                     document.body.classList.remove('fieldset-editing');
                     const sortable = getSortable();
@@ -130,14 +137,14 @@ export default function initFieldsetCards(root = document) {
             const previewElement = item.querySelector('[data-item-preview]');
             if (!previewElement) return;
 
-            // Search ALL descendants of item for media container (including hidden sidebar)
             const allContainers = item.querySelectorAll(`[data-field-name*="${fieldName}"]`);
-            if (allContainers.length === 0) return;
+            if (allContainers.length === 0) {
+                previewElement.style.backgroundImage = '';
+                previewElement.textContent = '';
+                return;
+            }
 
-            // Get first matching container
             const mediaContainer = allContainers[0];
-
-            // Find FIRST image in container - this is from first media item
             const firstImg = mediaContainer.querySelector('img');
 
             if (firstImg && firstImg.src && firstImg.src.length > 0) {
