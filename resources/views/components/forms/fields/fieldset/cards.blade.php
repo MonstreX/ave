@@ -74,29 +74,47 @@
                                 </button>
                             </div>
 
-                            {{-- HIDDEN FORM: Show only when expanded --}}
+                            {{-- HIDDEN FORM: Show as sidebar when expanded --}}
                             <div class="fieldset-item-fields fieldset-card-fields" style="display: none;">
-                                <input type="hidden" name="{{ $key }}[{{ $item['id'] }}][_id]" value="{{ $item['id'] }}" data-field-id>
+                                {{-- Sidebar Header --}}
+                                <div class="fieldset-sidebar-header">
+                                    <h3>Edit Item</h3>
+                                    <button type="button" class="fieldset-sidebar-close" data-action="close-sidebar" title="Close">
+                                        <svg class="icon" width="20" height="20" viewBox="0 0 16 16" fill="none">
+                                            <path d="M2 2l12 12M14 2L2 14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                        </svg>
+                                    </button>
+                                </div>
 
-                                @if(!empty($item['fields']))
-                                    @foreach($item['fields'] as $itemField)
-                                        @if($itemField instanceof \Monstrex\Ave\Core\Row)
-                                            {{-- Render Row with processed columns --}}
-                                            <div class="row">
-                                                @foreach($itemField->getColumns() as $column)
-                                                    <div class="col-{{ $column->getSpan() }}">
-                                                        @foreach($column->getFields() as $colField)
-                                                            {!! $colField->render($item['context']) !!}
-                                                        @endforeach
-                                                    </div>
-                                                @endforeach
-                                            </div>
-                                        @else
-                                            {{-- Render regular field --}}
-                                            {!! $itemField->render($item['context']) !!}
-                                        @endif
-                                    @endforeach
-                                @endif
+                                {{-- Sidebar Content --}}
+                                <div class="fieldset-sidebar-content">
+                                    <input type="hidden" name="{{ $key }}[{{ $item['id'] }}][_id]" value="{{ $item['id'] }}" data-field-id>
+
+                                    @if(!empty($item['fields']))
+                                        @foreach($item['fields'] as $itemField)
+                                            @if($itemField instanceof \Monstrex\Ave\Core\Row)
+                                                {{-- Render Row with processed columns --}}
+                                                <div class="row">
+                                                    @foreach($itemField->getColumns() as $column)
+                                                        <div class="col-{{ $column->getSpan() }}">
+                                                            @foreach($column->getFields() as $colField)
+                                                                {!! $colField->render($item['context']) !!}
+                                                            @endforeach
+                                                        </div>
+                                                    @endforeach
+                                                </div>
+                                            @else
+                                                {{-- Render regular field --}}
+                                                {!! $itemField->render($item['context']) !!}
+                                            @endif
+                                        @endforeach
+                                    @endif
+                                </div>
+
+                                {{-- Sidebar Footer --}}
+                                <div class="fieldset-sidebar-footer">
+                                    <button type="button" class="btn btn-primary" data-action="close-sidebar">OK</button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -160,27 +178,45 @@
             </div>
 
             <div class="fieldset-item-fields fieldset-card-fields" style="display: none;">
-                <input type="hidden" name="{{ $key ?? 'fieldset' }}[__ITEM__][_id]" value="" data-field-id>
+                {{-- Sidebar Header --}}
+                <div class="fieldset-sidebar-header">
+                    <h3>Edit Item</h3>
+                    <button type="button" class="fieldset-sidebar-close" data-action="close-sidebar" title="Close">
+                        <svg class="icon" width="20" height="20" viewBox="0 0 16 16" fill="none">
+                            <path d="M2 2l12 12M14 2L2 14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                    </button>
+                </div>
 
-                @if(!empty($templateFields))
-                    @foreach($templateFields as $templateField)
-                        @if($templateField instanceof \Monstrex\Ave\Core\Row)
-                            {{-- Render Row with processed columns --}}
-                            <div class="row">
-                                @foreach($templateField->getColumns() as $column)
-                                    <div class="col-{{ $column->getSpan() }}">
-                                        @foreach($column->getFields() as $templateItemField)
-                                            {!! $templateItemField->render($context) !!}
-                                        @endforeach
-                                    </div>
-                                @endforeach
-                            </div>
-                        @else
-                            {{-- Render regular field --}}
-                            {!! $templateField->render($context) !!}
-                        @endif
-                    @endforeach
-                @endif
+                {{-- Sidebar Content --}}
+                <div class="fieldset-sidebar-content">
+                    <input type="hidden" name="{{ $key ?? 'fieldset' }}[__ITEM__][_id]" value="" data-field-id>
+
+                    @if(!empty($templateFields))
+                        @foreach($templateFields as $templateField)
+                            @if($templateField instanceof \Monstrex\Ave\Core\Row)
+                                {{-- Render Row with processed columns --}}
+                                <div class="row">
+                                    @foreach($templateField->getColumns() as $column)
+                                        <div class="col-{{ $column->getSpan() }}">
+                                            @foreach($column->getFields() as $templateItemField)
+                                                {!! $templateItemField->render($context) !!}
+                                            @endforeach
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @else
+                                {{-- Render regular field --}}
+                                {!! $templateField->render($context) !!}
+                            @endif
+                        @endforeach
+                    @endif
+                </div>
+
+                {{-- Sidebar Footer --}}
+                <div class="fieldset-sidebar-footer">
+                    <button type="button" class="btn btn-primary" data-action="close-sidebar">OK</button>
+                </div>
             </div>
         </div>
     </div>

@@ -287,3 +287,86 @@ body.fieldset-editing::before {
     font-size: 0.75rem;
     color: #718096;
 }
+
+// ============================================
+// SIDEBAR STYLES
+// ============================================
+
+.fieldset-sidebar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    border-bottom: 1px solid #e2e8f0;
+    background: #f9fafb;
+    flex-shrink: 0;
+
+    h3 {
+        margin: 0;
+        font-size: 1.125rem;
+        color: #2d3748;
+    }
+}
+
+.fieldset-sidebar-close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #718096;
+    padding: 0;
+    width: 2rem;
+    height: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+
+    &:hover {
+        color: #2d3748;
+        background-color: #edf2f7;
+    }
+
+    svg {
+        width: 1.25rem;
+        height: 1.25rem;
+    }
+}
+
+.fieldset-sidebar-content {
+    padding: 1.5rem;
+    overflow-y: auto;
+    flex: 1;
+
+    .row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+
+        &:last-child {
+            margin-bottom: 0;
+        }
+    }
+
+    .col-12,
+    .col-6,
+    .col-4,
+    .col-3 {
+        width: 100%;
+    }
+}
+
+.fieldset-sidebar-footer {
+    padding: 1.5rem;
+    border-top: 1px solid #e2e8f0;
+    background: #f9fafb;
+    flex-shrink: 0;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+}
+
+// Disable sortable when editing
+.fieldset-cards-grid.sortable-disabled .fieldset-card {
+    cursor: default !important;
+}

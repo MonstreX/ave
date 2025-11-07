@@ -5,6 +5,9 @@ export default function initFieldsetCards(root = document) {
             return;
         }
 
+        const itemsContainer = container.querySelector('[data-fieldset-items]');
+        let sortableInstance = null;
+
         updateAllItemHeaders();
 
         container.addEventListener('input', handleFieldChange, true);
@@ -14,18 +17,34 @@ export default function initFieldsetCards(root = document) {
             updateAllItemHeaders();
         });
 
-        // Handle Edit button - show sidebar
+        // Handle Edit button - show sidebar and disable sortable
         container.addEventListener('click', (e) => {
             const editBtn = e.target.closest('[data-action="edit"]');
             if (editBtn) {
                 const item = editBtn.closest('[data-item-index]');
                 if (item) {
-                    const isEditing = item.classList.toggle('is-editing');
-                    if (isEditing) {
-                        document.body.classList.add('fieldset-editing');
-                    } else {
-                        document.body.classList.remove('fieldset-editing');
+                    item.classList.add('is-editing');
+                    document.body.classList.add('fieldset-editing');
+                    // Disable sortable when editing
+                    if (sortableInstance) {
+                        sortableInstance.option('disabled', true);
                     }
+                    itemsContainer.classList.add('sortable-disabled');
+                }
+            }
+
+            // Handle close sidebar button
+            const closeBtn = e.target.closest('[data-action="close-sidebar"]');
+            if (closeBtn) {
+                const item = closeBtn.closest('[data-item-index]');
+                if (item) {
+                    item.classList.remove('is-editing');
+                    document.body.classList.remove('fieldset-editing');
+                    // Re-enable sortable
+                    if (sortableInstance) {
+                        sortableInstance.option('disabled', false);
+                    }
+                    itemsContainer.classList.remove('sortable-disabled');
                 }
             }
         });
@@ -37,6 +56,10 @@ export default function initFieldsetCards(root = document) {
                 if (editing) {
                     editing.classList.remove('is-editing');
                     document.body.classList.remove('fieldset-editing');
+                    if (sortableInstance) {
+                        sortableInstance.option('disabled', false);
+                    }
+                    itemsContainer.classList.remove('sortable-disabled');
                 }
             }
         });
@@ -48,7 +71,19 @@ export default function initFieldsetCards(root = document) {
                 if (editing) {
                     editing.classList.remove('is-editing');
                     document.body.classList.remove('fieldset-editing');
+                    if (sortableInstance) {
+                        sortableInstance.option('disabled', false);
+                    }
+                    itemsContainer.classList.remove('sortable-disabled');
                 }
+            }
+        });
+
+        // Store sortable instance for later use
+        // It will be initialized by standard fieldSet.js
+        container.addEventListener('dom:updated', () => {
+            if (window.sortableInstances && window.sortableInstances[container.dataset.fieldName]) {
+                sortableInstance = window.sortableInstances[container.dataset.fieldName];
             }
         });
 
