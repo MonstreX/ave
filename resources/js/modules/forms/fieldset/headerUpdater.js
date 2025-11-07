@@ -58,11 +58,34 @@ export function updateItemTitle(item, fieldName) {
 
     if (input && input.value) {
         titleElement.textContent = input.value;
-        titleElement.classList.remove('is-empty');
+        titleElement.style.display = 'block';
     } else {
-        // Show placeholder when empty
-        titleElement.textContent = 'Click to edit';
-        titleElement.classList.add('is-empty');
+        titleElement.style.display = 'none';
+    }
+
+    // Update placeholder visibility
+    updatePlaceholder(item);
+}
+
+/**
+ * Update placeholder visibility based on card content
+ * @param {HTMLElement} item - The fieldset item element
+ */
+function updatePlaceholder(item) {
+    const placeholder = item.querySelector('[data-item-placeholder]');
+    if (!placeholder) return;
+
+    const titleElement = item.querySelector('[data-item-title]');
+    const previewElement = item.querySelector('[data-item-preview]');
+
+    // Show placeholder if both title and preview are empty/hidden
+    const hasTitle = titleElement && titleElement.style.display !== 'none' && titleElement.textContent.trim();
+    const hasPreview = previewElement && previewElement.style.display !== 'none' && previewElement.style.backgroundImage;
+
+    if (!hasTitle && !hasPreview) {
+        placeholder.style.display = 'flex';
+    } else {
+        placeholder.style.display = 'none';
     }
 }
 
@@ -112,6 +135,9 @@ export function updateItemPreview(item, fieldName) {
         previewElement.style.backgroundImage = '';
         previewElement.style.display = 'none';
     }
+
+    // Update placeholder visibility
+    updatePlaceholder(item);
 }
 
 /**

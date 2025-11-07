@@ -56,6 +56,11 @@
                                     <div class="fieldset-item-preview" data-item-preview></div>
                                 @endif
 
+                                {{-- Center placeholder for empty cards --}}
+                                <div class="fieldset-item-placeholder" data-item-placeholder>
+                                    Click to edit
+                                </div>
+
                                 @if($field->getHeadTitle())
                                     <span class="fieldset-item-title" data-item-title></span>
                                 @endif
@@ -152,6 +157,11 @@
                 @if($field->getHeadPreview())
                     <div class="fieldset-item-preview" data-item-preview></div>
                 @endif
+
+                {{-- Center placeholder for empty cards --}}
+                <div class="fieldset-item-placeholder" data-item-placeholder>
+                    Click to edit
+                </div>
 
                 @if($field->getHeadTitle())
                     <span class="fieldset-item-title" data-item-title></span>
