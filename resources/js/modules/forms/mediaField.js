@@ -490,6 +490,14 @@ export default function initMediaFields(root = document) {
 
             grid?.appendChild(item);
 
+            // Update preview URL if this is an image
+            if (isImage) {
+                const img = item.querySelector('.media-image');
+                if (img && img.src) {
+                    container.dataset.previewUrl = img.src;
+                }
+            }
+
             // Emit event for potential component reinitialization
             // Allows other modules to react to media gallery updates
             aveEvents.emit('dom:updated', item);

@@ -9,6 +9,18 @@
         </label>
     @endif
 
+    @php
+        // Calculate the preview URL from the first image in mediaItems
+        $previewUrl = '';
+        if(!empty($mediaItems)) {
+            foreach($mediaItems as $media) {
+                if(str_starts_with($media->mime_type, 'image/')) {
+                    $previewUrl = $media->url();
+                    break;
+                }
+            }
+        }
+    @endphp
     <div class="media-field-container"
          style="--media-columns: {{ $columns ?? 6 }};"
          data-multiple="{{ $multiple ? 'true' : 'false' }}"
@@ -20,7 +32,8 @@
          data-model-type="{{ $modelType ?? '' }}"
          data-model-id="{{ $modelId ?? '' }}"
          data-meta-key="{{ $metaKey ?? '' }}"
-         data-prop-names="{{ json_encode($propNames ?? []) }}">
+         data-prop-names="{{ json_encode($propNames ?? []) }}"
+         @if($previewUrl) data-preview-url="{{ $previewUrl }}" @endif>
 
         {{-- Upload Area --}}
         <div class="media-upload-area" data-media-dropzone>

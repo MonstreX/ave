@@ -2,6 +2,7 @@ import Sortable from 'sortablejs';
 import { confirm, alert as showAlert } from '../ui/modals.js';
 import { reinitFormComponents, reinitEditors } from './formReinit.js';
 import { aveEvents } from '../../core/EventBus.js';
+import { updateItemHeader } from './fieldset/headerUpdater.js';
 
 /**
  * Initialize FieldSet functionality
@@ -364,45 +365,8 @@ export default function initFieldSet(root = document) {
             items.forEach(item => updateItemHeader(item));
         }
 
-        /**
-         * Update item header (title and preview)
-         */
-        function updateItemHeader(item) {
-            const header = item.querySelector('.fieldset-item-header');
-            if (!header) return;
-
-            const titleFieldName = header.dataset.headTitleField;
-            const previewFieldName = header.dataset.headPreviewField;
-
-            // Update title
-            if (titleFieldName) {
-                const titleElement = header.querySelector('[data-item-title]');
-                const titleField = item.querySelector(`[name$="[${titleFieldName}]"]`);
-
-                if (titleElement && titleField) {
-                    titleElement.textContent = titleField.value || '';
-                }
-            }
-
-            // Update preview
-            if (previewFieldName) {
-                const previewElement = header.querySelector('[data-item-preview]');
-                const mediaField = item.querySelector(`[data-field-name*="${previewFieldName}"]`);
-
-                if (previewElement && mediaField) {
-                    // Find first media item image
-                    const firstImage = mediaField.querySelector('.media-preview img');
-
-                    if (firstImage) {
-                        previewElement.style.backgroundImage = `url(${firstImage.src})`;
-                        previewElement.style.display = 'block';
-                    } else {
-                        previewElement.style.backgroundImage = '';
-                        previewElement.style.display = 'none';
-                    }
-                }
-            }
-        }
+        // Note: updateItemHeader is now imported from headerUpdater.js module
+        // This centralized function is shared between default and cards display modes
     });
 }
 

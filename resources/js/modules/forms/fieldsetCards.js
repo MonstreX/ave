@@ -1,3 +1,5 @@
+import { updateItemHeader, updateAllItemHeaders } from './fieldset/headerUpdater.js';
+
 export default function initFieldsetCards(root = document) {
     root.querySelectorAll('[data-fieldset].fieldset-cards-view').forEach(container => {
         const hasHeadFields = container.querySelector('[data-head-title-field], [data-head-preview-field]');
@@ -89,61 +91,8 @@ export default function initFieldsetCards(root = document) {
             }
         });
 
-        function updateAllItemHeaders() {
-            container.querySelectorAll('[data-item-index]').forEach(item => {
-                updateItemHeader(item);
-            });
-        }
-
-        function updateItemHeader(item) {
-            const header = item.querySelector('[data-head-title-field], [data-head-preview-field]');
-            if (!header) return;
-
-            const titleFieldName = header.dataset.headTitleField;
-            const previewFieldName = header.dataset.headPreviewField;
-
-            if (titleFieldName) {
-                updateItemTitle(item, titleFieldName);
-            }
-
-            if (previewFieldName) {
-                updateItemPreview(item, previewFieldName);
-            }
-        }
-
-        function updateItemTitle(item, fieldName) {
-            const titleElement = item.querySelector('[data-item-title]');
-            if (!titleElement) return;
-
-            const input = item.querySelector(`[name*="[${fieldName}]"]`);
-            if (input && input.value) {
-                titleElement.textContent = input.value;
-            } else {
-                titleElement.textContent = '';
-            }
-        }
-
-        function updateItemPreview(item, fieldName) {
-            const previewElement = item.querySelector('[data-item-preview]');
-            if (!previewElement) return;
-
-            const mediaContainer = item.querySelector(`[data-field-name*="${fieldName}"]`);
-            if (!mediaContainer) {
-                previewElement.style.backgroundImage = '';
-                previewElement.style.display = 'none';
-                return;
-            }
-
-            const firstImg = mediaContainer.querySelector('.media-preview img');
-
-            if (firstImg && firstImg.src && firstImg.src.length > 0) {
-                previewElement.style.backgroundImage = "url('" + firstImg.src + "')";
-                previewElement.style.display = 'block';
-            } else {
-                previewElement.style.backgroundImage = '';
-                previewElement.style.display = 'none';
-            }
-        }
+        // Note: updateItemHeader, updateItemTitle, updateItemPreview are now imported from headerUpdater.js
+        // This centralizes the logic for both default and cards display modes
 
         function handleFieldChange(e) {
             const item = e.target.closest('[data-item-index]');
