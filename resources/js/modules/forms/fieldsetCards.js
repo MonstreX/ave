@@ -21,9 +21,7 @@ export default function initFieldsetCards(root = document) {
             updateAllItemHeaders();
         });
 
-        // Handle clicks - check close button FIRST
         container.addEventListener('click', (e) => {
-            // CLOSE BUTTON - handle first before any other button logic
             const closeBtn = e.target.closest('[data-action="close-sidebar"]');
             if (closeBtn) {
                 const item = closeBtn.closest('[data-item-index]');
@@ -41,13 +39,11 @@ export default function initFieldsetCards(root = document) {
                 return;
             }
 
-            // DELETE BUTTON - ignore it
             const deleteBtn = e.target.closest('[data-action="delete"]');
             if (deleteBtn) {
                 return;
             }
 
-            // CARD HEADER CLICK - open sidebar
             const cardHeader = e.target.closest('.fieldset-card-header');
             if (cardHeader) {
                 const item = cardHeader.closest('[data-item-index]');
@@ -64,7 +60,6 @@ export default function initFieldsetCards(root = document) {
             }
         });
 
-        // Close sidebar on Escape
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 const editing = container.querySelector('.fieldset-item.is-editing');
@@ -81,7 +76,6 @@ export default function initFieldsetCards(root = document) {
             }
         });
 
-        // Close sidebar on overlay click
         document.addEventListener('click', (e) => {
             if (e.target === document.body || e.target.tagName === 'HTML') {
                 const editing = container.querySelector('.fieldset-item.is-editing');
@@ -139,12 +133,11 @@ export default function initFieldsetCards(root = document) {
             const mediaContainer = item.querySelector(`[data-field-name*="${fieldName}"]`);
             if (!mediaContainer) return;
 
-            const img = mediaContainer.querySelector('.media-preview img') || 
-                       mediaContainer.querySelector('img[src]') ||
-                       mediaContainer.querySelector('img');
-            
-            if (img && img.src) {
-                previewElement.style.backgroundImage = `url('${img.src}')`;
+            const firstImg = mediaContainer.querySelector('.media-preview:first-child img') ||
+                            mediaContainer.querySelector('img:first-of-type');
+
+            if (firstImg && firstImg.src) {
+                previewElement.style.backgroundImage = "url('" + firstImg.src + "')";
                 previewElement.textContent = '';
             } else {
                 previewElement.style.backgroundImage = '';
