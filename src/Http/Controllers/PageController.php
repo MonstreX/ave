@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Monstrex\Ave\Core\PageManager;
 use Monstrex\Ave\Core\Rendering\ViewResolver;
+use Monstrex\Ave\Exceptions\ResourceException;
 
 /**
  * Controller for handling standalone pages (independent from resources)
@@ -27,7 +28,7 @@ class PageController extends Controller
         $pageClass = $this->pages->page($slug);
 
         if (!$pageClass) {
-            abort(404, "Page '{$slug}' not found");
+            throw ResourceException::notFound($slug);
         }
 
         // Resolve view with fallback

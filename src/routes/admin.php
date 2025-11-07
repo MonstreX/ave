@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use Monstrex\Ave\Http\Controllers\ResourceController;
 use Monstrex\Ave\Http\Controllers\PageController;
 use Monstrex\Ave\Http\Controllers\MediaController;
+use Monstrex\Ave\Http\Middleware\HandleAveExceptions;
 
 $prefix = config('ave.route_prefix', 'admin');
 $middleware = Arr::wrap(config('ave.middleware', ['web']));
@@ -12,6 +13,9 @@ $middleware = Arr::wrap(config('ave.middleware', ['web']));
 if ($guard = config('ave.auth_guard')) {
     $middleware[] = 'auth:' . $guard;
 }
+
+// Add exception handling middleware for Ave routes
+$middleware[] = HandleAveExceptions::class;
 
 Route::prefix($prefix)
     ->middleware(array_filter($middleware))
