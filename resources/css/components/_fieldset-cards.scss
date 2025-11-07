@@ -273,3 +273,25 @@
 .fieldset-cards-grid.sortable-disabled .fieldset-card {
     cursor: default !important;
 }
+
+// ============================================
+// OVERLAY - Dark background when sidebar open
+// ============================================
+
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0);
+    z-index: 999;
+    pointer-events: none;
+    transition: background 0.2s;
+}
+
+body.fieldset-editing::before {
+    background: rgba(0, 0, 0, 0.4);
+    pointer-events: auto;
+}
