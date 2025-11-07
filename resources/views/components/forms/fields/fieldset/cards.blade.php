@@ -22,7 +22,7 @@
 <div class="form-field fieldset-field @if(!empty($errors)) has-error @endif" data-field-name="{{ $key ?? 'fieldset' }}">
     <div class="fieldset-container fieldset-cards-view"
          data-fieldset
-         data-sortable="{{ !empty($sortable) ? 'true' : 'false' }}"
+         data-sortable="true"
          data-collapsible="false"
          data-collapsed="false"
          data-min-items="{{ $minItems ?? '' }}"
@@ -38,16 +38,6 @@
                         @if(!empty($required))
                             <span class="required">*</span>
                         @endif
-                    </label>
-                @endif
-            </div>
-
-            <div class="fieldset-actions-right">
-                @if(!empty($sortable))
-                    <label class="fieldset-sort-toggle">
-                        <input type="checkbox" data-action="toggle-sort">
-                        <span class="toggle-slider"></span>
-                        <span class="toggle-label">Sort Mode</span>
                     </label>
                 @endif
             </div>
@@ -82,6 +72,12 @@
                                 @if($field->getHeadTitle())
                                     <span class="fieldset-item-title" data-item-title></span>
                                 @endif
+
+                                <button type="button" class="btn-fieldset-edit" data-action="edit" title="Edit">
+                                    <svg class="icon" width="18" height="18" viewBox="0 0 16 16" fill="none">
+                                        <path d="M3 14h10M11.5 2.5l2 2M2.5 13.5l8.5-8.5l2-2l-2-2l-8.5 8.5l-2 4z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </button>
 
                                 <button type="button" class="btn-fieldset-delete" data-action="delete" title="Delete">
                                     <svg class="icon" width="18" height="18" viewBox="0 0 16 16" fill="none">
@@ -174,6 +170,12 @@
                 @if($field->getHeadTitle())
                     <span class="fieldset-item-title" data-item-title></span>
                 @endif
+
+                <button type="button" class="btn-fieldset-edit" data-action="edit" title="Edit">
+                    <svg class="icon" width="18" height="18" viewBox="0 0 16 16" fill="none">
+                        <path d="M3 14h10M11.5 2.5l2 2M2.5 13.5l8.5-8.5l2-2l-2-2l-8.5 8.5l-2 4z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
 
                 <button type="button" class="btn-fieldset-delete" data-action="delete" title="Delete">
                     <svg class="icon" width="18" height="18" viewBox="0 0 16 16" fill="none">
