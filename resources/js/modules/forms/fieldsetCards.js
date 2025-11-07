@@ -19,7 +19,33 @@ export default function initFieldsetCards(root = document) {
         container.addEventListener('mediaChanged', handleMediaChange, true);
         container.addEventListener('dom:updated', () => {
             updateAllItemHeaders();
+            setupMediaWatchers();
         });
+
+        // Watch for media changes in sidebar
+        function setupMediaWatchers() {
+            container.querySelectorAll('[data-item-index]').forEach(item => {
+                if (item.dataset.mediaWatcherSetup) return;
+                item.dataset.mediaWatcherSetup = 'true';
+
+                const cardFields = item.querySelector('.fieldset-card-fields');
+                if (!cardFields) return;
+
+                // Watch for img src changes in sidebar media container
+                const observer = new MutationObserver(() => {
+                    updateItemHeader(item);
+                });
+
+                observer.observe(cardFields, {
+                    childList: true,
+                    subtree: true,
+                    attributes: true,
+                    attributeFilter: ['src', 'style']
+                });
+            });
+        }
+
+        setupMediaWatchers();
 
         container.addEventListener('click', (e) => {
             const closeBtn = e.target.closest('[data-action="close-sidebar"]');
@@ -29,10 +55,7 @@ export default function initFieldsetCards(root = document) {
                     e.stopPropagation();
                     item.classList.remove('is-editing');
                     document.body.classList.remove('fieldset-editing');
-                    // Update preview after DOM settles (media might still be loading)
-                    setTimeout(() => {
-                        updateItemHeader(item);
-                    }, 100);
+                    updateItemHeader(item);
                     const sortable = getSortable();
                     if (sortable) {
                         sortable.option('disabled', false);
@@ -67,9 +90,7 @@ export default function initFieldsetCards(root = document) {
             if (e.key === 'Escape') {
                 const editing = container.querySelector('.fieldset-item.is-editing');
                 if (editing) {
-                    setTimeout(() => {
-                        updateItemHeader(editing);
-                    }, 100);
+                    updateItemHeader(editing);
                     editing.classList.remove('is-editing');
                     document.body.classList.remove('fieldset-editing');
                     const sortable = getSortable();
@@ -85,9 +106,7 @@ export default function initFieldsetCards(root = document) {
             if (e.target === document.body || e.target.tagName === 'HTML') {
                 const editing = container.querySelector('.fieldset-item.is-editing');
                 if (editing) {
-                    setTimeout(() => {
-                        updateItemHeader(editing);
-                    }, 100);
+                    updateItemHeader(editing);
                     editing.classList.remove('is-editing');
                     document.body.classList.remove('fieldset-editing');
                     const sortable = getSortable();
