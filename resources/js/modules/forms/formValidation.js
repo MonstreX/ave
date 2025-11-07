@@ -92,46 +92,51 @@ function restoreValidationForField(field) {
 
 /**
  * Initialize form validation handler
- * Automatically disables validation for hidden fields on submit
+ * Automatically disables validation for hidden fields
+ *
+ * Strategy: Remove validation attributes from initially hidden fields.
+ * Use MutationObserver to handle dynamically hidden/shown fields.
  */
 export default function initFormValidation() {
+    // Immediately disable validation for any currently hidden fields
+    disableValidationForHiddenFields();
+
+    // Watch for changes in visibility (fields being hidden/shown)
+    const observer = new MutationObserver(() => {
+        disableValidationForHiddenFields();
+    });
+
+    // Observe the entire document for changes
+    observer.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['style', 'class'],
+        subtree: true,
+        characterData: false,
+    });
+
+    // Also watch for form submissions to re-disable in case something re-added validation
     document.addEventListener('submit', (e) => {
         const form = e.target;
-
-        if (!form || form.tagName !== 'FORM') {
-            return;
+        if (form && form.tagName === 'FORM') {
+            disableValidationForHiddenFields(form);
         }
+    });
+}
 
-        // Find all form fields that have validation attributes
-        const allFields = form.querySelectorAll(
-            'input[required], input[minlength], input[maxlength], input[pattern], input[min], input[max], input[step], ' +
-            'textarea[required], textarea[minlength], textarea[maxlength], textarea[pattern], ' +
-            'select[required]'
-        );
+/**
+ * Find all hidden fields and disable their validation attributes
+ * @param {HTMLElement} context - Optional form or container to search within
+ */
+function disableValidationForHiddenFields(context = document) {
+    const allFields = context.querySelectorAll(
+        'input[required], input[minlength], input[maxlength], input[pattern], input[min], input[max], input[step], ' +
+        'textarea[required], textarea[minlength], textarea[maxlength], textarea[pattern], ' +
+        'select[required]'
+    );
 
-        // Filter for hidden fields and disable their validation
-        const hiddenFields = Array.from(allFields).filter(field => !isElementVisible(field));
-
-        hiddenFields.forEach(field => {
+    Array.from(allFields).forEach(field => {
+        if (!isElementVisible(field)) {
             disableValidationForField(field);
-        });
-
-        // On form response (if validation errors exist), restore validation attributes
-        // This allows the form to be validated again on retry
-        const originalSubmit = form.submit;
-        form.submit = function() {
-            hiddenFields.forEach(field => {
-                restoreValidationForField(field);
-            });
-            originalSubmit.call(this);
-        };
-
-        // Also restore after form submission (for AJAX forms)
-        // Wait a tick to allow form submission to complete
-        setTimeout(() => {
-            hiddenFields.forEach(field => {
-                restoreValidationForField(field);
-            });
-        }, 100);
-    }, true); // Use capture phase to ensure we run before other handlers
+        }
+    });
 }
