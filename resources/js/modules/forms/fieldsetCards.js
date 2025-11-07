@@ -8,7 +8,6 @@ export default function initFieldsetCards(root = document) {
         const itemsContainer = container.querySelector('[data-fieldset-items]');
         const fieldName = container.dataset.fieldName;
 
-        // Helper to get sortable instance
         const getSortable = () => {
             return window.sortableInstances && window.sortableInstances[fieldName];
         };
@@ -22,45 +21,46 @@ export default function initFieldsetCards(root = document) {
             updateAllItemHeaders();
         });
 
-        // Handle card click - show sidebar and disable sortable
+        // Handle clicks - check close button FIRST
         container.addEventListener('click', (e) => {
-            // Ignore clicks on buttons (delete button)
-            if (e.target.closest('button')) {
-                return;
-            }
-
-            // Get the fieldset item if clicking on the card header
-            const cardHeader = e.target.closest('.fieldset-card-header');
-            if (cardHeader) {
-                const item = cardHeader.closest('[data-item-index]');
-                if (item) {
-                    item.classList.add('is-editing');
-                    document.body.classList.add('fieldset-editing');
-                    // Disable sortable when editing
-                    const sortable = getSortable();
-                    if (sortable) {
-                        sortable.option('disabled', true);
-                    }
-                    itemsContainer.classList.add('sortable-disabled');
-                }
-            }
-
-            // Handle close sidebar button
+            // CLOSE BUTTON - handle first before any other button logic
             const closeBtn = e.target.closest('[data-action="close-sidebar"]');
             if (closeBtn) {
                 const item = closeBtn.closest('[data-item-index]');
                 if (item) {
+                    e.stopPropagation();
                     item.classList.remove('is-editing');
                     document.body.classList.remove('fieldset-editing');
-                    // Update preview before closing (in case media was just added)
                     updateItemHeader(item);
-                    // Re-enable sortable
                     const sortable = getSortable();
                     if (sortable) {
                         sortable.option('disabled', false);
                     }
                     itemsContainer.classList.remove('sortable-disabled');
                 }
+                return;
+            }
+
+            // DELETE BUTTON - ignore it
+            const deleteBtn = e.target.closest('[data-action="delete"]');
+            if (deleteBtn) {
+                return;
+            }
+
+            // CARD HEADER CLICK - open sidebar
+            const cardHeader = e.target.closest('.fieldset-card-header');
+            if (cardHeader) {
+                const item = cardHeader.closest('[data-item-index]');
+                if (item) {
+                    item.classList.add('is-editing');
+                    document.body.classList.add('fieldset-editing');
+                    const sortable = getSortable();
+                    if (sortable) {
+                        sortable.option('disabled', true);
+                    }
+                    itemsContainer.classList.add('sortable-disabled');
+                }
+                return;
             }
         });
 
@@ -69,7 +69,6 @@ export default function initFieldsetCards(root = document) {
             if (e.key === 'Escape') {
                 const editing = container.querySelector('.fieldset-item.is-editing');
                 if (editing) {
-                    // Update preview before closing
                     updateItemHeader(editing);
                     editing.classList.remove('is-editing');
                     document.body.classList.remove('fieldset-editing');
@@ -87,7 +86,6 @@ export default function initFieldsetCards(root = document) {
             if (e.target === document.body || e.target.tagName === 'HTML') {
                 const editing = container.querySelector('.fieldset-item.is-editing');
                 if (editing) {
-                    // Update preview before closing
                     updateItemHeader(editing);
                     editing.classList.remove('is-editing');
                     document.body.classList.remove('fieldset-editing');
@@ -138,11 +136,9 @@ export default function initFieldsetCards(root = document) {
             const previewElement = item.querySelector('[data-item-preview]');
             if (!previewElement) return;
 
-            // Look for media field in the entire item (not just visible part)
             const mediaContainer = item.querySelector(`[data-field-name*="${fieldName}"]`);
             if (!mediaContainer) return;
 
-            // Try to find first image - check all possible selectors
             const img = mediaContainer.querySelector('.media-preview img') || 
                        mediaContainer.querySelector('img[src]') ||
                        mediaContainer.querySelector('img');
