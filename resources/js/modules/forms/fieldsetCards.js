@@ -25,12 +25,14 @@ export default function initFieldsetCards(root = document) {
         // Watch for media changes in sidebar
         function setupMediaWatchers() {
             container.querySelectorAll('[data-item-index]').forEach(item => {
-                if (item.dataset.mediaWatcherSetup) return;
-                item.dataset.mediaWatcherSetup = 'true';
 
                 const cardFields = item.querySelector('.fieldset-card-fields');
                 if (!cardFields) return;
 
+                // Disconnect old observer if exists
+                if (item._fieldsetMediaObserver) {
+                    item._fieldsetMediaObserver.disconnect();
+                }
                 // Watch for img src changes in sidebar media container
                 const observer = new MutationObserver(() => {
                     updateItemHeader(item);
@@ -42,6 +44,8 @@ export default function initFieldsetCards(root = document) {
                     attributes: true,
                     attributeFilter: ['src', 'style']
                 });
+                // Store observer reference
+                item._fieldsetMediaObserver = observer;
             });
         }
 
