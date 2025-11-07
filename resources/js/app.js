@@ -8,12 +8,17 @@ import initUI from './modules/ui';
 import initLoginPage from './modules/pages/login';
 import { setupFormReinitSubscriptions } from './modules/forms/formReinit.js';
 import { setupBulkActions } from './modules/resources/bulk-actions.js';
+import initFormValidation from './modules/forms/formValidation.js';
 
 // Expose global event bus
 window.Ave = window.Ave || {};
 window.Ave.events = aveEvents;
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Initialize form validation handler for hidden fields
+    // Allows forms with hidden/collapsed fields to submit without browser validation errors
+    initFormValidation();
+
     // Setup event-driven form component reinitialization
     // This allows components (fieldset, modals, AJAX loaders) to emit 'dom:updated'
     // and have form components automatically reinitialize
