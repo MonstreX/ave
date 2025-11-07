@@ -337,17 +337,6 @@ body.fieldset-editing::before {
     overflow-y: auto;
     flex: 1;
 
-    .row {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 1rem;
-        margin-bottom: 1.5rem;
-
-        &:last-child {
-            margin-bottom: 0;
-        }
-    }
-
     .col-12,
     .col-6,
     .col-4,
