@@ -6,6 +6,19 @@ use Exception;
 
 class ResourceException extends Exception
 {
+    protected int $statusCode = 500;
+
+    public function __construct(string $message = "", int $code = 0)
+    {
+        parent::__construct($message, $code);
+        $this->statusCode = $code;
+    }
+
+    public function getStatusCode(): int
+    {
+        return $this->statusCode;
+    }
+
     public static function notFound(string $slug): self
     {
         return new self("Resource '{$slug}' not found", 404);
