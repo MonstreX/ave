@@ -11,12 +11,10 @@ export default function initToggleBootstrap(root = document) {
         toggle.dataset.initialized = 'true';
 
         const checkbox = toggle.querySelector('input[type="checkbox"]');
-        const toggleGroup = toggle.querySelector('.toggle-group');
         const toggleOn = toggle.querySelector('.toggle-on');
         const toggleOff = toggle.querySelector('.toggle-off');
-        const handle = toggle.querySelector('.toggle-handle');
 
-        if (!checkbox || !toggleGroup || !toggleOn || !toggleOff || !handle) return;
+        if (!checkbox || !toggleOn || !toggleOff) return;
 
         const updateState = () => {
             toggle.classList.toggle('off', !checkbox.checked);
@@ -30,15 +28,12 @@ export default function initToggleBootstrap(root = document) {
         // Обработчик изменения checkbox
         checkbox.addEventListener('change', updateState);
 
-        // Обработчик клика по всему toggle контейнеру (в том числе по toggle-group)
-        toggle.addEventListener('click', e => {
-            // Не обрабатываем клик по самому checkbox
+        // Обработчик клика по всему toggle контейнеру
+        toggle.addEventListener('click', (e) => {
+            // Пропускаем если клик на самом checkbox
             if (e.target === checkbox) return;
 
-            e.preventDefault();
-            e.stopPropagation();
-
-            // Определяем где был клик и переключаем соответственно
+            // Определяем позицию клика в контейнере
             const rect = toggle.getBoundingClientRect();
             const clickX = e.clientX - rect.left;
             const toggleWidth = rect.width;
