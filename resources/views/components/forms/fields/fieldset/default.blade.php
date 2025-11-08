@@ -18,11 +18,22 @@
         $itemIds = $fieldsetData["itemIds"] ?? [];
         $helpText = $field->getHelpText();
         $errors = $context ? $context->getErrors($key) : [];
+
+        // Check if there are validation errors inside any item
+        $hasNestedErrors = false;
+        if (!empty($itemInstances)) {
+            foreach ($itemInstances as $item) {
+                if (!empty($item['context']) && $item['context']->errors()->isNotEmpty()) {
+                    $hasNestedErrors = true;
+                    break;
+                }
+            }
+        }
     }
 @endphp
 
 <div class="form-field fieldset-field @if(!empty($errors)) has-error @endif" data-field-name="{{ $key ?? 'fieldset' }}">
-    <div class="fieldset-container"
+    <div class="fieldset-container @if($hasNestedErrors) has-nested-error @endif"
          data-fieldset
          data-sortable="{{ !empty($sortable) ? 'true' : 'false' }}"
          data-collapsible="{{ !empty($collapsible) ? 'true' : 'false' }}"
