@@ -8,6 +8,7 @@ use Monstrex\Ave\Core\Fields\Number;
 use Monstrex\Ave\Core\Fields\Hidden;
 use Monstrex\Ave\Core\Fields\Select;
 use Monstrex\Ave\Core\Fields\Toggle;
+use Monstrex\Ave\Core\Fields\Checkbox;
 use Monstrex\Ave\Core\Fields\DateTimePicker;
 use Monstrex\Ave\Core\Fields\RichEditor;
 use Monstrex\Ave\Core\Fields\CodeEditor;
@@ -241,6 +242,56 @@ class BasicFieldsTest extends TestCase
         $this->assertFalse($field->extract(0));
         $this->assertFalse($field->extract(false));
         $this->assertFalse($field->extract(null));
+    }
+
+    /**
+     * Test Checkbox field
+     */
+    public function test_checkbox_configuration(): void
+    {
+        $field = Checkbox::make('is_published')
+            ->label('Published')
+            ->checkboxLabel('Mark as published')
+            ->default(false);
+
+        $this->assertEquals('is_published', $field->key());
+        $this->assertEquals('Published', $field->getLabel());
+        $this->assertEquals('Mark as published', $field->getCheckboxLabel());
+        $this->assertFalse($field->toArray()['default']);
+    }
+
+    /**
+     * Test Checkbox field type conversion
+     */
+    public function test_checkbox_extract_converts_to_integer(): void
+    {
+        $field = Checkbox::make('active');
+
+        $this->assertSame(1, $field->extract('on'));
+        $this->assertSame(1, $field->extract('1'));
+        $this->assertSame(1, $field->extract(1));
+        $this->assertSame(1, $field->extract(true));
+        $this->assertSame(0, $field->extract('off'));
+        $this->assertSame(0, $field->extract('0'));
+        $this->assertSame(0, $field->extract(0));
+        $this->assertSame(0, $field->extract(false));
+        $this->assertSame(0, $field->extract(null));
+    }
+
+    /**
+     * Test Checkbox validation
+     */
+    public function test_checkbox_validation_rules(): void
+    {
+        $field = Checkbox::make('agree_to_terms')
+            ->checkboxLabel('I agree')
+            ->required()
+            ->rules(['required', 'accepted']);
+
+        $rules = $field->getRules();
+
+        $this->assertContains('required', $rules);
+        $this->assertContains('accepted', $rules);
     }
 
     /**
