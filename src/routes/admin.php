@@ -6,6 +6,7 @@ use Monstrex\Ave\Http\Controllers\ResourceController;
 use Monstrex\Ave\Http\Controllers\PageController;
 use Monstrex\Ave\Http\Controllers\MediaController;
 use Monstrex\Ave\Http\Middleware\HandleAveExceptions;
+use Monstrex\Ave\Exceptions\ResourceException;
 
 $prefix = config('ave.route_prefix', 'admin');
 $middleware = Arr::wrap(config('ave.middleware', ['web']));
@@ -75,4 +76,9 @@ Route::prefix($prefix)
 
         Route::post('/media/bulk-delete', [MediaController::class, 'bulkDestroy'])
             ->name('ave.media.bulk-destroy');
+
+        // Fallback for unmapped admin routes - must be last
+        Route::fallback(function () {
+            throw ResourceException::notFound('page');
+        });
     });
