@@ -49,7 +49,7 @@
                     @php
                         $itemHasErrors = !empty($item['context']) && $item['context']->errors()->isNotEmpty();
                     @endphp
-                    <div class="fieldset-item fieldset-card@if($itemHasErrors) has-nested-error @endif" data-item-index="{{ $index }}" data-item-id="{{ $item['id'] }}">
+                    <div class="fieldset-item fieldset-card{{ $itemHasErrors ? ' has-nested-error' : '' }}" data-item-index="{{ $index }}" data-item-id="{{ $item['id'] }}">
                         <div class="fieldset-item-content">
                             {{-- CARD VIEW: Header with preview and title --}}
                             <div class="fieldset-item-header fieldset-card-header"

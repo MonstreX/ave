@@ -69,7 +69,7 @@
                     @php
                         $itemHasErrors = !empty($item['context']) && $item['context']->errors()->isNotEmpty();
                     @endphp
-                    <div class="fieldset-item{{ !empty($collapsed) ? ' collapsed' : '' }}@if($itemHasErrors) has-nested-error @endif" data-item-index="{{ $index }}" data-item-id="{{ $item['id'] }}">
+                    <div class="fieldset-item{{ !empty($collapsed) ? ' collapsed' : '' }}{{ $itemHasErrors ? ' has-nested-error' : '' }}" data-item-index="{{ $index }}" data-item-id="{{ $item['id'] }}">
                         @if(!empty($sortable))
                             <div class="fieldset-drag-handle" title="Drag to reorder">
                                 <svg class="icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
