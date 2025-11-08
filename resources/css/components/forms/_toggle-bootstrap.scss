@@ -1,0 +1,111 @@
+// ============================================
+// BOOTSTRAP-STYLE TOGGLE (Two-Button Design)
+// ============================================
+// Based on Voyager's bootstrap toggle style
+// Two-button toggle with "On" and "Off" states
+
+.toggle-bootstrap-wrapper {
+    display: block;
+    margin-top: 8px;
+
+    // Hide the actual checkbox input
+    .toggle-bootstrap-input {
+        display: none;
+    }
+
+    // Hide the hidden input for form submission
+    .toggle-bootstrap-hidden {
+        display: none;
+    }
+}
+
+.toggle-bootstrap-group {
+    display: inline-flex;
+    background-color: #f5f5f5;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+    overflow: hidden;
+    position: relative;
+    height: 29px;
+
+    .toggle-bootstrap-btn {
+        flex: 1;
+        padding: 4px 12px;
+        cursor: pointer;
+        user-select: none;
+        font-size: 13px;
+        font-weight: 500;
+        border: none;
+        background: transparent;
+        color: #666;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        white-space: nowrap;
+
+        &:hover {
+            background-color: rgba(0, 0, 0, 0.03);
+        }
+
+        // Active state
+        &.active {
+            background-color: var(--ave-color-primary, #0cb7e0);
+            color: #fff;
+            font-weight: 600;
+
+            &:hover {
+                background-color: darken(#0cb7e0, 5%);
+            }
+        }
+    }
+
+    // Handle separator line
+    .toggle-bootstrap-handle {
+        position: absolute;
+        top: 0;
+        left: 50%;
+        height: 100%;
+        width: 1px;
+        background-color: #ddd;
+        transform: translateX(-50%);
+    }
+}
+
+// Disabled state
+.toggle-bootstrap-group {
+    input:disabled ~ & {
+        opacity: 0.6;
+        cursor: not-allowed;
+
+        .toggle-bootstrap-btn {
+            cursor: not-allowed;
+
+            &.active {
+                background-color: #ccc;
+            }
+        }
+    }
+}
+
+// Error state
+.form-field-toggle-bootstrap {
+    &.has-error {
+        .toggle-bootstrap-group {
+            border-color: #dc3545;
+            box-shadow: 0 0 0 2px rgba(220, 53, 69, 0.1);
+        }
+    }
+}
+
+// Responsive sizing
+@media (max-width: 576px) {
+    .toggle-bootstrap-group {
+        height: 32px;
+
+        .toggle-bootstrap-btn {
+            padding: 6px 10px;
+            font-size: 12px;
+        }
+    }
+}

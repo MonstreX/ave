@@ -12,21 +12,30 @@ namespace Monstrex\Ave\Core\Fields;
  * - Supports 'on', '1', 1, true for true values
  * - All other values converted to false
  * - HTML input type: checkbox
- * - Multiple display variants: default (modern toggle switch) and voyager (simple checkbox)
- * - Optional on/off labels for Voyager compatibility
+ * - Multiple display variants:
+ *   - default: modern toggle switch (smooth animated slider)
+ *   - bootstrap: two-button toggle (like Voyager style with "On"/"Off" labels)
+ * - Optional on/off labels for bootstrap variant
  *
- * Example (Modern):
+ * Example (Modern Default):
  *   Toggle::make('is_published')
  *       ->label('Published')
  *       ->default(false)
  *
- * Example (Voyager style):
+ * Example (Bootstrap two-button style):
  *   Toggle::make('is_active')
- *       ->displayAs('voyager')
- *       ->label('Active')
- *       ->on('Yes')
- *       ->off('No')
+ *       ->displayAs('bootstrap')
+ *       ->label('Status')
+ *       ->on('Enabled')
+ *       ->off('Disabled')
  *
+ *   Toggle::make('site_debug')
+ *       ->displayAs('bootstrap')
+ *       ->label('Debug Mode')
+ *       ->on('Включен')
+ *       ->off('Отключен')
+ *
+ * Example (Simple checkbox):
  *   Toggle::make('agree_to_terms')
  *       ->label('I agree to the terms and conditions')
  *       ->required()
