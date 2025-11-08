@@ -13,7 +13,7 @@
         </label>
     @endif
 
-    <div class="toggle btn btn-primary @if(!$isChecked) off @endif"
+    <div class="toggle @if(!$isChecked) off @endif"
          data-toggle="toggle"
          data-on="{{ $onLabel }}"
          data-off="{{ $offLabel }}">
@@ -26,9 +26,9 @@
                @if($disabled ?? false) disabled @endif
                {!! $attributes !!}>
         <div class="toggle-group">
-            <label class="btn btn-primary toggle-on @if($isChecked) active @endif">{{ $onLabel }}</label>
-            <label class="btn btn-default toggle-off @if(!$isChecked) active @endif">{{ $offLabel }}</label>
-            <span class="toggle-handle btn btn-default"></span>
+            <label class="toggle-on @if($isChecked) active @endif">{{ $onLabel }}</label>
+            <label class="toggle-off @if(!$isChecked) active @endif">{{ $offLabel }}</label>
+            <span class="toggle-handle"></span>
         </div>
     </div>
 
