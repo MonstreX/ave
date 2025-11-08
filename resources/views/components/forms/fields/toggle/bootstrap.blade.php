@@ -26,8 +26,8 @@
                @if($disabled ?? false) disabled @endif
                {!! $attributes !!}>
         <div class="toggle-group">
-            <label class="btn btn-primary toggle-on">{{ $onLabel }}</label>
-            <label class="btn btn-default toggle-off @if($isChecked) active @endif">{{ $offLabel }}</label>
+            <label class="btn btn-primary toggle-on @if($isChecked) active @endif">{{ $onLabel }}</label>
+            <label class="btn btn-default toggle-off @if(!$isChecked) active @endif">{{ $offLabel }}</label>
             <span class="toggle-handle btn btn-default"></span>
         </div>
     </div>
@@ -49,8 +49,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const toggle = checkbox.closest('.toggle');
     const updateState = () => {
         toggle.classList.toggle('off', !checkbox.checked);
-        toggle.querySelector('.toggle-on').classList.toggle('active', !checkbox.checked);
-        toggle.querySelector('.toggle-off').classList.toggle('active', checkbox.checked);
+        toggle.querySelector('.toggle-on').classList.toggle('active', checkbox.checked);
+        toggle.querySelector('.toggle-off').classList.toggle('active', !checkbox.checked);
     };
 
     updateState();
