@@ -1,7 +1,13 @@
 // ============================================
-// BOOTSTRAP TOGGLE - v2.2.0 compatible styles
+// BOOTSTRAP TOGGLE v2.2.0 - Exact CSS
 // Based on bootstrap-toggle.css
 // ============================================
+
+.checkbox label .toggle,
+.checkbox-inline .toggle {
+    margin-left: -20px;
+    margin-right: 5px;
+}
 
 .toggle {
     overflow: hidden;
@@ -125,11 +131,4 @@
 .btn-group-xs > .toggle-off.btn,
 .toggle-off.btn-xs {
     padding-left: 12px;
-}
-
-// Form field styling
-.form-field {
-    .toggle.btn {
-        margin-top: 8px;
-    }
 }
