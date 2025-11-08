@@ -10,7 +10,9 @@ namespace Monstrex\Ave\Core\Fields;
  * Features:
  * - Minimum and maximum length constraints
  * - Regular expression pattern validation
- * - HTML input type: text
+ * - Multiple input types: text, email, url, tel, number, password
+ * - Prefix and suffix support (e.g., $, %, @)
+ * - HTML input type: text, email, url, tel, etc.
  *
  * Example:
  *   TextInput::make('username')
@@ -19,6 +21,18 @@ namespace Monstrex\Ave\Core\Fields;
  *       ->minLength(3)
  *       ->maxLength(50)
  *       ->pattern('^[a-zA-Z0-9_]+$')
+ *
+ * Example (Email variant):
+ *   TextInput::make('email')->email()->required()
+ *
+ * Example (URL variant):
+ *   TextInput::make('website')->url()
+ *
+ * Example (Tel variant):
+ *   TextInput::make('phone')->tel()
+ *
+ * Example (With prefix):
+ *   TextInput::make('price')->number()->prefix('$')
  */
 class TextInput extends AbstractField
 {
@@ -36,6 +50,21 @@ class TextInput extends AbstractField
      * Regular expression pattern for validation
      */
     protected ?string $pattern = null;
+
+    /**
+     * HTML input type (text, email, url, tel, number, password)
+     */
+    protected string $inputType = 'text';
+
+    /**
+     * Prefix text shown before input (e.g., $, %, @)
+     */
+    protected ?string $prefixText = null;
+
+    /**
+     * Suffix text shown after input (e.g., .00, %, km)
+     */
+    protected ?string $suffixText = null;
 
     /**
      * Set maximum allowed length
@@ -74,9 +103,97 @@ class TextInput extends AbstractField
     }
 
     /**
+     * Set input type to email
+     *
+     * @return static
+     */
+    public function email(): static
+    {
+        $this->inputType = 'email';
+        return $this;
+    }
+
+    /**
+     * Set input type to URL
+     *
+     * @return static
+     */
+    public function url(): static
+    {
+        $this->inputType = 'url';
+        return $this;
+    }
+
+    /**
+     * Set input type to tel (telephone)
+     *
+     * @return static
+     */
+    public function tel(): static
+    {
+        $this->inputType = 'tel';
+        return $this;
+    }
+
+    /**
+     * Set input type to number
+     *
+     * @return static
+     */
+    public function number(): static
+    {
+        $this->inputType = 'number';
+        return $this;
+    }
+
+    /**
+     * Set prefix text shown before input (e.g., $, %, @)
+     *
+     * @param string $prefix Prefix text
+     * @return static
+     */
+    public function prefix(string $prefix): static
+    {
+        $this->prefixText = $prefix;
+        return $this;
+    }
+
+    /**
+     * Get prefix text
+     *
+     * @return string|null
+     */
+    public function getPrefix(): ?string
+    {
+        return $this->prefixText;
+    }
+
+    /**
+     * Set suffix text shown after input (e.g., .00, %, km)
+     *
+     * @param string $suffix Suffix text
+     * @return static
+     */
+    public function suffix(string $suffix): static
+    {
+        $this->suffixText = $suffix;
+        return $this;
+    }
+
+    /**
+     * Get suffix text
+     *
+     * @return string|null
+     */
+    public function getSuffix(): ?string
+    {
+        return $this->suffixText;
+    }
+
+    /**
      * Convert field to array representation for Blade template
      *
-     * @return array Field data with maxLength, minLength, and pattern
+     * @return array Field data with maxLength, minLength, pattern, type, prefix, suffix
      */
     public function toArray(): array
     {
@@ -84,6 +201,9 @@ class TextInput extends AbstractField
             'maxLength' => $this->maxLength,
             'minLength' => $this->minLength,
             'pattern'   => $this->pattern,
+            'type'      => $this->inputType,
+            'prefix'    => $this->prefixText,
+            'suffix'    => $this->suffixText,
         ]);
     }
 }

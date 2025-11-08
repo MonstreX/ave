@@ -43,15 +43,88 @@ class BasicFieldsTest extends TestCase
      */
     public function test_text_input_rules(): void
     {
-        $field = TextInput::make('email')
+        $field = TextInput::make('username')
             ->required()
-            ->rules(['email', 'unique:users', 'required']);
+            ->rules(['required', 'string', 'unique:users']);
 
         $rules = $field->getRules();
 
         $this->assertContains('required', $rules);
-        $this->assertContains('email', $rules);
+        $this->assertContains('string', $rules);
         $this->assertContains('unique:users', $rules);
+    }
+
+    /**
+     * Test TextInput email variant
+     */
+    public function test_text_input_email_variant(): void
+    {
+        $field = TextInput::make('email')
+            ->email()
+            ->required();
+
+        $array = $field->toArray();
+        $this->assertEquals('email', $array['type']);
+    }
+
+    /**
+     * Test TextInput url variant
+     */
+    public function test_text_input_url_variant(): void
+    {
+        $field = TextInput::make('website')
+            ->url();
+
+        $array = $field->toArray();
+        $this->assertEquals('url', $array['type']);
+    }
+
+    /**
+     * Test TextInput tel variant
+     */
+    public function test_text_input_tel_variant(): void
+    {
+        $field = TextInput::make('phone')
+            ->tel();
+
+        $array = $field->toArray();
+        $this->assertEquals('tel', $array['type']);
+    }
+
+    /**
+     * Test TextInput number variant with prefix and suffix
+     */
+    public function test_text_input_number_with_affix(): void
+    {
+        $field = TextInput::make('price')
+            ->number()
+            ->prefix('$')
+            ->suffix('.00');
+
+        $array = $field->toArray();
+        $this->assertEquals('number', $array['type']);
+        $this->assertEquals('$', $array['prefix']);
+        $this->assertEquals('.00', $array['suffix']);
+        $this->assertEquals('$', $field->getPrefix());
+        $this->assertEquals('.00', $field->getSuffix());
+    }
+
+    /**
+     * Test TextInput chainability with type and affix
+     */
+    public function test_text_input_chainability_with_variants(): void
+    {
+        $field = TextInput::make('distance')
+            ->label('Distance')
+            ->url()
+            ->suffix('km')
+            ->required();
+
+        $this->assertEquals('distance', $field->key());
+        $this->assertEquals('Distance', $field->getLabel());
+        $this->assertEquals('url', $field->toArray()['type']);
+        $this->assertEquals('km', $field->getSuffix());
+        $this->assertTrue($field->isRequired());
     }
 
     /**
