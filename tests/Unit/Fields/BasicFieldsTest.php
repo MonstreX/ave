@@ -10,6 +10,7 @@ use Monstrex\Ave\Core\Fields\Select;
 use Monstrex\Ave\Core\Fields\Toggle;
 use Monstrex\Ave\Core\Fields\Checkbox;
 use Monstrex\Ave\Core\Fields\RadioGroup;
+use Monstrex\Ave\Core\Fields\PasswordInput;
 use Monstrex\Ave\Core\Fields\DateTimePicker;
 use Monstrex\Ave\Core\Fields\RichEditor;
 use Monstrex\Ave\Core\Fields\CodeEditor;
@@ -358,6 +359,68 @@ class BasicFieldsTest extends TestCase
 
         $this->assertContains('required', $rules);
         $this->assertContains('in:admin,user', $rules);
+    }
+
+    /**
+     * Test PasswordInput field configuration
+     */
+    public function test_password_input_configuration(): void
+    {
+        $field = PasswordInput::make('password')
+            ->label('Password')
+            ->minLength(8)
+            ->maxLength(50)
+            ->required();
+
+        $this->assertEquals('password', $field->key());
+        $this->assertEquals('Password', $field->getLabel());
+        $this->assertTrue($field->isRequired());
+        $this->assertTrue($field->hasVisibilityToggle());
+        $this->assertEquals(8, $field->toArray()['minLength']);
+        $this->assertEquals(50, $field->toArray()['maxLength']);
+    }
+
+    /**
+     * Test PasswordInput with toggle disabled
+     */
+    public function test_password_input_toggle_disabled(): void
+    {
+        $field = PasswordInput::make('pin')
+            ->showToggle(false)
+            ->minLength(4);
+
+        $this->assertFalse($field->hasVisibilityToggle());
+        $this->assertFalse($field->toArray()['showToggle']);
+    }
+
+    /**
+     * Test PasswordInput confirmation field
+     */
+    public function test_password_input_confirmation(): void
+    {
+        $field = PasswordInput::make('password_confirmation')
+            ->label('Confirm Password')
+            ->confirmation();
+
+        $this->assertTrue($field->isConfirmationField());
+        $this->assertTrue($field->toArray()['isConfirmation']);
+    }
+
+    /**
+     * Test PasswordInput validation rules
+     */
+    public function test_password_input_validation_rules(): void
+    {
+        $field = PasswordInput::make('password')
+            ->required()
+            ->minLength(8)
+            ->rules(['required', 'min:8', 'confirmed']);
+
+        $rules = $field->getRules();
+
+        $this->assertContains('required', $rules);
+        $this->assertContains('min:8', $rules);
+        $this->assertContains('confirmed', $rules);
     }
 
     /**
