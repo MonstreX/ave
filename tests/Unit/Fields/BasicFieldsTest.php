@@ -11,6 +11,7 @@ use Monstrex\Ave\Core\Fields\Toggle;
 use Monstrex\Ave\Core\Fields\Checkbox;
 use Monstrex\Ave\Core\Fields\RadioGroup;
 use Monstrex\Ave\Core\Fields\PasswordInput;
+use Monstrex\Ave\Core\Fields\File;
 use Monstrex\Ave\Core\Fields\DateTimePicker;
 use Monstrex\Ave\Core\Fields\RichEditor;
 use Monstrex\Ave\Core\Fields\CodeEditor;
@@ -494,6 +495,40 @@ class BasicFieldsTest extends TestCase
         $this->assertContains('required', $rules);
         $this->assertContains('min:8', $rules);
         $this->assertContains('confirmed', $rules);
+    }
+
+    /**
+     * Test File field single upload
+     */
+    public function test_file_field_single_upload(): void
+    {
+        $field = File::make('document')
+            ->label('Document')
+            ->maxFileSize(5120)
+            ->accept(['application/pdf']);
+
+        $this->assertEquals('document', $field->key());
+        $this->assertEquals('Document', $field->getLabel());
+        $this->assertFalse($field->isMultiple());
+        $this->assertEquals(5120, $field->getMaxFileSize());
+        $this->assertEquals(['application/pdf'], $field->getAcceptedMimes());
+    }
+
+    /**
+     * Test File field multiple upload
+     */
+    public function test_file_field_multiple_upload(): void
+    {
+        $field = File::make('attachments')
+            ->multiple(true)
+            ->maxFiles(5)
+            ->minFiles(1)
+            ->maxFileSize(10240);
+
+        $this->assertTrue($field->isMultiple());
+        $this->assertEquals(5, $field->getMaxFiles());
+        $this->assertEquals(1, $field->getMinFiles());
+        $this->assertEquals(10240, $field->getMaxFileSize());
     }
 
     /**
