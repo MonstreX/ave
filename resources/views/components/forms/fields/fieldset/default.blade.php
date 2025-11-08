@@ -18,22 +18,11 @@
         $itemIds = $fieldsetData["itemIds"] ?? [];
         $helpText = $field->getHelpText();
         $errors = $context ? $context->getErrors($key) : [];
-
-        // Check if there are validation errors inside any item
-        $hasNestedErrors = false;
-        if (!empty($itemInstances)) {
-            foreach ($itemInstances as $item) {
-                if (!empty($item['context']) && $item['context']->errors()->isNotEmpty()) {
-                    $hasNestedErrors = true;
-                    break;
-                }
-            }
-        }
     }
 @endphp
 
 <div class="form-field fieldset-field @if(!empty($errors)) has-error @endif" data-field-name="{{ $key ?? 'fieldset' }}">
-    <div class="fieldset-container @if($hasNestedErrors) has-nested-error @endif"
+    <div class="fieldset-container"
          data-fieldset
          data-sortable="{{ !empty($sortable) ? 'true' : 'false' }}"
          data-collapsible="{{ !empty($collapsible) ? 'true' : 'false' }}"
@@ -77,7 +66,10 @@
         <div class="fieldset-items" data-fieldset-items>
             @if(!empty($itemInstances))
                 @foreach($itemInstances as $index => $item)
-                    <div class="fieldset-item{{ !empty($collapsed) ? ' collapsed' : '' }}" data-item-index="{{ $index }}" data-item-id="{{ $item['id'] }}">
+                    @php
+                        $itemHasErrors = !empty($item['context']) && $item['context']->errors()->isNotEmpty();
+                    @endphp
+                    <div class="fieldset-item{{ !empty($collapsed) ? ' collapsed' : '' }}@if($itemHasErrors) has-nested-error @endif" data-item-index="{{ $index }}" data-item-id="{{ $item['id'] }}">
                         @if(!empty($sortable))
                             <div class="fieldset-drag-handle" title="Drag to reorder">
                                 <svg class="icon" width="16" height="16" viewBox="0 0 16 16" fill="none">

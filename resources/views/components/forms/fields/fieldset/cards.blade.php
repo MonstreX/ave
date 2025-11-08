@@ -16,22 +16,11 @@
         $itemIds = $fieldsetData["itemIds"] ?? [];
         $helpText = $field->getHelpText();
         $errors = $context ? $context->getErrors($key) : [];
-
-        // Check if there are validation errors inside any item
-        $hasNestedErrors = false;
-        if (!empty($itemInstances)) {
-            foreach ($itemInstances as $item) {
-                if (!empty($item['context']) && $item['context']->errors()->isNotEmpty()) {
-                    $hasNestedErrors = true;
-                    break;
-                }
-            }
-        }
     }
 @endphp
 
 <div class="form-field fieldset-field @if(!empty($errors)) has-error @endif" data-field-name="{{ $key ?? 'fieldset' }}">
-    <div class="fieldset-container fieldset-cards-view @if($hasNestedErrors) has-nested-error @endif"
+    <div class="fieldset-container fieldset-cards-view"
          data-fieldset
          data-sortable="true"
          data-collapsible="false"
@@ -57,7 +46,10 @@
         <div class="fieldset-items fieldset-cards-grid" data-fieldset-items>
             @if(!empty($itemInstances))
                 @foreach($itemInstances as $index => $item)
-                    <div class="fieldset-item fieldset-card" data-item-index="{{ $index }}" data-item-id="{{ $item['id'] }}">
+                    @php
+                        $itemHasErrors = !empty($item['context']) && $item['context']->errors()->isNotEmpty();
+                    @endphp
+                    <div class="fieldset-item fieldset-card@if($itemHasErrors) has-nested-error @endif" data-item-index="{{ $index }}" data-item-id="{{ $item['id'] }}">
                         <div class="fieldset-item-content">
                             {{-- CARD VIEW: Header with preview and title --}}
                             <div class="fieldset-item-header fieldset-card-header"
