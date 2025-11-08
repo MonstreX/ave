@@ -11,11 +11,12 @@ export default function initToggleBootstrap(root = document) {
         toggle.dataset.initialized = 'true';
 
         const checkbox = toggle.querySelector('input[type="checkbox"]');
+        const toggleGroup = toggle.querySelector('.toggle-group');
         const toggleOn = toggle.querySelector('.toggle-on');
         const toggleOff = toggle.querySelector('.toggle-off');
         const handle = toggle.querySelector('.toggle-handle');
 
-        if (!checkbox || !toggleOn || !toggleOff || !handle) return;
+        if (!checkbox || !toggleGroup || !toggleOn || !toggleOff || !handle) return;
 
         const updateState = () => {
             toggle.classList.toggle('off', !checkbox.checked);
@@ -29,24 +30,26 @@ export default function initToggleBootstrap(root = document) {
         // Обработчик изменения checkbox
         checkbox.addEventListener('change', updateState);
 
-        // Обработчик клика по "On" лейблу
-        toggleOn.addEventListener('click', e => {
-            e.preventDefault();
-            checkbox.checked = true;
-            checkbox.dispatchEvent(new Event('change'));
-        });
+        // Обработчик клика по всему toggle контейнеру (в том числе по toggle-group)
+        toggle.addEventListener('click', e => {
+            // Не обрабатываем клик по самому checkbox
+            if (e.target === checkbox) return;
 
-        // Обработчик клика по "Off" лейблу
-        toggleOff.addEventListener('click', e => {
             e.preventDefault();
-            checkbox.checked = false;
-            checkbox.dispatchEvent(new Event('change'));
-        });
+            e.stopPropagation();
 
-        // Обработчик клика по handle'у (переключение)
-        handle.addEventListener('click', e => {
-            e.preventDefault();
-            checkbox.checked = !checkbox.checked;
+            // Определяем где был клик и переключаем соответственно
+            const rect = toggle.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            const toggleWidth = rect.width;
+
+            // Если клик в левой половине - ON, если в правой - OFF
+            if (clickX < toggleWidth / 2) {
+                checkbox.checked = true;
+            } else {
+                checkbox.checked = false;
+            }
+
             checkbox.dispatchEvent(new Event('change'));
         });
     });
