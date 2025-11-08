@@ -4,6 +4,8 @@
 // Based on Voyager's bootstrap toggle style
 // Two-button toggle with "On" and "Off" states
 
+@use 'sass:color';
+
 .toggle-bootstrap-wrapper {
     display: block;
     margin-top: 8px;
@@ -55,7 +57,7 @@
             font-weight: 600;
 
             &:hover {
-                background-color: darken(#0cb7e0, 5%);
+                background-color: color.adjust(#0cb7e0, $lightness: -5%);
             }
         }
     }
