@@ -31,7 +31,7 @@ export default function initToggleBootstrap(root = document) {
         const maxWidth = Math.max(onWidth, offWidth);
 
         // Set equal width for both labels and container
-        toggle.style.maxWidth = maxWidth + 'px';
+        toggle.style.minWidth = maxWidth + 'px';
         toggleOn.style.width = maxWidth + 'px';
         toggleOff.style.width = maxWidth + 'px';
 
