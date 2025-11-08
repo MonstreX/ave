@@ -107,12 +107,12 @@ class CheckboxGroup extends AbstractField
     }
 
     /**
-     * Convert raw input values to array
+     * Convert raw input values to comma-separated string
      *
-     * Checkbox groups return array of selected values.
+     * Checkbox groups return comma-separated string of selected values for storage.
      *
      * @param mixed $raw Raw input value from form
-     * @return array|null Array of selected values or null if none selected
+     * @return string|null Comma-separated values or null if none selected
      */
     public function extract(mixed $raw): mixed
     {
@@ -120,12 +120,13 @@ class CheckboxGroup extends AbstractField
             return null;
         }
 
-        // If already an array, return it
+        // If already an array, convert to comma-separated string
         if (is_array($raw)) {
-            return !empty($raw) ? $raw : null;
+            $values = array_filter($raw, fn ($v) => !empty($v));
+            return !empty($values) ? implode(',', $values) : null;
         }
 
-        // If string, wrap in array
-        return [$raw];
+        // If string, return as-is
+        return !empty($raw) ? $raw : null;
     }
 }

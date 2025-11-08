@@ -6,7 +6,15 @@
     $isDisabled = $disabled ?? false;
     $isReadonly = $readonly ?? false;
     $isInline = $inline ?? false;
-    $selectedValues = (is_array($value ?? null)) ? $value : (!empty($value) ? [$value] : []);
+
+    // Parse comma-separated string to array
+    if (is_array($value ?? null)) {
+        $selectedValues = $value;
+    } elseif (!empty($value)) {
+        $selectedValues = array_filter(array_map('trim', explode(',', $value)));
+    } else {
+        $selectedValues = [];
+    }
 @endphp
 
 <div class="form-field form-field-checkbox-group @if($hasError) has-error @endif">

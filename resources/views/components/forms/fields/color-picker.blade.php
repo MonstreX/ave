@@ -30,7 +30,6 @@
             class="form-control color-picker-input {{ $class ?? '' }}"
             {!! $attributes !!}
         >
-        <span class="color-picker-display" style="background-color: {{ $colorValue }};"></span>
         <span class="color-picker-value">{{ $colorValue }}</span>
     </div>
 

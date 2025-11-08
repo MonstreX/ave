@@ -9,6 +9,7 @@ import initSlugFields from './slugFields';
 import initPasswordToggle from './passwordToggle';
 import initToggleBootstrap from './toggleBootstrap';
 import initTags from './tags';
+import initFileUpload from './fileUpload';
 
 // NOTE: Editors (richEditor, codeEditor) are now loaded separately via editors.js
 // which is only included on pages that have editor fields
@@ -26,6 +27,7 @@ export default function initForms(container = document) {
     initToggleBootstrap(container);
     initSlugFields(container);
     initTags(container);
+    initFileUpload(container);
     initMediaField(container);
     initFieldSet(container);
     initFieldsetCards(container);
@@ -35,6 +37,15 @@ export default function initForms(container = document) {
         form.addEventListener('submit', (e) => {
             // Update all media field hidden inputs before form submission
             updateAllMediaHiddenInputs();
+
+            // Log all form data for debugging
+            const formData = new FormData(form);
+            console.log('[Ave] Form submission - checking file fields:');
+            for (let [key, value] of formData.entries()) {
+                if (key.includes('attachment') || key.includes('featured') || key.includes('file')) {
+                    console.log('[Ave] Field:', key, 'Value:', value);
+                }
+            }
         });
     });
 }

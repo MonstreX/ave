@@ -57,6 +57,10 @@ Route::prefix($prefix)
         Route::get('/page/{slug}', [PageController::class, 'show'])
             ->name('ave.page.show');
 
+        // File upload route (for simple file fields)
+        Route::post('/api/file-upload', [MediaController::class, 'uploadFile'])
+            ->name('ave.api.file-upload');
+
         // Media routes
         Route::post('/media/upload', [MediaController::class, 'upload'])
             ->name('ave.media.upload');

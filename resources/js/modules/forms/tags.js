@@ -16,6 +16,7 @@ export default function initTags(root = document) {
         if (!input) return;
 
         // Add tag on Enter or separator character
+        // Handle TAB key properly
         input.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' || e.key === separator) {
                 e.preventDefault();
@@ -25,6 +26,19 @@ export default function initTags(root = document) {
                     addTag(chipInput, tagText, hiddenInput, separator);
                     input.value = '';
                 }
+            }
+
+            // Handle TAB key
+            if (e.key === 'Tab') {
+                const tagText = input.value.trim();
+
+                // If there's text in input, add it as tag and prevent default
+                if (tagText) {
+                    e.preventDefault();
+                    addTag(chipInput, tagText, hiddenInput, separator);
+                    input.value = '';
+                }
+                // If input is empty, allow default TAB behavior (move to next field)
             }
         });
 
@@ -69,6 +83,7 @@ function addTag(chipInput, tagText, hiddenInput, separator) {
     // Create chip element
     const chip = document.createElement('div');
     chip.className = 'chip';
+    chip.tabIndex = 0; // Make chip focusable for keyboard navigation
     chip.innerHTML = `
         <span class="chip-text">${escapeHtml(tagText)}</span>
         <span class="chip-remove" data-tag-remove>&times;</span>

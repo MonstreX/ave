@@ -601,7 +601,7 @@ class BasicFieldsTest extends TestCase
         $field = Tags::make('tags');
 
         $result = $field->extract('php, laravel, vue');
-        $this->assertEquals(['php', 'laravel', 'vue'], $result);
+        $this->assertEquals('php,laravel,vue', $result);
     }
 
     /**
@@ -612,8 +612,9 @@ class BasicFieldsTest extends TestCase
         $field = Tags::make('tags')->allowDuplicates(false);
 
         $result = $field->extract('php, laravel, php, vue, laravel');
-        $this->assertCount(3, $result);
-        $this->assertTrue(in_array('php', $result));
+        $tags = explode(',', $result);
+        $this->assertCount(3, $tags);
+        $this->assertContains('php', $tags);
     }
 
     /**
@@ -624,7 +625,7 @@ class BasicFieldsTest extends TestCase
         $field = Tags::make('tags');
 
         $result = $field->extract('  php  ,  laravel  ,  vue  ');
-        $this->assertEquals(['php', 'laravel', 'vue'], $result);
+        $this->assertEquals('php,laravel,vue', $result);
     }
 
     /**
@@ -670,10 +671,10 @@ class BasicFieldsTest extends TestCase
         $field = CheckboxGroup::make('tags');
 
         $result = $field->extract(['tag1', 'tag2']);
-        $this->assertEquals(['tag1', 'tag2'], $result);
+        $this->assertEquals('tag1,tag2', $result);
 
         $single = $field->extract('single');
-        $this->assertEquals(['single'], $single);
+        $this->assertEquals('single', $single);
 
         $null = $field->extract('');
         $this->assertNull($null);

@@ -727,4 +727,53 @@ class MediaController extends Controller
             // Continue without scaling if it fails - don't break upload
         }
     }
+
+    /**
+     * Upload simple file (for File field)
+     *
+     * Request params:
+     * - file: single file upload
+     * - field: field name (optional)
+     */
+    public function uploadFile(Request $request): JsonResponse
+    {
+        try {
+            $request->validate([
+                'file' => 'required|file|max:102400', // 100MB max
+                'field' => 'nullable|string',
+            ]);
+
+            $file = $request->file('file');
+            $field = $request->input('field', 'file');
+
+            // Generate unique filename
+            $fileName = time() . '_' . $file->getClientOriginalName();
+            $path = 'uploads/files/' . $field;
+
+            // Store file
+            $storedPath = $file->storeAs($path, $fileName, 'public');
+
+            return response()->json([
+                'success' => true,
+                'path' => '/storage/' . $storedPath,
+                'message' => 'File uploaded successfully',
+            ]);
+
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed: ' . implode(', ', $e->validator->errors()->all()),
+            ], 422);
+        } catch (\Exception $e) {
+            \Log::error('[MediaController] File upload error', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'File upload failed: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
 }

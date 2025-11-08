@@ -130,10 +130,11 @@ class Tags extends AbstractField
     /**
      * Extract and parse tag values from input
      *
-     * Parses comma-separated or custom-separated string into array of tags
+     * Parses comma-separated or custom-separated string into array of tags,
+     * then returns as comma-separated string for database storage
      *
      * @param mixed $raw Raw input value (string or array)
-     * @return array|null Array of tags or null if empty
+     * @return string|null Comma-separated tags string or null if empty
      */
     public function extract(mixed $raw): mixed
     {
@@ -163,6 +164,7 @@ class Tags extends AbstractField
         // Re-index array
         $tags = array_values($tags);
 
-        return !empty($tags) ? $tags : null;
+        // Return as comma-separated string for database storage
+        return !empty($tags) ? implode(',', $tags) : null;
     }
 }

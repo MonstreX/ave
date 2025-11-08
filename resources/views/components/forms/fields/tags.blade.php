@@ -19,11 +19,11 @@
         </label>
     @endif
 
-    <div class="chip-input" data-tags-field="{{ $key }}">
+    <div class="chip-input" data-tags-field="{{ $key }}" role="region" aria-label="Tags input">
         @foreach($tagsArray as $tag)
-            <div class="chip">
+            <div class="chip" tabindex="0">
                 <span class="chip-text">{{ trim($tag) }}</span>
-                <span class="chip-remove" data-tag-remove>&times;</span>
+                <span class="chip-remove" data-tag-remove style="cursor: pointer;">&times;</span>
             </div>
         @endforeach
 
@@ -37,7 +37,9 @@
             @if($placeholder) placeholder="{{ $placeholder }}" @endif
             class="tags-input {{ $class ?? '' }}"
             data-tags-separator="{{ $separator ?? ',' }}"
+            data-tags-key="{{ $key }}"
             autocomplete="off"
+            tabindex="0"
             {!! $attributes !!}
         >
     </div>
