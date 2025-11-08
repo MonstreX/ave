@@ -42,7 +42,7 @@
 }
 
 .toggle.off .toggle-group {
-    left: -100%;
+    left: -85%;
 }
 
 .toggle-off,
@@ -67,12 +67,16 @@
     &:hover {
         background-color: #f5f5f5;
     }
+}
 
-    &.active {
-        background-color: var(--ave-color-primary, #0cb7e0);
-        color: #fff;
-        font-weight: 600;
-    }
+.toggle-on {
+    background-color: var(--ave-color-primary, #0cb7e0);
+    color: #fff;
+}
+
+.toggle-off {
+    background-color: #eee;
+    color: #666;
 }
 
 .toggle-handle {
