@@ -10,6 +10,7 @@ use Monstrex\Ave\Core\Fields\Select;
 use Monstrex\Ave\Core\Fields\Toggle;
 use Monstrex\Ave\Core\Fields\Checkbox;
 use Monstrex\Ave\Core\Fields\RadioGroup;
+use Monstrex\Ave\Core\Fields\CheckboxGroup;
 use Monstrex\Ave\Core\Fields\PasswordInput;
 use Monstrex\Ave\Core\Fields\File;
 use Monstrex\Ave\Core\Fields\ColorPicker;
@@ -624,6 +625,58 @@ class BasicFieldsTest extends TestCase
 
         $result = $field->extract('  php  ,  laravel  ,  vue  ');
         $this->assertEquals(['php', 'laravel', 'vue'], $result);
+    }
+
+    /**
+     * Test CheckboxGroup field configuration
+     */
+    public function test_checkbox_group_configuration(): void
+    {
+        $options = [
+            'create' => 'Create',
+            'read' => 'Read',
+            'update' => 'Update',
+            'delete' => 'Delete',
+        ];
+
+        $field = CheckboxGroup::make('permissions')
+            ->label('Permissions')
+            ->options($options);
+
+        $this->assertEquals('permissions', $field->key());
+        $this->assertEquals('Permissions', $field->getLabel());
+        $this->assertEquals($options, $field->getOptions());
+        $this->assertFalse($field->isInline());
+    }
+
+    /**
+     * Test CheckboxGroup inline layout
+     */
+    public function test_checkbox_group_inline(): void
+    {
+        $field = CheckboxGroup::make('features')
+            ->options(['api' => 'API', 'webhook' => 'Webhook'])
+            ->inline();
+
+        $this->assertTrue($field->isInline());
+        $this->assertTrue($field->toArray()['inline']);
+    }
+
+    /**
+     * Test CheckboxGroup value extraction
+     */
+    public function test_checkbox_group_extract_array(): void
+    {
+        $field = CheckboxGroup::make('tags');
+
+        $result = $field->extract(['tag1', 'tag2']);
+        $this->assertEquals(['tag1', 'tag2'], $result);
+
+        $single = $field->extract('single');
+        $this->assertEquals(['single'], $single);
+
+        $null = $field->extract('');
+        $this->assertNull($null);
     }
 
     /**
