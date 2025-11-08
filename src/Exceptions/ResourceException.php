@@ -2,21 +2,12 @@
 
 namespace Monstrex\Ave\Exceptions;
 
-use Exception;
-
-class ResourceException extends Exception
+class ResourceException extends AveException
 {
-    protected int $statusCode = 500;
-
-    public function __construct(string $message = "", int $code = 0)
+    public function __construct(string $message = "", int $code = 500)
     {
         parent::__construct($message, $code);
         $this->statusCode = $code;
-    }
-
-    public function getStatusCode(): int
-    {
-        return $this->statusCode;
     }
 
     public static function notFound(string $slug): self

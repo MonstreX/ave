@@ -33,7 +33,7 @@ class HandleAveExceptions
         $statusCode = method_exists($e, 'getStatusCode') ? $e->getStatusCode() : 500;
 
         // Only handle specific error codes
-        if (!in_array($statusCode, [403, 404, 500])) {
+        if (!in_array($statusCode, [403, 404, 422, 500])) {
             throw $e; // Let Laravel handle it
         }
 
@@ -41,6 +41,7 @@ class HandleAveExceptions
         $defaultMessages = [
             403 => 'You don\'t have permission to access this resource.',
             404 => 'The page you\'re looking for doesn\'t exist.',
+            422 => 'Invalid configuration or request.',
             500 => 'Something went wrong on our end.',
         ];
 

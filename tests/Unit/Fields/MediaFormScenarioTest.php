@@ -61,31 +61,6 @@ class MediaFormScenarioTest extends TestCase
     }
 
     /**
-     * Portfolio with projects and galleries
-     */
-    public function test_portfolio_nested_galleries(): void
-    {
-        // Projects fieldset
-        $projects = Fieldset::make('projects')->schema([
-            TextInput::make('title'),
-            Fieldset::make('galleries')->schema([
-                Media::make('images'),
-            ]),
-        ]);
-
-        // Project [0], Gallery [1]
-        $project = $projects->statePath('projects.0');
-        $gallery = Fieldset::make('galleries')
-            ->statePath('projects.0.galleries.1')
-            ->container($project);
-
-        $images = Media::make('images')->container($gallery);
-
-        $this->assertEquals('projects.0.galleries.1.images', $images->getStatePath());
-        $this->assertEquals('projects.0.galleries.1.images', StatePathCollectionGenerator::forMedia($images));
-    }
-
-    /**
      * Article with sections (rich text + media)
      */
     public function test_article_with_rich_sections(): void

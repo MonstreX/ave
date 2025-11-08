@@ -9,14 +9,16 @@ use Monstrex\Ave\Http\Middleware\HandleAveExceptions;
 use Monstrex\Ave\Exceptions\ResourceException;
 
 $prefix = config('ave.route_prefix', 'admin');
-$middleware = Arr::wrap(config('ave.middleware', ['web']));
+
+// Add exception handling middleware first (innermost) so it catches all Ave exceptions
+$middleware = [HandleAveExceptions::class];
+
+// Then add other middleware
+$middleware = array_merge($middleware, Arr::wrap(config('ave.middleware', ['web'])));
 
 if ($guard = config('ave.auth_guard')) {
     $middleware[] = 'auth:' . $guard;
 }
-
-// Add exception handling middleware for Ave routes
-$middleware[] = HandleAveExceptions::class;
 
 Route::prefix($prefix)
     ->middleware(array_filter($middleware))

@@ -20,6 +20,7 @@ use Monstrex\Ave\View\Composers\SidebarComposer;
 use Monstrex\Ave\Support\PackageAssets;
 use Monstrex\Ave\Media\MediaStorage;
 use Monstrex\Ave\Core\Media\MediaRepository;
+use Monstrex\Ave\Exceptions\AveException;
 use Monstrex\Ave\Exceptions\ResourceException;
 
 /**
@@ -112,8 +113,9 @@ class AveServiceProvider extends ServiceProvider
      */
     protected function registerExceptionHandlers(): void
     {
+        // Handle all Ave exceptions (AveException and subclasses)
         $this->app->make(\Illuminate\Contracts\Debug\ExceptionHandler::class)->renderable(
-            function (ResourceException $e, $request) {
+            function (AveException $e, $request) {
                 // Only handle Ave admin routes
                 if (!$request->is('admin/*') && !$request->is('admin')) {
                     return null; // Let other handlers process
@@ -124,6 +126,7 @@ class AveServiceProvider extends ServiceProvider
                 $defaultMessages = [
                     403 => 'You don\'t have permission to access this resource.',
                     404 => 'The page you\'re looking for doesn\'t exist.',
+                    422 => 'Validation failed. Please check your input.',
                     500 => 'Something went wrong on our end.',
                 ];
 

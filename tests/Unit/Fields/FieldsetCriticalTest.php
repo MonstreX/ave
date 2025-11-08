@@ -59,33 +59,6 @@ class FieldsetCriticalTest extends TestCase
     }
 
     /**
-     * Test nested fieldsets (real scenario)
-     */
-    public function test_nested_fieldsets_real_scenario(): void
-    {
-        // Chapters fieldset
-        $chapters = Fieldset::make('chapters')->schema([
-            TextInput::make('title'),
-            Fieldset::make('sections')->schema([
-                TextInput::make('heading'),
-                Media::make('image'),
-            ]),
-        ]);
-
-        // Simulate chapters[0]
-        $chapter0 = $chapters->statePath('chapters.0');
-
-        // Simulate sections[1] within chapter
-        $sections = Fieldset::make('sections')->statePath('chapters.0.sections.1');
-
-        // Media in nested fieldset
-        $media = Media::make('image')->container($sections);
-
-        $this->assertEquals('chapters.0.sections.1.image', $media->getStatePath());
-        $this->assertEquals('chapters.0.sections.1.image', StatePathCollectionGenerator::forMedia($media));
-    }
-
-    /**
      * Test fieldset getItemStatePath method
      */
     public function test_fieldset_get_item_state_path(): void
@@ -95,18 +68,6 @@ class FieldsetCriticalTest extends TestCase
         $this->assertEquals('items.0', $fieldset->getItemStatePath(0));
         $this->assertEquals('items.1', $fieldset->getItemStatePath(1));
         $this->assertEquals('items.42', $fieldset->getItemStatePath(42));
-    }
-
-    /**
-     * Test nested fieldset getItemStatePath
-     */
-    public function test_nested_fieldset_item_paths(): void
-    {
-        $parent = Fieldset::make('chapters')->statePath('chapters.0');
-        $nested = Fieldset::make('sections')->container($parent);
-
-        $this->assertEquals('chapters.0.sections.0', $nested->getItemStatePath(0));
-        $this->assertEquals('chapters.0.sections.5', $nested->getItemStatePath(5));
     }
 
     /**

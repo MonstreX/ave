@@ -18,6 +18,7 @@ use Monstrex\Ave\Core\Fields\Fieldset\TraversesChildSchema;
 use Monstrex\Ave\Core\Row;
 use Monstrex\Ave\Core\Col;
 use Monstrex\Ave\Core\Validation\FieldValidationRuleExtractor;
+use Monstrex\Ave\Exceptions\FieldsetNestingException;
 
 /**
  * Fieldset - repeatable group of fields stored within a single JSON column.
@@ -74,9 +75,11 @@ class Fieldset extends AbstractField implements HandlesFormRequest, ProvidesVali
 
     /**
      * @param  array<int,AbstractField|Row>  $fields
+     * @throws FieldsetNestingException
      */
     public function schema(array $fields): static
     {
+        $this->validateNoNestedFieldsets($fields);
         $this->childSchema = $fields;
 
         return $this;
@@ -576,6 +579,33 @@ class Fieldset extends AbstractField implements HandlesFormRequest, ProvidesVali
         }
 
         return $candidate;
+    }
+
+    /**
+     * Validate that the schema does not contain nested Fieldset fields.
+     *
+     * @param array<int,AbstractField|Row> $fields
+     * @throws FieldsetNestingException
+     */
+    private function validateNoNestedFieldsets(array $fields): void
+    {
+        foreach ($fields as $item) {
+            // Check direct Fieldset
+            if ($item instanceof Fieldset) {
+                throw FieldsetNestingException::notAllowed();
+            }
+
+            // Check Fieldsets inside Row/Col structure
+            if ($item instanceof Row) {
+                foreach ($item->getColumns() as $column) {
+                    foreach ($column->getFields() as $field) {
+                        if ($field instanceof Fieldset) {
+                            throw FieldsetNestingException::notAllowed();
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
