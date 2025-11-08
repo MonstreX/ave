@@ -8,6 +8,7 @@ import initCustomSelects from './customSelects';
 import initSlugFields from './slugFields';
 import initPasswordToggle from './passwordToggle';
 import initToggleBootstrap from './toggleBootstrap';
+import initTags from './tags';
 
 // NOTE: Editors (richEditor, codeEditor) are now loaded separately via editors.js
 // which is only included on pages that have editor fields
@@ -24,6 +25,7 @@ export default function initForms(container = document) {
     initPasswordToggle(container);
     initToggleBootstrap(container);
     initSlugFields(container);
+    initTags(container);
     initMediaField(container);
     initFieldSet(container);
     initFieldsetCards(container);

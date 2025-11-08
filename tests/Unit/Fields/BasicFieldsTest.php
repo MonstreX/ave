@@ -13,6 +13,7 @@ use Monstrex\Ave\Core\Fields\RadioGroup;
 use Monstrex\Ave\Core\Fields\PasswordInput;
 use Monstrex\Ave\Core\Fields\File;
 use Monstrex\Ave\Core\Fields\ColorPicker;
+use Monstrex\Ave\Core\Fields\Tags;
 use Monstrex\Ave\Core\Fields\DateTimePicker;
 use Monstrex\Ave\Core\Fields\RichEditor;
 use Monstrex\Ave\Core\Fields\CodeEditor;
@@ -571,6 +572,58 @@ class BasicFieldsTest extends TestCase
         $this->assertEquals('#ffffff', $field->extract('FFFFFF')); // Add # if missing
         $this->assertNull($field->extract(''));
         $this->assertNull($field->extract(null));
+    }
+
+    /**
+     * Test Tags field configuration
+     */
+    public function test_tags_field_configuration(): void
+    {
+        $suggestions = ['laravel', 'php', 'javascript'];
+        $field = Tags::make('tags')
+            ->label('Tags')
+            ->separator(',')
+            ->suggestions($suggestions);
+
+        $this->assertEquals('tags', $field->key());
+        $this->assertEquals('Tags', $field->getLabel());
+        $this->assertEquals(',', $field->getSeparator());
+        $this->assertEquals($suggestions, $field->getSuggestions());
+        $this->assertFalse($field->allowsDuplicates());
+    }
+
+    /**
+     * Test Tags field parsing comma-separated string
+     */
+    public function test_tags_extract_parses_string(): void
+    {
+        $field = Tags::make('tags');
+
+        $result = $field->extract('php, laravel, vue');
+        $this->assertEquals(['php', 'laravel', 'vue'], $result);
+    }
+
+    /**
+     * Test Tags field removes duplicates
+     */
+    public function test_tags_extract_removes_duplicates(): void
+    {
+        $field = Tags::make('tags')->allowDuplicates(false);
+
+        $result = $field->extract('php, laravel, php, vue, laravel');
+        $this->assertCount(3, $result);
+        $this->assertTrue(in_array('php', $result));
+    }
+
+    /**
+     * Test Tags field trims whitespace
+     */
+    public function test_tags_extract_trims_whitespace(): void
+    {
+        $field = Tags::make('tags');
+
+        $result = $field->extract('  php  ,  laravel  ,  vue  ');
+        $this->assertEquals(['php', 'laravel', 'vue'], $result);
     }
 
     /**
