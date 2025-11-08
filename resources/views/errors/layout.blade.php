@@ -148,6 +148,49 @@
             margin-left: 1rem;
         }
 
+        .error-summary {
+            background: #f7fafc;
+            padding: 1rem 1rem 1rem 1rem;
+            border-radius: 4px;
+            border-left: 3px solid #667eea;
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+
+        .error-summary-content {
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 0.85rem;
+            color: #2d3748;
+            word-break: break-word;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            line-height: 1.6;
+            padding-right: 2.5rem;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 0.75rem;
+            right: 0.75rem;
+            padding: 0.4rem 0.8rem;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+
+        .copy-btn:hover {
+            background: #5568d3;
+        }
+
+        .copy-btn.copied {
+            background: #48bb78;
+        }
+
         .error-actions {
             display: flex;
             gap: 1rem;
@@ -248,19 +291,14 @@
             <div class="error-details">
                 <div class="error-details-title">Debug Information</div>
 
-                <div class="error-details-item">
-                    <div class="error-details-label">Exception:</div>
-                    <div class="error-details-content">{{ get_class($exception) }}</div>
-                </div>
+                <div class="error-summary">
+                    <button class="copy-btn" onclick="copyErrorSummary(this)">Copy</button>
+                    <div class="error-summary-content" id="error-summary">{{ get_class($exception) }}
 
-                <div class="error-details-item">
-                    <div class="error-details-label">Message:</div>
-                    <div class="error-details-content">{{ $exception->getMessage() }}</div>
-                </div>
+{{ $exception->getMessage() }}
 
-                <div class="error-details-item">
-                    <div class="error-details-label">File:</div>
-                    <div class="error-details-content">{{ $exception->getFile() }}:{{ $exception->getLine() }}</div>
+File: {{ $exception->getFile() }}
+Line: {{ $exception->getLine() }}</div>
                 </div>
 
                 @if($exception->getTrace())
@@ -297,5 +335,25 @@
             @endif
         </div>
     </div>
+
+    <script>
+        function copyErrorSummary(button) {
+            const summaryElement = document.getElementById('error-summary');
+            const text = summaryElement.innerText;
+
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = button.innerText;
+                button.innerText = 'Copied!';
+                button.classList.add('copied');
+
+                setTimeout(() => {
+                    button.innerText = originalText;
+                    button.classList.remove('copied');
+                }, 2000);
+            }).catch(() => {
+                alert('Failed to copy to clipboard');
+            });
+        }
+    </script>
 </body>
 </html>
