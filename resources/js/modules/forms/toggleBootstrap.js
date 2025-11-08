@@ -22,13 +22,23 @@ export default function initToggleBootstrap(root = document) {
             toggleOff.classList.toggle('active', !checkbox.checked);
         };
 
-        // Инициализация состояния
+        // Initialize state
         updateState();
 
-        // Обработчик изменения checkbox
+        // Calculate max width of labels and set inline styles
+        const onWidth = toggleOn.offsetWidth;
+        const offWidth = toggleOff.offsetWidth;
+        const maxWidth = Math.max(onWidth, offWidth);
+
+        // Set equal width for both labels and container
+        toggle.style.maxWidth = maxWidth + 'px';
+        toggleOn.style.width = maxWidth + 'px';
+        toggleOff.style.width = maxWidth + 'px';
+
+        // Handle checkbox change
         checkbox.addEventListener('change', updateState);
 
-        // Обработчик клика по toggle контейнеру - просто переключаем
+        // Handle toggle click - just toggle state
         toggle.addEventListener('click', () => {
             checkbox.checked = !checkbox.checked;
             checkbox.dispatchEvent(new Event('change'));

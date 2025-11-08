@@ -6,31 +6,34 @@
 @endphp
 
 <div class="form-field @if($hasError) has-error @endif">
-    @if($label ?? $field->getLabel())
-        <label class="form-label">
-            {{ $label ?? $field->getLabel() }}
-            @if($required ?? $field->isRequired())<span class="required">*</span>@endif
-        </label>
-    @endif
-
-    <div class="toggle @if(!$isChecked) off @endif"
-         data-toggle="toggle"
-         data-on="{{ $onLabel }}"
-         data-off="{{ $offLabel }}">
-        <input type="checkbox"
-               id="{{ $id }}"
-               name="{{ $key }}"
-               class="toggleswitch"
-               @if($isChecked) checked @endif
-               @if($required ?? $field->isRequired()) required @endif
-               @if($disabled ?? false) disabled @endif
-               {!! $attributes !!}>
-        <div class="toggle-group">
-            <label class="toggle-on @if($isChecked) active @endif">{{ $onLabel }}</label>
-            <label class="toggle-off @if(!$isChecked) active @endif">{{ $offLabel }}</label>
-            <span class="toggle-handle"></span>
+    <div class="toggle-wrapper">
+        <div class="toggle @if(!$isChecked) off @endif"
+             data-toggle="toggle"
+             data-on="{{ $onLabel }}"
+             data-off="{{ $offLabel }}">
+            <input type="checkbox"
+                   id="{{ $id }}"
+                   name="{{ $key }}"
+                   class="toggleswitch"
+                   @if($isChecked) checked @endif
+                   @if($required ?? $field->isRequired()) required @endif
+                   @if($disabled ?? false) disabled @endif
+                   {!! $attributes !!}>
+            <div class="toggle-group">
+                <label class="toggle-on @if($isChecked) active @endif">{{ $onLabel }}</label>
+                <label class="toggle-off @if(!$isChecked) active @endif">{{ $offLabel }}</label>
+                <span class="toggle-handle"></span>
+            </div>
         </div>
+        @if($label ?? $field->getLabel())
+            <label class="form-label">
+                {{ $label ?? $field->getLabel() }}
+                @if($required ?? $field->isRequired())<span class="required">*</span>@endif
+            </label>
+        @endif
     </div>
+
+
 
     @if(!empty($errors))
         <div class="error-message">
