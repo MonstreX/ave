@@ -9,6 +9,7 @@ use Monstrex\Ave\Core\Fields\Hidden;
 use Monstrex\Ave\Core\Fields\Select;
 use Monstrex\Ave\Core\Fields\Toggle;
 use Monstrex\Ave\Core\Fields\Checkbox;
+use Monstrex\Ave\Core\Fields\RadioGroup;
 use Monstrex\Ave\Core\Fields\DateTimePicker;
 use Monstrex\Ave\Core\Fields\RichEditor;
 use Monstrex\Ave\Core\Fields\CodeEditor;
@@ -292,6 +293,71 @@ class BasicFieldsTest extends TestCase
 
         $this->assertContains('required', $rules);
         $this->assertContains('accepted', $rules);
+    }
+
+    /**
+     * Test RadioGroup field
+     */
+    public function test_radio_group_configuration(): void
+    {
+        $options = [
+            'active' => 'Active',
+            'inactive' => 'Inactive',
+            'draft' => 'Draft',
+        ];
+
+        $field = RadioGroup::make('status')
+            ->label('Status')
+            ->options($options)
+            ->default('draft');
+
+        $this->assertEquals('status', $field->key());
+        $this->assertEquals('Status', $field->getLabel());
+        $this->assertEquals($options, $field->getOptions());
+        $this->assertEquals('draft', $field->toArray()['default']);
+        $this->assertFalse($field->isInline());
+    }
+
+    /**
+     * Test RadioGroup inline layout
+     */
+    public function test_radio_group_inline(): void
+    {
+        $field = RadioGroup::make('gender')
+            ->options(['male' => 'Male', 'female' => 'Female'])
+            ->inline();
+
+        $this->assertTrue($field->isInline());
+        $this->assertTrue($field->toArray()['inline']);
+    }
+
+    /**
+     * Test RadioGroup value extraction
+     */
+    public function test_radio_group_extract_returns_value(): void
+    {
+        $field = RadioGroup::make('status');
+
+        $this->assertSame('active', $field->extract('active'));
+        $this->assertSame('draft', $field->extract('draft'));
+        $this->assertNull($field->extract(''));
+        $this->assertNull($field->extract(null));
+    }
+
+    /**
+     * Test RadioGroup validation
+     */
+    public function test_radio_group_validation_rules(): void
+    {
+        $field = RadioGroup::make('role')
+            ->options(['admin' => 'Admin', 'user' => 'User'])
+            ->required()
+            ->rules(['required', 'in:admin,user']);
+
+        $rules = $field->getRules();
+
+        $this->assertContains('required', $rules);
+        $this->assertContains('in:admin,user', $rules);
     }
 
     /**
