@@ -28,23 +28,9 @@ export default function initToggleBootstrap(root = document) {
         // Обработчик изменения checkbox
         checkbox.addEventListener('change', updateState);
 
-        // Обработчик клика по всему toggle контейнеру
-        toggle.addEventListener('click', (e) => {
-            // Пропускаем если клик на самом checkbox
-            if (e.target === checkbox) return;
-
-            // Определяем позицию клика в контейнере
-            const rect = toggle.getBoundingClientRect();
-            const clickX = e.clientX - rect.left;
-            const toggleWidth = rect.width;
-
-            // Если клик в левой половине - ON, если в правой - OFF
-            if (clickX < toggleWidth / 2) {
-                checkbox.checked = true;
-            } else {
-                checkbox.checked = false;
-            }
-
+        // Обработчик клика по toggle контейнеру - просто переключаем
+        toggle.addEventListener('click', () => {
+            checkbox.checked = !checkbox.checked;
             checkbox.dispatchEvent(new Event('change'));
         });
     });
