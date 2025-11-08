@@ -50,6 +50,7 @@
                         $itemHasErrors = !empty($item['context']) && $item['context']->errors()->isNotEmpty();
                     @endphp
                     <div class="fieldset-item fieldset-card{{ $itemHasErrors ? ' has-nested-error' : '' }}" data-item-index="{{ $index }}" data-item-id="{{ $item['id'] }}">
+                        <div class="fieldset-item-order">{{ $index + 1 }}</div>
                         <div class="fieldset-item-content">
                             {{-- CARD VIEW: Header with preview and title --}}
                             <div class="fieldset-item-header fieldset-card-header"
@@ -153,6 +154,7 @@
         $templateFields = $fieldsetInstance?->prepareTemplateFields() ?? [];
     @endphp
     <div class="fieldset-item fieldset-card" data-item-index="__INDEX__">
+        <div class="fieldset-item-order">1</div>
         <div class="fieldset-item-content">
             <div class="fieldset-item-header fieldset-card-header"
                  data-head-title-field="{{ $field->getHeadTitle() }}"

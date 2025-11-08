@@ -328,9 +328,14 @@ export default function initFieldSet(root = document) {
             const items = itemsContainer.querySelectorAll('.fieldset-item');
             items.forEach((item, index) => {
                 item.dataset.itemIndex = index;
+                // Update both .fieldset-item-number (default view) and .fieldset-item-order (cards view)
                 const numberBadge = item.querySelector('.fieldset-item-number');
                 if (numberBadge) {
                     numberBadge.textContent = index + 1;
+                }
+                const orderBadge = item.querySelector('.fieldset-item-order');
+                if (orderBadge) {
+                    orderBadge.textContent = index + 1;
                 }
             });
         }
