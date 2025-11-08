@@ -32,8 +32,8 @@ namespace Monstrex\Ave\Core\Fields;
  *   Toggle::make('site_debug')
  *       ->displayAs('bootstrap')
  *       ->label('Debug Mode')
- *       ->on('Включен')
- *       ->off('Отключен')
+ *       ->on('On')
+ *       ->off('Off')
  *
  * Example (Simple checkbox):
  *   Toggle::make('agree_to_terms')
