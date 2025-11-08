@@ -12,6 +12,7 @@ use Monstrex\Ave\Core\Fields\Checkbox;
 use Monstrex\Ave\Core\Fields\RadioGroup;
 use Monstrex\Ave\Core\Fields\PasswordInput;
 use Monstrex\Ave\Core\Fields\File;
+use Monstrex\Ave\Core\Fields\ColorPicker;
 use Monstrex\Ave\Core\Fields\DateTimePicker;
 use Monstrex\Ave\Core\Fields\RichEditor;
 use Monstrex\Ave\Core\Fields\CodeEditor;
@@ -529,6 +530,47 @@ class BasicFieldsTest extends TestCase
         $this->assertEquals(5, $field->getMaxFiles());
         $this->assertEquals(1, $field->getMinFiles());
         $this->assertEquals(10240, $field->getMaxFileSize());
+    }
+
+    /**
+     * Test ColorPicker field configuration
+     */
+    public function test_color_picker_configuration(): void
+    {
+        $field = ColorPicker::make('brand_color')
+            ->label('Brand Color')
+            ->default('#0cb7e0');
+
+        $this->assertEquals('brand_color', $field->key());
+        $this->assertEquals('Brand Color', $field->getLabel());
+        $this->assertEquals('#0cb7e0', $field->toArray()['default']);
+    }
+
+    /**
+     * Test ColorPicker with palette
+     */
+    public function test_color_picker_with_palette(): void
+    {
+        $palette = ['#ff0000', '#00ff00', '#0000ff'];
+        $field = ColorPicker::make('accent_color')
+            ->palette($palette);
+
+        $this->assertEquals($palette, $field->getPalette());
+        $this->assertEquals($palette, $field->toArray()['colorPalette']);
+    }
+
+    /**
+     * Test ColorPicker value extraction
+     */
+    public function test_color_picker_extract_normalizes_hex(): void
+    {
+        $field = ColorPicker::make('color');
+
+        $this->assertEquals('#ff0000', $field->extract('#FF0000')); // Lowercase conversion
+        $this->assertEquals('#0cb7e0', $field->extract('#0cb7e0'));
+        $this->assertEquals('#ffffff', $field->extract('FFFFFF')); // Add # if missing
+        $this->assertNull($field->extract(''));
+        $this->assertNull($field->extract(null));
     }
 
     /**

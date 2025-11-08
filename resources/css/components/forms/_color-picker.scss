@@ -1,0 +1,46 @@
+// ============================================
+// COLOR PICKER
+// ============================================
+
+.color-picker-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    .color-picker-input {
+        width: 50px;
+        height: 40px;
+        padding: 3px;
+        border: 1px solid #ddd;
+        border-radius: 3px;
+        cursor: pointer;
+
+        &:focus {
+            outline: none;
+            border-color: var(--ave-color-primary);
+            box-shadow: 0 0 0 2px rgba(34, 167, 240, 0.1);
+        }
+
+        &:disabled {
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+    }
+
+    .color-picker-display {
+        width: 40px;
+        height: 40px;
+        border: 2px solid #ddd;
+        border-radius: 3px;
+        transition: border-color 0.2s ease;
+        flex-shrink: 0;
+    }
+
+    .color-picker-value {
+        font-family: 'Courier New', monospace;
+        font-size: 13px;
+        color: #757C85;
+        font-weight: 500;
+        min-width: 80px;
+    }
+}
