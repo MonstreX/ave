@@ -20,6 +20,7 @@ use Monstrex\Ave\View\Composers\SidebarComposer;
 use Monstrex\Ave\Support\PackageAssets;
 use Monstrex\Ave\Media\MediaStorage;
 use Monstrex\Ave\Core\Media\MediaRepository;
+use Monstrex\Ave\Exceptions\ResourceException;
 
 /**
  * AveServiceProvider Class
@@ -83,6 +84,7 @@ class AveServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->registerPublishing();
+        $this->registerExceptionHandlers();
 
         // Load views
         $this->loadViewsFrom(__DIR__ . '/../../resources/views', 'ave');
@@ -101,6 +103,50 @@ class AveServiceProvider extends ServiceProvider
 
         // Discover and register resources/pages
         $this->discoverAndRegister();
+    }
+
+    /**
+     * Register exception handlers for Ave exceptions
+     *
+     * @return void
+     */
+    protected function registerExceptionHandlers(): void
+    {
+        $this->app->make(\Illuminate\Contracts\Debug\ExceptionHandler::class)->renderable(
+            function (ResourceException $e, $request) {
+                // Only handle Ave admin routes
+                if (!$request->is('admin/*') && !$request->is('admin')) {
+                    return null; // Let other handlers process
+                }
+
+                $statusCode = $e->getStatusCode();
+                $message = $e->getMessage();
+                $defaultMessages = [
+                    403 => 'You don\'t have permission to access this resource.',
+                    404 => 'The page you\'re looking for doesn\'t exist.',
+                    500 => 'Something went wrong on our end.',
+                ];
+
+                // Use custom message or default
+                $message = $message ?: ($defaultMessages[$statusCode] ?? 'An error occurred.');
+
+                // Handle AJAX/API requests - return JSON
+                if ($request->expectsJson() || $request->ajax()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => $message,
+                        'code' => $statusCode,
+                    ], $statusCode);
+                }
+
+                // Handle regular requests - return HTML error view
+                return response()->view('ave::errors.' . $statusCode, [
+                    'code' => $statusCode,
+                    'message' => $message,
+                    'exception' => config('app.debug') ? $e : null,
+                ], $statusCode);
+            }
+        );
     }
 
     /**
