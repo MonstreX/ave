@@ -1,4 +1,4 @@
-{{-- resources/views/components/forms/fields/toggle.blade.php --}}
+{{-- resources/views/components/forms/fields/toggle/default.blade.php --}}
 @php
     $labelText = $label ?? $field->getLabel();
     $helpText = ($help ?? null) ?: $field->getHelpText();
@@ -6,6 +6,9 @@
     $isDisabled = $disabled ?? false;
     $isReadonly = $readonly ?? false;
     $isChecked = $checked ?? ($value ?? false);
+    $size = $size ?? 'medium';
+    $color = $color ?? 'primary';
+    $toggleLabel = $toggleLabel ?? null;
 @endphp
 
 <div class="form-field form-field-toggle @if($hasError) has-error @endif">

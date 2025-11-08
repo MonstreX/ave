@@ -113,8 +113,10 @@ class AveServiceProvider extends ServiceProvider
      */
     protected function registerExceptionHandlers(): void
     {
+        $exceptionHandler = $this->app->make(\Illuminate\Contracts\Debug\ExceptionHandler::class);
+
         // Handle all Ave exceptions (AveException and subclasses)
-        $this->app->make(\Illuminate\Contracts\Debug\ExceptionHandler::class)->renderable(
+        $exceptionHandler->renderable(
             function (AveException $e, $request) {
                 // Only handle Ave admin routes
                 if (!$request->is('admin/*') && !$request->is('admin')) {
@@ -150,6 +152,37 @@ class AveServiceProvider extends ServiceProvider
                 ], $statusCode);
             }
         );
+
+        // Handle all other exceptions in Ave admin routes when not in debug mode
+        if (!config('app.debug')) {
+            $exceptionHandler->renderable(
+                function (\Throwable $e, $request) {
+                    // Only handle Ave admin routes
+                    if (!$request->is('admin/*') && !$request->is('admin')) {
+                        return null; // Let other handlers process
+                    }
+
+                    $statusCode = 500;
+                    $message = 'Something went wrong on our end.';
+
+                    // Handle AJAX/API requests - return JSON
+                    if ($request->expectsJson() || $request->ajax()) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => $message,
+                            'code' => $statusCode,
+                        ], $statusCode);
+                    }
+
+                    // Handle regular requests - return HTML error view
+                    return response()->view('ave::errors.' . $statusCode, [
+                        'code' => $statusCode,
+                        'message' => $message,
+                        'exception' => null,
+                    ], $statusCode);
+                }
+            );
+        }
     }
 
     /**
