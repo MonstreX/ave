@@ -31,6 +31,7 @@ use Monstrex\Ave\Core\FormContext;
  */
 class BelongsToManySelect extends AbstractField implements HandlesPersistence
 {
+    use HasRelationQueryModifiers;
     /** Eloquent relation name on the model (e.g. "tags"). */
     protected ?string $relationship = null;
 
@@ -61,98 +62,6 @@ class BelongsToManySelect extends AbstractField implements HandlesPersistence
         $this->labelColumn  = $labelColumn;
 
         return $this;
-    }
-
-    /** Mark field as searchable (UI will handle search). */
-    public function searchable(bool $searchable = true): static
-    {
-        $this->searchable = $searchable;
-        return $this;
-    }
-
-    /** Set options limit for eager-loaded options. */
-    public function optionsLimit(int $limit): static
-    {
-        $this->optionsLimit = max(1, $limit);
-        return $this;
-    }
-
-    /**
-     * Modify the underlying options query.
-     *
-     * @param Closure $callback fn(Builder $query): Builder
-     */
-    public function modifyQuery(Closure $callback): static
-    {
-        $this->modifyQuery = $callback;
-        return $this;
-    }
-
-    /**
-     * Add WHERE condition to options query.
-     *
-     * @param string $column Column name
-     * @param mixed $operator Operator or value (if only 2 args passed)
-     * @param mixed $value Value (optional)
-     */
-    public function where(string $column, mixed $operator = null, mixed $value = null): static
-    {
-        $previousCallback = $this->modifyQuery;
-
-        $this->modifyQuery = function($query) use ($column, $operator, $value, $previousCallback) {
-            if ($previousCallback) {
-                $query = $previousCallback($query);
-            }
-
-            // Handle different argument combinations
-            if ($value === null && $operator !== null) {
-                // Two arguments: where('status', true)
-                return $query->where($column, $operator);
-            }
-
-            // Three arguments: where('status', '=', true)
-            return $query->where($column, $operator, $value);
-        };
-
-        return $this;
-    }
-
-    /**
-     * Add ORDER BY to options query.
-     *
-     * @param string $column Column name
-     * @param string $direction 'asc' or 'desc'
-     */
-    public function orderBy(string $column, string $direction = 'asc'): static
-    {
-        $previousCallback = $this->modifyQuery;
-
-        $this->modifyQuery = function($query) use ($column, $direction, $previousCallback) {
-            if ($previousCallback) {
-                $query = $previousCallback($query);
-            }
-
-            return $query->orderBy($column, $direction);
-        };
-
-        return $this;
-    }
-
-    /**
-     * Filter for 'active' records (where status = true).
-     * Assumes 'status' column exists on related model.
-     */
-    public function active(): static
-    {
-        return $this->where('status', true);
-    }
-
-    /**
-     * Filter for 'inactive' records (where status = false).
-     */
-    public function inactive(): static
-    {
-        return $this->where('status', false);
     }
 
     /** Resolve available options from relation. */
@@ -251,7 +160,7 @@ class BelongsToManySelect extends AbstractField implements HandlesPersistence
             $relatedTable = $relation->getRelated()->getTable();
 
             $relatedIds = $model->{$this->relationship}()
-                ->pluck($relatedTable . '.id')
+                ->pluck($relatedTable . '.' . $relation->getRelated()->getKeyName())
                 ->toArray();
 
             $this->value = !empty($relatedIds) ? $relatedIds : null;
