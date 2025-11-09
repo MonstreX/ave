@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Monstrex\Ave\Contracts\HandlesPersistence;
 use Monstrex\Ave\Core\DataSources\DataSourceInterface;
+use Monstrex\Ave\Core\Fields\Concerns\HasRelationQueryModifiers;
 use Monstrex\Ave\Core\FormContext;
 
 /**
@@ -205,7 +206,7 @@ class BelongsToManySelect extends AbstractField implements HandlesPersistence
                 return $this->value;
             }
             if ($this->value instanceof Collection) {
-                return $this->value->pluck('id')->toArray();
+                return $this->value->map(fn($m) => $m->getKey())->toArray();
             }
         }
 

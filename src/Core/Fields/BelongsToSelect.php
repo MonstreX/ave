@@ -4,8 +4,11 @@ namespace Monstrex\Ave\Core\Fields;
 
 use Closure;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Monstrex\Ave\Contracts\HandlesPersistence;
 use Monstrex\Ave\Core\DataSources\DataSourceInterface;
+use Monstrex\Ave\Core\Fields\Concerns\HasRelationQueryModifiers;
 use Monstrex\Ave\Core\FormContext;
 use Monstrex\Ave\Exceptions\HierarchicalRelationException;
 
@@ -28,7 +31,7 @@ use Monstrex\Ave\Exceptions\HierarchicalRelationException;
  * - Supports nullable relations
  * - Caches options for performance
  */
-class BelongsToSelect extends AbstractField
+class BelongsToSelect extends AbstractField implements HandlesPersistence
 {
     /** Eloquent relation name on the model (e.g. "category"). */
     protected ?string $relationship = null;
@@ -375,6 +378,18 @@ class BelongsToSelect extends AbstractField
      * Apply posted value to the data source.
      * The FK is written directly to the model.
      */
+
+    /**
+     * Prepare field for save.
+     * For BelongsTo, the FK value is returned directly (no deferred actions needed).
+     */
+    public function prepareForSave(mixed $value, Request $request, FormContext $context): FieldPersistenceResult
+    {
+        // For BelongsTo, the value is just the foreign key ID
+        // No deferred actions needed - it gets written directly to the model
+        return FieldPersistenceResult::make($value ?: null, []);
+    }
+
     public function applyToDataSource(DataSourceInterface $source, mixed $value): void
     {
         // For BelongsTo, we write the FK directly to the model
