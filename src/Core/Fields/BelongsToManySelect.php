@@ -197,8 +197,8 @@ class BelongsToManySelect extends AbstractField
      */
     public function getValue(): ?array
     {
+        // For many-to-many, value can be array of IDs, Collection, or null
         if ($this->value !== null) {
-            // Value already loaded
             if (is_array($this->value)) {
                 return $this->value;
             }
@@ -213,20 +213,40 @@ class BelongsToManySelect extends AbstractField
     /** Prepare value from data source before rendering. */
     public function prepareForDisplay(FormContext $context): void
     {
-        $dataSource = $context->dataSource();
-        $model = $dataSource->getModel();
+        // First, try to fill from the data source (in case the relation was pre-loaded)
+        $this->fillFromDataSource($context->dataSource());
+
+        // If value is not loaded or is not an array of IDs, load it from the relation
+        $value = $this->getValue();
+        if (empty($value) || !is_array($value)) {
+            $this->loadRelatedIds($context->dataSource());
+        }
+    }
+
+    /**
+     * Load related model IDs from the BelongsToMany relation
+     */
+    protected function loadRelatedIds(DataSourceInterface $source): void
+    {
+        // Get the underlying model
+        if (!method_exists($source, 'getModel')) {
+            $this->value = null;
+            return;
+        }
+
+        $model = $source->getModel();
 
         if (!$model instanceof Model || !$this->relationship || !method_exists($model, $this->relationship)) {
-            $this->value = [];
+            $this->value = null;
             return;
         }
 
         try {
-            // Load the related models and extract their IDs
-            $related = $model->{$this->relationship}()->pluck('id')->toArray();
-            $this->value = $related;
+            // Load the related model IDs via the relation
+            $relatedIds = $model->{$this->relationship}()->pluck('id')->toArray();
+            $this->value = !empty($relatedIds) ? $relatedIds : null;
         } catch (\Exception $e) {
-            $this->value = [];
+            $this->value = null;
         }
     }
 
@@ -243,8 +263,11 @@ class BelongsToManySelect extends AbstractField
     /** Render field via Blade view. */
     public function render(FormContext $context): string
     {
-        if (is_null($this->getValue())) {
+        // Load value if not already loaded
+        $value = $this->getValue();
+        if (empty($value)) {
             $this->prepareForDisplay($context);
+            $value = $this->getValue();
         }
 
         $view = $this->view ?: $this->resolveDefaultView();
@@ -268,7 +291,7 @@ class BelongsToManySelect extends AbstractField
             'options' => $options,
             'attributes' => '',
             'key' => $this->key,
-            'value' => $this->getValue() ?: [],
+            'value' => $value ?: [],
             ...$field,
         ])->render();
     }
