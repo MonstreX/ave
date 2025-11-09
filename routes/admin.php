@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Monstrex\Ave\Core\Controllers\ResourceController;
 use Monstrex\Ave\Core\Controllers\PageController;
+use Monstrex\Ave\Http\Controllers\Api\SlugController;
 
 /**
  * Ave Admin Routes
@@ -11,6 +12,11 @@ use Monstrex\Ave\Core\Controllers\PageController;
  */
 
 Route::prefix('admin')->name('admin.')->group(function () {
+    // API routes
+    Route::prefix('ave/api')->name('api.')->group(function () {
+        Route::post('/slug', [SlugController::class, 'generate'])->name('slug');
+    });
+
     // Resource routes
     Route::prefix('resources/{slug}')->name('resources.')->group(function () {
         // List resources
