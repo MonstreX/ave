@@ -125,26 +125,7 @@ class Fieldset extends AbstractField implements HandlesFormRequest, ProvidesVali
     {
         $raw = $request->input($this->key, []);
 
-        if (!is_array($raw)) {
-            $request->merge([$this->key => []]);
-            return;
-        }
-
-        $sanitized = [];
-        $usedIds = [];
-
-        foreach ($raw as $item) {
-            if (!is_array($item)) {
-                continue;
-            }
-
-            $id = $this->resolveStableItemId($item['_id'] ?? null, $usedIds);
-
-            $item['_id'] = $id;
-            $sanitized[] = $item;
-        }
-
-        $normalized = array_values($sanitized);
+        $normalized = $this->normalizeItems($raw);
 
         Log::debug('Fieldset prepareRequest - structure normalized', [
             'field' => $this->key,
@@ -521,9 +502,12 @@ class Fieldset extends AbstractField implements HandlesFormRequest, ProvidesVali
     }
 
     /**
-     * @return array<int,mixed>
+     * Normalize raw items array by assigning stable IDs.
+     *
+     * @param mixed $raw Raw input data (should be array of items)
+     * @return array<int,array> Normalized items with assigned IDs
      */
-    private function normalizeRawItems(mixed $raw): array
+    private function normalizeItems(mixed $raw): array
     {
         if (!is_array($raw)) {
             return [];
@@ -543,6 +527,14 @@ class Fieldset extends AbstractField implements HandlesFormRequest, ProvidesVali
         }
 
         return array_values($normalized);
+    }
+
+    /**
+     * @deprecated Use normalizeItems() instead
+     */
+    private function normalizeRawItems(mixed $raw): array
+    {
+        return $this->normalizeItems($raw);
     }
 
     /**
