@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Monstrex\Ave\Contracts\HandlesPersistence;
 use Monstrex\Ave\Contracts\Persistable;
+use Monstrex\Ave\Core\DataSources\ModelDataSource;
 use Monstrex\Ave\Core\Form;
 use Monstrex\Ave\Core\FormContext;
 use Monstrex\Ave\Events\ResourceCreated;
@@ -95,10 +96,36 @@ class ResourcePersistence implements Persistable
 
     protected function syncRelations(string $resourceClass, Model $model, array $data, Request $request): void
     {
-        if (!method_exists($resourceClass, 'syncRelations')) {
-            return;
+        // Allow custom sync logic in resource
+        if (method_exists($resourceClass, 'syncRelations')) {
+            $resourceClass::syncRelations($model, $data, $request);
         }
 
-        $resourceClass::syncRelations($model, $data, $request);
+        // Apply relation fields (BelongsToMany, etc.) via applyToDataSource
+        $this->applyRelationFields($resourceClass, $model, $data);
+    }
+
+    /**
+     * Apply relation fields to model (e.g., BelongsToMany sync)
+     */
+    protected function applyRelationFields(string $resourceClass, Model $model, array $data): void
+    {
+        $form = $resourceClass::form(null);
+        $dataSource = new ModelDataSource($model);
+
+        foreach ($form->getAllFields() as $field) {
+            $key = $field->key();
+            $value = $data[$key] ?? null;
+
+            // Only apply if field has custom applyToDataSource logic (relations, etc.)
+            // Check if method is overridden from AbstractField
+            $reflection = new \ReflectionMethod($field, 'applyToDataSource');
+            $declaringClass = $reflection->getDeclaringClass()->getName();
+
+            // If declared in field class itself (not AbstractField), apply it
+            if ($declaringClass !== \Monstrex\Ave\Core\Fields\AbstractField::class) {
+                $field->applyToDataSource($dataSource, $value);
+            }
+        }
     }
 }
