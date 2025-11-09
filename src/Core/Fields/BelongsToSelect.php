@@ -296,7 +296,9 @@ class BelongsToSelect extends AbstractField
     {
         // Add current item with depth info
         $item->_hierarchy_depth = $depth;
-        $item->_hierarchy_indent = str_repeat('  ', $depth);
+        // Use visible characters for indentation: arrow symbols
+        // Each level gets "→ " which is visible in HTML
+        $item->_hierarchy_indent = str_repeat('→ ', $depth);
         $tree->push($item);
 
         // Find and add children from the collection
