@@ -4,7 +4,9 @@ namespace Monstrex\Ave\Core\Fields;
 
 use Closure;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Monstrex\Ave\Contracts\HandlesPersistence;
 use Monstrex\Ave\Core\DataSources\DataSourceInterface;
 use Monstrex\Ave\Core\FormContext;
 
@@ -26,7 +28,7 @@ use Monstrex\Ave\Core\FormContext;
  * - Supports filtering (where, orderBy, active, inactive)
  * - Uses sync() for saving (handles pivot table automatically)
  */
-class BelongsToManySelect extends AbstractField
+class BelongsToManySelect extends AbstractField implements HandlesPersistence
 {
     /** Eloquent relation name on the model (e.g. "tags"). */
     protected ?string $relationship = null;
@@ -304,8 +306,34 @@ class BelongsToManySelect extends AbstractField
     }
 
     /**
+     * Prepare field for save using deferred action.
+     * This is the new universal way to handle relation fields.
+     * The actual sync() is executed AFTER the model is saved.
+     */
+    public function prepareForSave(mixed $value, Request $request, FormContext $context): FieldPersistenceResult
+    {
+        $relationKey = $this->key;
+        $relationName = $this->relationship;
+
+        // Create deferred action that will execute AFTER model is saved
+        $deferred = [
+            function (Model $savedRecord) use ($relationKey, $relationName, $value): void {
+                // Only sync if relation exists and value is provided
+                if ($relationName && method_exists($savedRecord, $relationName)) {
+                    $syncIds = is_array($value) ? $value : [];
+                    $savedRecord->{$relationName}()->sync($syncIds);
+                }
+            },
+        ];
+
+        // Return null for payload (don't add to fillable data) + deferred action
+        return FieldPersistenceResult::make(null, $deferred);
+    }
+
+    /**
      * Apply posted value to the data source.
      * Uses sync() for BelongsToMany relations.
+     * @deprecated Use prepareForSave() instead for better integration
      */
     public function applyToDataSource(DataSourceInterface $source, mixed $value): void
     {
