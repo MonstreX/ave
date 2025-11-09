@@ -3,6 +3,7 @@
 namespace Monstrex\Ave\Core\DataSources;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Data source wrapper for Eloquent models
@@ -99,7 +100,12 @@ class ModelDataSource implements DataSourceInterface
             try {
                 $this->model->{$relation}()->sync($ids);
             } catch (\Exception $e) {
-                // Silently fail if relation doesn't support sync
+                // Log but continue if relation doesn't support sync or other errors occur
+                Log::warning('Failed to sync relation', [
+                    'model' => get_class($this->model),
+                    'relation' => $relation,
+                    'error' => $e->getMessage(),
+                ]);
             }
         }
     }

@@ -2,6 +2,8 @@
 
 namespace Monstrex\Ave\Core\Fields\Concerns;
 
+use Illuminate\Support\Facades\Log;
+
 /**
  * HasStatePath trait provides compositional state path building.
  *
@@ -60,6 +62,11 @@ trait HasStatePath
                 }
             } catch (\Exception $e) {
                 // If parent method fails, fall back to own key
+                Log::warning('Failed to get child state path from parent container', [
+                    'parent_class' => get_class($this->container),
+                    'field_key' => $this->baseKey(),
+                    'error' => $e->getMessage(),
+                ]);
             }
         }
 

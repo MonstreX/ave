@@ -6,6 +6,7 @@ use Closure;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Log;
 use Monstrex\Ave\Contracts\HandlesPersistence;
 use Monstrex\Ave\Core\DataSources\DataSourceInterface;
 use Monstrex\Ave\Core\Fields\Concerns\HasRelationQueryModifiers;
@@ -99,6 +100,11 @@ class BelongsToManySelect extends AbstractField implements HandlesPersistence
 
             return $this->optionsCache = $items;
         } catch (\Exception $e) {
+            Log::warning('Failed to resolve relation options for BelongsToManySelect', [
+                'field' => $this->key,
+                'relationship' => $this->relationship,
+                'error' => $e->getMessage(),
+            ]);
             return $this->optionsCache = collect();
         }
     }
@@ -165,6 +171,11 @@ class BelongsToManySelect extends AbstractField implements HandlesPersistence
 
             $this->value = !empty($relatedIds) ? $relatedIds : null;
         } catch (\Exception $e) {
+            Log::warning('Failed to load related IDs for BelongsToManySelect', [
+                'field' => $this->key,
+                'relationship' => $this->relationship,
+                'error' => $e->getMessage(),
+            ]);
             $this->value = null;
         }
     }
