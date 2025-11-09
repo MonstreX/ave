@@ -261,22 +261,24 @@ class BelongsToSelect extends AbstractField
             }
         }
 
-        // Load all root items (parent_id is null)
+        // Load ALL items from related table
         $query = $relatedModel->newQuery();
 
         if ($this->modifyQuery) {
             $query = ($this->modifyQuery)($query);
         }
 
-        $roots = $query
-            ->whereNull('parent_id')
-            ->orderBy('order')
-            ->get();
+        // Load all items and index by ID for quick lookup
+        $allItems = $query->orderBy('order')->get();
+        $itemsById = $allItems->keyBy('id');
 
-        // Build tree recursively
+        // Build tree by finding root items and recursively adding children
         $tree = collect();
-        foreach ($roots as $root) {
-            $this->buildHierarchicalTree($root, $tree, $relatedModel, 0);
+        foreach ($allItems as $item) {
+            // Only process items without parent (or parent not in collection)
+            if (is_null($item->parent_id) || !$itemsById->has($item->parent_id)) {
+                $this->buildHierarchicalTree($item, $tree, $itemsById, 0);
+            }
         }
 
         return $tree;
@@ -287,24 +289,21 @@ class BelongsToSelect extends AbstractField
      *
      * @param Model $item Current item
      * @param Collection $tree Collection to add item to
-     * @param Model $relatedModel Related model class
+     * @param Collection $itemsById All items indexed by ID
      * @param int $depth Depth level (for indentation)
      */
-    private function buildHierarchicalTree(Model $item, Collection $tree, Model $relatedModel, int $depth = 0): void
+    private function buildHierarchicalTree(Model $item, Collection $tree, Collection $itemsById, int $depth = 0): void
     {
         // Add current item with depth info
         $item->_hierarchy_depth = $depth;
         $item->_hierarchy_indent = str_repeat('  ', $depth);
         $tree->push($item);
 
-        // Load and add children
-        $children = $relatedModel->newQuery()
-            ->where('parent_id', $item->getKey())
-            ->orderBy('order')
-            ->get();
+        // Find and add children from the collection
+        $children = $itemsById->filter(fn($child) => $child->parent_id === $item->getKey());
 
         foreach ($children as $child) {
-            $this->buildHierarchicalTree($child, $tree, $relatedModel, $depth + 1);
+            $this->buildHierarchicalTree($child, $tree, $itemsById, $depth + 1);
         }
     }
 
