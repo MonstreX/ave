@@ -297,20 +297,10 @@ class BelongsToSelect extends AbstractField
         // Add current item with depth info
         $item->_hierarchy_depth = $depth;
 
-        // Build ASCII tree structure with proper indentation and symbols
-        if ($depth === 0) {
-            // Root level - no prefix
-            $item->_hierarchy_indent = '';
-        } else {
-            // Build tree structure: vertical lines for parents, branch connector for item
-            $prefix = '';
-            for ($i = 1; $i < $depth; $i++) {
-                $prefix .= '│ '; // Vertical line for each parent level
-            }
-            // Add the branch connector for this item
-            $prefix .= '├─ ';
-            $item->_hierarchy_indent = $prefix;
-        }
+        // Use non-breaking spaces for indentation
+        // \u00A0 is invisible but doesn't collapse in HTML
+        // Each level gets 4 non-breaking spaces
+        $item->_hierarchy_indent = str_repeat("\u{00A0}", $depth * 4);
 
         $tree->push($item);
 
