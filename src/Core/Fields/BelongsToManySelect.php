@@ -228,8 +228,8 @@ class BelongsToManySelect extends AbstractField implements HandlesPersistence
         // Create deferred action that will execute AFTER model is saved
         $deferred = [
             function (Model $savedRecord) use ($relationKey, $relationName, $value): void {
-                // Only sync if relation exists and value is provided
-                if ($relationName && method_exists($savedRecord, $relationName)) {
+                // Only sync if model exists (has ID), relation exists, and value is provided
+                if ($relationName && method_exists($savedRecord, $relationName) && $savedRecord->exists) {
                     $syncIds = is_array($value) ? $value : [];
                     $savedRecord->{$relationName}()->sync($syncIds);
                 }
