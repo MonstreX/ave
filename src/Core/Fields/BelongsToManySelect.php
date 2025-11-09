@@ -243,7 +243,14 @@ class BelongsToManySelect extends AbstractField
 
         try {
             // Load the related model IDs via the relation
-            $relatedIds = $model->{$this->relationship}()->pluck('id')->toArray();
+            // Explicitly qualify the id column to avoid ambiguity when joining tables
+            $relation = $model->{$this->relationship}();
+            $relatedTable = $relation->getRelated()->getTable();
+
+            $relatedIds = $model->{$this->relationship}()
+                ->pluck($relatedTable . '.id')
+                ->toArray();
+
             $this->value = !empty($relatedIds) ? $relatedIds : null;
         } catch (\Exception $e) {
             $this->value = null;
