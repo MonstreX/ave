@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use Monstrex\Ave\Http\Controllers\ResourceController;
 use Monstrex\Ave\Http\Controllers\PageController;
 use Monstrex\Ave\Http\Controllers\MediaController;
+use Monstrex\Ave\Http\Controllers\Api\SlugController;
 use Monstrex\Ave\Http\Middleware\HandleAveExceptions;
 use Monstrex\Ave\Exceptions\ResourceException;
 
@@ -60,6 +61,10 @@ Route::prefix($prefix)
         // File upload route (for simple file fields)
         Route::post('/api/file-upload', [MediaController::class, 'uploadFile'])
             ->name('ave.api.file-upload');
+
+        // Slug generation API
+        Route::post('/api/slug', [SlugController::class, 'generate'])
+            ->name('ave.api.slug');
 
         // Media routes
         Route::post('/media/upload', [MediaController::class, 'upload'])

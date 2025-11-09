@@ -30,7 +30,7 @@
             data-slug-source="{{ $field->getFrom() }}"
             data-slug-separator="{{ $field->getSeparator() }}"
             data-slug-locale="{{ $field->getLocale() }}"
-            data-slug-api-url="{{ route('admin.api.slug') }}"
+            data-slug-api-url="{{ route('ave.api.slug') }}"
 
             @if($isRequired) required @endif
             @if($isDisabled) disabled @endif
