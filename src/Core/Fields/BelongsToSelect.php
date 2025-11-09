@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Monstrex\Ave\Core\DataSources\DataSourceInterface;
 use Monstrex\Ave\Core\FormContext;
+use Monstrex\Ave\Exceptions\HierarchicalRelationException;
 
 /**
  * BelongsToSelect Field
@@ -46,6 +47,9 @@ class BelongsToSelect extends AbstractField
 
     /** Whether the relation can be null. */
     protected bool $nullable = false;
+
+    /** Whether to display options as hierarchical tree (parent-child). */
+    protected bool $isHierarchical = false;
 
     /** Cached options collection for this field. */
     protected ?Collection $optionsCache = null;
@@ -166,6 +170,23 @@ class BelongsToSelect extends AbstractField
         return $this;
     }
 
+    /**
+     * Enable hierarchical (tree) mode for options.
+     *
+     * Related model must have:
+     * - parent_id column (nullable integer)
+     * - order column (integer)
+     *
+     * Options will be displayed as nested tree with indentation.
+     *
+     * @throws HierarchicalRelationException if model lacks required columns
+     */
+    public function hierarchical(bool $enabled = true): static
+    {
+        $this->isHierarchical = $enabled;
+        return $this;
+    }
+
     /** Resolve options from relation. */
     protected function resolveOptions(FormContext $context): Collection
     {
@@ -187,6 +208,11 @@ class BelongsToSelect extends AbstractField
         try {
             $relation = $model->{$this->relationship}();
             $related = $relation->getRelated();
+
+            if ($this->isHierarchical) {
+                return $this->optionsCache = $this->resolveHierarchicalOptions($related);
+            }
+
             $query = $related->newQuery();
 
             if ($this->modifyQuery) {
@@ -201,6 +227,84 @@ class BelongsToSelect extends AbstractField
             return $this->optionsCache = $items;
         } catch (\Exception $e) {
             return $this->optionsCache = collect();
+        }
+    }
+
+    /**
+     * Resolve options as hierarchical tree (parent-child structure).
+     *
+     * @param Model $relatedModel
+     * @return Collection Collection of models in tree order with hierarchy info
+     * @throws HierarchicalRelationException if required columns are missing
+     */
+    protected function resolveHierarchicalOptions(Model $relatedModel): Collection
+    {
+        // Validate required columns
+        $table = $relatedModel->getTable();
+        $columns = \DB::getSchemaBuilder()->getColumnListing($table);
+
+        $hasMissing = [];
+        if (!in_array('parent_id', $columns)) {
+            $hasMissing[] = 'parent_id';
+        }
+        if (!in_array('order', $columns)) {
+            $hasMissing[] = 'order';
+        }
+
+        if (!empty($hasMissing)) {
+            if (count($hasMissing) === 2) {
+                throw HierarchicalRelationException::missingBothColumns(get_class($relatedModel));
+            } elseif (in_array('parent_id', $hasMissing)) {
+                throw HierarchicalRelationException::missingParentIdColumn(get_class($relatedModel));
+            } else {
+                throw HierarchicalRelationException::missingOrderColumn(get_class($relatedModel));
+            }
+        }
+
+        // Load all root items (parent_id is null)
+        $query = $relatedModel->newQuery();
+
+        if ($this->modifyQuery) {
+            $query = ($this->modifyQuery)($query);
+        }
+
+        $roots = $query
+            ->whereNull('parent_id')
+            ->orderBy('order')
+            ->get();
+
+        // Build tree recursively
+        $tree = collect();
+        foreach ($roots as $root) {
+            $this->buildHierarchicalTree($root, $tree, $relatedModel, 0);
+        }
+
+        return $tree;
+    }
+
+    /**
+     * Recursively build hierarchical tree of options.
+     *
+     * @param Model $item Current item
+     * @param Collection $tree Collection to add item to
+     * @param Model $relatedModel Related model class
+     * @param int $depth Depth level (for indentation)
+     */
+    private function buildHierarchicalTree(Model $item, Collection $tree, Model $relatedModel, int $depth = 0): void
+    {
+        // Add current item with depth info
+        $item->_hierarchy_depth = $depth;
+        $item->_hierarchy_indent = str_repeat('  ', $depth);
+        $tree->push($item);
+
+        // Load and add children
+        $children = $relatedModel->newQuery()
+            ->where('parent_id', $item->getKey())
+            ->orderBy('order')
+            ->get();
+
+        foreach ($children as $child) {
+            $this->buildHierarchicalTree($child, $tree, $relatedModel, $depth + 1);
         }
     }
 
@@ -219,6 +323,7 @@ class BelongsToSelect extends AbstractField
             'labelColumn' => $this->labelColumn,
             'searchable' => $this->searchable,
             'nullable' => $this->nullable,
+            'hierarchical' => $this->isHierarchical,
         ]);
     }
 
@@ -236,9 +341,16 @@ class BelongsToSelect extends AbstractField
         $field = $this->toArray();
 
         $options = $this->resolveOptions($context)->map(function (Model $m) {
+            $label = $m->getAttribute($this->labelColumn);
+
+            // Add indentation for hierarchical options
+            if ($this->isHierarchical && isset($m->_hierarchy_indent)) {
+                $label = $m->_hierarchy_indent . $label;
+            }
+
             return [
                 'value' => $m->getKey(),
-                'label' => $m->getAttribute($this->labelColumn),
+                'label' => $label,
             ];
         })->values()->all();
 
