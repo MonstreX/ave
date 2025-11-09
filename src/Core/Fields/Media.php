@@ -290,13 +290,13 @@ class Media extends AbstractField implements ProvidesValidationRules, HandlesPer
     {
         $statePath = $this->getStatePath();
 
-        // For template fields, replace __TEMPLATE__ with __ITEM__ to generate collection name for display/upload
-        // This preserves the structure and allows JS to replace __ITEM__ with actual item ID
+        // For template fields, strip the __TEMPLATE__ marker to generate collection name
+        // JavaScript will use __ITEM__ placeholder at runtime, but collection names must be resolved deterministically
         if (StatePathCollectionGenerator::isTemplateStatePath($statePath)) {
-            $itemPath = str_replace('.__TEMPLATE__.', '.__ITEM__.', $statePath);
-            // Temporarily set the item path to generate correct collection name
+            $cleanedPath = StatePathCollectionGenerator::cleanStatePath($statePath);
+            // Temporarily set the cleaned path to generate correct collection name
             $field = clone $this;
-            $field = $field->statePath($itemPath);
+            $field = $field->statePath($cleanedPath);
             return StatePathCollectionGenerator::forMedia($field);
         }
 
