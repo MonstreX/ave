@@ -85,4 +85,22 @@ class ModelDataSource implements DataSourceInterface
     {
         return $this->model;
     }
+
+    /**
+     * Sync a relation (for BelongsToMany relations)
+     *
+     * @param  string  $relation  Relation name
+     * @param  array  $ids  Array of related model IDs
+     * @return void
+     */
+    public function sync(string $relation, array $ids): void
+    {
+        if (method_exists($this->model, $relation)) {
+            try {
+                $this->model->{$relation}()->sync($ids);
+            } catch (\Exception $e) {
+                // Silently fail if relation doesn't support sync
+            }
+        }
+    }
 }

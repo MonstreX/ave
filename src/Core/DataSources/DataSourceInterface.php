@@ -45,4 +45,13 @@ interface DataSourceInterface
      * @return array
      */
     public function toArray(): array;
+
+    /**
+     * Sync a relation (for BelongsToMany relations)
+     *
+     * @param  string  $relation  Relation name
+     * @param  array  $ids  Array of related model IDs
+     * @return void
+     */
+    public function sync(string $relation, array $ids): void;
 }

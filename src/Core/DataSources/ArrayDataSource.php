@@ -85,4 +85,17 @@ class ArrayDataSource implements DataSourceInterface
     {
         return $this->data;
     }
+
+    /**
+     * Sync a relation (not supported for ArrayDataSource)
+     *
+     * @param  string  $relation  Relation name
+     * @param  array  $ids  Array of related model IDs
+     * @return void
+     */
+    public function sync(string $relation, array $ids): void
+    {
+        // ArrayDataSource doesn't support model relations
+        // This is a no-op to satisfy the interface
+    }
 }
