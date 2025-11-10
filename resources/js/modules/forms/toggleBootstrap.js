@@ -25,17 +25,8 @@ export default function initToggleBootstrap(root = document) {
         // Initialize state
         updateState();
 
-        // Calculate max width of labels and set inline styles
-        const onWidth = toggleOn.offsetWidth;
-        const offWidth = toggleOff.offsetWidth;
-        const maxWidth = Math.max(onWidth, offWidth);
-
-        // Set equal width for both labels and container
-        toggle.style.minWidth = (maxWidth + 5) + 'px';
-        toggleOn.style.width = maxWidth + 'px';
-        toggleOn.style.minWidth = maxWidth + 'px';
-        toggleOff.style.width = maxWidth + 'px';
-        toggleOff.style.minWidth = maxWidth + 'px';
+        // Calculate and set widths
+        recalculateToggleWidth(toggle);
 
         // Handle checkbox change
         checkbox.addEventListener('change', updateState);
@@ -46,4 +37,29 @@ export default function initToggleBootstrap(root = document) {
             checkbox.dispatchEvent(new Event('change'));
         });
     });
+}
+
+/**
+ * Recalculate and update toggle width
+ * Used when toggle becomes visible (e.g., in tabs)
+ */
+export function recalculateToggleWidth(toggle) {
+    const toggleOn = toggle.querySelector('.toggle-on');
+    const toggleOff = toggle.querySelector('.toggle-off');
+
+    if (!toggleOn || !toggleOff) return;
+
+    // Calculate max width of labels and set inline styles
+    const onWidth = toggleOn.offsetWidth;
+    const offWidth = toggleOff.offsetWidth;
+    const maxWidth = Math.max(onWidth, offWidth);
+
+    // Only update if we got valid widths (not 0)
+    if (maxWidth > 0) {
+        toggle.style.minWidth = (maxWidth + 5) + 'px';
+        toggleOn.style.width = maxWidth + 'px';
+        toggleOn.style.minWidth = maxWidth + 'px';
+        toggleOff.style.width = maxWidth + 'px';
+        toggleOff.style.minWidth = maxWidth + 'px';
+    }
 }

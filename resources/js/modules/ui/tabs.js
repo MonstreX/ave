@@ -1,3 +1,5 @@
+import { recalculateToggleWidth } from '../forms/toggleBootstrap';
+
 export default function initTabs() {
     const tabNavigations = document.querySelectorAll('[data-ave-tabs="nav"]');
 
@@ -13,7 +15,7 @@ export default function initTabs() {
         }
 
         // Activate tab with validation errors on page load
-        activateTabWithError(items, panes);
+        activateTabWithError(items, panes, tabsRoot);
 
         items.forEach((item) => {
             item.addEventListener('click', (event) => {
@@ -32,16 +34,16 @@ export default function initTabs() {
                     return;
                 }
 
-                activateTab(items, panes, item, targetPane);
+                activateTab(items, panes, item, targetPane, tabsRoot);
             });
         });
     });
 }
 
 /**
- * Activate specific tab
+ * Activate specific tab and reinitialize Toggle widths
  */
-function activateTab(items, panes, activeItem, activePane) {
+function activateTab(items, panes, activeItem, activePane, tabsRoot) {
     items.forEach((otherItem) => {
         otherItem.classList.toggle('active', otherItem === activeItem);
         const link = otherItem.querySelector('a');
@@ -56,12 +58,21 @@ function activateTab(items, panes, activeItem, activePane) {
     panes.forEach((pane) => {
         pane.classList.toggle('active', pane === activePane);
     });
+
+    // Recalculate Toggle widths in the newly activated pane
+    // Use requestAnimationFrame to wait for DOM to fully render
+    requestAnimationFrame(() => {
+        const toggles = activePane.querySelectorAll('.toggle[data-toggle="toggle"]');
+        toggles.forEach(toggle => {
+            recalculateToggleWidth(toggle);
+        });
+    });
 }
 
 /**
  * Find and activate first tab containing validation errors
  */
-function activateTabWithError(items, panes) {
+function activateTabWithError(items, panes, tabsRoot) {
     // Find first field with validation error
     const firstError = document.querySelector('.form-field.has-error');
 
@@ -85,8 +96,7 @@ function activateTabWithError(items, panes) {
 
     if (tabItem) {
         // Activate the tab with error
-        activateTab(items, panes, tabItem, errorPane);
+        activateTab(items, panes, tabItem, errorPane, tabsRoot);
     }
 }
-
 
