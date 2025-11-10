@@ -53,30 +53,11 @@ class MediaController extends Controller
             return $this->uploadMultiple($request);
 
         } catch (ValidationException $e) {
-            \Log::error('[MediaController] Validation error', [
-                'errors' => $e->validator->errors()->all(),
-            ]);
             return response()->json([
                 'success' => false,
                 'message' => 'Validation failed: ' . implode(', ', $e->validator->errors()->all()),
             ], 422);
         } catch (\Exception $e) {
-            \Log::error('[MediaController] Upload error', [
-                'error' => $e->getMessage(),
-                'class' => get_class($e),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'trace' => $e->getTraceAsString(),
-            ]);
-
-            // Also try to get any previous exception
-            if ($e->getPrevious()) {
-                \Log::error('[MediaController] Previous exception', [
-                    'error' => $e->getPrevious()->getMessage(),
-                    'trace' => $e->getPrevious()->getTraceAsString(),
-                ]);
-            }
-
             return response()->json([
                 'success' => false,
                 'message' => 'Upload failed: ' . $e->getMessage(),
@@ -148,10 +129,6 @@ class MediaController extends Controller
 
                     $mediaCollection = $mediaBuilder->create();
                 } catch (\Exception $e) {
-                    \Log::error('[uploadSingleImage] Error during media creation', [
-                        'error' => $e->getMessage(),
-                        'trace' => $e->getTraceAsString(),
-                    ]);
                     throw $e;
                 }
             }
@@ -355,10 +332,6 @@ class MediaController extends Controller
                         $deleted++;
                     }
                 } catch (\Exception $e) {
-                    \Log::error('[MediaController.bulkDestroy] Failed to delete media', [
-                        'media_id' => $id,
-                        'error' => $e->getMessage(),
-                    ]);
                     // Continue with next item
                 }
             }
@@ -539,15 +512,6 @@ class MediaController extends Controller
             $cropHeight = (int)$data['height'];
             $aspectRatio = $data['aspectRatio'] ?? '';
 
-            \Log::debug('[MediaController.cropImage] Received crop request', [
-                'media_id' => $id,
-                'x' => $data['x'],
-                'y' => $data['y'],
-                'width' => $cropWidth,
-                'height' => $cropHeight,
-                'maxSize' => $data['maxSize'] ?? null,
-                'aspectRatio' => $aspectRatio,
-            ]);
 
             // Check if this is Free aspect ratio with maxSize - just scale instead of crop
             $isFreeRatio = empty($aspectRatio);
@@ -562,14 +526,6 @@ class MediaController extends Controller
                     $scale = $maxSize / $maxDimension;
                     $cropWidth = (int)($cropWidth * $scale);
                     $cropHeight = (int)($cropHeight * $scale);
-
-                    \Log::debug('[MediaController.cropImage] Free ratio with maxSize - scaling instead of cropping', [
-                        'original_width' => (int)$data['width'],
-                        'original_height' => (int)$data['height'],
-                        'scaled_width' => $cropWidth,
-                        'scaled_height' => $cropHeight,
-                        'max_size' => $maxSize,
-                    ]);
                 }
             }
 
@@ -597,12 +553,6 @@ class MediaController extends Controller
             // Then resize if needed
             if ($cropWidth != (int)$data['width'] || $cropHeight != (int)$data['height']) {
                 $processor->scale($cropWidth, $cropHeight);
-                \Log::debug('[MediaController.cropImage] Resizing cropped image', [
-                    'from_width' => (int)$data['width'],
-                    'from_height' => (int)$data['height'],
-                    'to_width' => $cropWidth,
-                    'to_height' => $cropHeight,
-                ]);
             }
 
             $croppedImageData = $processor->encode();
@@ -613,14 +563,6 @@ class MediaController extends Controller
             // Update media record with new file size
             $newFileSize = $disk->size($filePath);
             $media->update(['size' => $newFileSize]);
-
-            \Log::info('[MediaController] Image crop completed', [
-                'media_id' => $id,
-                'final_width' => $cropWidth,
-                'final_height' => $cropHeight,
-                'aspect_ratio' => $aspectRatio ?: 'free',
-                'new_file_size' => $newFileSize,
-            ]);
 
             return response()->json([
                 'success' => true,
@@ -647,12 +589,6 @@ class MediaController extends Controller
                 'message' => 'Validation failed: ' . implode(', ', $e->validator->errors()->all()),
             ], 422);
         } catch (\Exception $e) {
-            \Log::error('[MediaController] Crop error', [
-                'media_id' => $id,
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-            ]);
-
             return response()->json([
                 'success' => false,
                 'message' => 'Crop failed: ' . $e->getMessage(),
@@ -668,21 +604,12 @@ class MediaController extends Controller
         // Get max image size from config
         $maxSize = config('ave.media.max_image_size', 2000);
 
-        \Log::debug('[MediaController.processImageBeforeUpload] Starting', [
-            'file' => $file->getClientOriginalName(),
-            'mime_type' => $file->getMimeType(),
-            'max_size_config' => $maxSize,
-        ]);
-
         if (!$maxSize || $maxSize <= 0) {
-            \Log::debug('[MediaController.processImageBeforeUpload] Skipping - maxSize not configured');
             return;
         }
 
         try {
             $absolutePath = $file->getRealPath();
-            \Log::debug('[MediaController.processImageBeforeUpload] File path', ['path' => $absolutePath]);
-
             $processor = new ImageProcessor();
 
             // Read image and get dimensions
@@ -691,20 +618,9 @@ class MediaController extends Controller
             $width = $dimensions['width'];
             $height = $dimensions['height'];
 
-            \Log::debug('[MediaController.processImageBeforeUpload] Image dimensions read', [
-                'width' => $width,
-                'height' => $height,
-                'max_dimension' => max($width, $height),
-                'max_size' => $maxSize,
-            ]);
-
             // Check if scaling is needed
             $maxDimension = max($width, $height);
             if ($maxDimension <= $maxSize) {
-                \Log::debug('[MediaController.processImageBeforeUpload] Scaling not needed', [
-                    'max_dimension' => $maxDimension,
-                    'max_size' => $maxSize,
-                ]);
                 return;
             }
 
@@ -720,13 +636,6 @@ class MediaController extends Controller
                 $newWidth = (int)($maxSize * $aspectRatio);
             }
 
-            \Log::debug('[MediaController.processImageBeforeUpload] Scaling calculated', [
-                'original_width' => $width,
-                'original_height' => $height,
-                'new_width' => $newWidth,
-                'new_height' => $newHeight,
-            ]);
-
             // Resize image and encode
             $scaledImageData = $processor
                 ->scale($newWidth, $newHeight)
@@ -735,19 +644,7 @@ class MediaController extends Controller
             // Write back to temporary uploaded file
             file_put_contents($absolutePath, $scaledImageData);
 
-            \Log::info('[MediaController] Image scaled on upload', [
-                'file' => $file->getClientOriginalName(),
-                'original' => "{$width}x{$height}",
-                'scaled' => "{$newWidth}x{$newHeight}",
-                'max_size' => $maxSize,
-            ]);
-
         } catch (\Exception $e) {
-            \Log::error('[MediaController] Failed to scale image on upload', [
-                'error' => $e->getMessage(),
-                'file' => $file->getClientOriginalName(),
-                'trace' => $e->getTraceAsString(),
-            ]);
             // Continue without scaling if it fails - don't break upload
         }
     }
@@ -778,12 +675,6 @@ class MediaController extends Controller
                 'customPath' => 'nullable|string|max:255',
             ]);
 
-                'file' => $request->file('file')->getClientOriginalName(),
-                'model_type' => $request->input('model_type'),
-                'model_id' => $request->input('model_id'),
-                'model_id_type' => gettype($request->input('model_id')),
-            ]);
-
             $file = $request->file('file');
 
             // Get filename strategy
@@ -803,26 +694,9 @@ class MediaController extends Controller
             if ($modelType = $request->input('model_type')) {
                 if (class_exists($modelType) && $modelId = $request->input('model_id')) {
                     try {
-                            'type' => $modelType,
-                            'id' => $modelId,
-                            'id_type' => gettype($modelId),
-                        ]);
                         $model = app($modelType)->find($modelId);
-                        if ($model) {
-                                'model_id' => $model->getKey(),
-                                'model_class' => get_class($model),
-                            ]);
-                        } else {
-                                'type' => $modelType,
-                                'id' => $modelId,
-                            ]);
-                        }
                     } catch (\Exception $e) {
                         // Model not found, proceed without model context
-                            'type' => $modelType,
-                            'id' => $modelId,
-                            'error' => $e->getMessage(),
-                        ]);
                     }
                 }
             }
@@ -866,11 +740,6 @@ class MediaController extends Controller
                 'message' => 'Validation failed: ' . implode(', ', $e->validator->errors()->all()),
             ], 422);
         } catch (\Exception $e) {
-            \Log::error('[MediaController] File upload error', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-            ]);
-
             return response()->json([
                 'success' => false,
                 'message' => 'File upload failed: ' . $e->getMessage(),
