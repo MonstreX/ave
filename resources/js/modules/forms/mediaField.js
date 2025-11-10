@@ -44,7 +44,9 @@ const replacePlaceholders = (value, itemId) => {
         .replace(/__INDEX__/g, itemId)
         .replace(/__index__/g, itemId)
         .replace(/__ITEM__/g, itemId)
-        .replace(/__item__/g, itemId);
+        .replace(/__item__/g, itemId)
+        .replace(/__TEMPLATE__/g, itemId)
+        .replace(/__template__/g, itemId);
 };
 
 /**
@@ -60,7 +62,7 @@ export function updateMediaFieldPlaceholders(container) {
     }
 
     const oldMetaKey = container.dataset.metaKey;
-    if (!oldMetaKey || !oldMetaKey.includes('__ITEM__')) {
+    if (!oldMetaKey || (!oldMetaKey.includes('__item__') && !oldMetaKey.includes('__template__'))) {
         return; // No placeholders to replace
     }
 
@@ -82,7 +84,7 @@ export function updateMediaFieldPlaceholders(container) {
     container.dataset.metaKey = normalizedMetaKey;
 
     // Update data-collection if it has placeholders
-    if (container.dataset.collection && container.dataset.collection.includes('__ITEM__')) {
+    if (container.dataset.collection && /__(ITEM|TEMPLATE)__/.test(container.dataset.collection)) {
         const updatedCollection = replacePlaceholders(container.dataset.collection, itemId);
         container.dataset.collection = updatedCollection;
     }
