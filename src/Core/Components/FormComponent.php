@@ -89,7 +89,11 @@ abstract class FormComponent
     }
 
     /**
-     * Get all fields from component and children
+     * Get all fields from component and children (recursively)
+     *
+     * Flattens all fields from:
+     * - Direct child fields (if component has $fields property from HasComponents)
+     * - Child components (FormComponent instances)
      *
      * @return array
      */
@@ -97,6 +101,12 @@ abstract class FormComponent
     {
         $fields = [];
 
+        // Get direct fields if this component supports them (via HasComponents trait)
+        if (method_exists($this, 'getFields')) {
+            $fields = array_merge($fields, $this->getFields());
+        }
+
+        // Recursively get fields from child components
         foreach ($this->getChildComponents() as $component) {
             $fields = array_merge($fields, $component->flattenFields());
         }

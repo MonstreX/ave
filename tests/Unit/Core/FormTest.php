@@ -54,34 +54,6 @@ class FormTest extends TestCase
     }
 
     /**
-     * Test form add row method is fluent
-     */
-    public function test_form_add_row_method_is_fluent(): void
-    {
-        $form = new Form();
-        $row = $this->createMock(Row::class);
-
-        $result = $form->addRow($row);
-
-        $this->assertInstanceOf(Form::class, $result);
-        $this->assertSame($form, $result);
-    }
-
-    /**
-     * Test form fields method is fluent
-     */
-    public function test_form_fields_method_is_fluent(): void
-    {
-        $form = new Form();
-        $fields = [];
-
-        $result = $form->fields($fields);
-
-        $this->assertInstanceOf(Form::class, $result);
-        $this->assertSame($form, $result);
-    }
-
-    /**
      * Test form submit label method is fluent
      */
     public function test_form_submit_label_method_is_fluent(): void
@@ -232,36 +204,6 @@ class FormTest extends TestCase
     }
 
     /**
-     * Test form normalize component with row
-     */
-    public function test_form_normalize_component_with_row(): void
-    {
-        $form = Form::make();
-        $row = $this->createMock(Row::class);
-
-        $form->addRow($row);
-
-        $layout = $form->layout();
-        $this->assertCount(1, $layout);
-        $this->assertEquals('row', $layout[0]['type']);
-    }
-
-    /**
-     * Test form normalize component with row component
-     */
-    public function test_form_normalize_component_with_row_component(): void
-    {
-        $form = Form::make();
-        $row = $this->createMock(Row::class);
-        $rowComponent = RowComponent::fromRow($row);
-
-        $form->schema([$rowComponent]);
-
-        $layout = $form->layout();
-        $this->assertCount(1, $layout);
-    }
-
-    /**
      * Test form normalize component with form component
      */
     public function test_form_normalize_component_with_form_component(): void
@@ -277,26 +219,12 @@ class FormTest extends TestCase
     }
 
     /**
-     * Test form normalize component with array
-     */
-    public function test_form_normalize_component_with_array(): void
-    {
-        $form = Form::make();
-        $fields = [];
-
-        $form->schema([$fields]);
-
-        $layout = $form->layout();
-        $this->assertCount(1, $layout);
-    }
-
-    /**
      * Test form normalize component with invalid type throws exception
      */
     public function test_form_normalize_component_invalid_type(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Unsupported form schema component.');
+        $this->expectExceptionMessageMatches('/Unsupported form schema component/');
 
         $form = Form::make();
         $form->schema(['invalid']);
@@ -311,50 +239,6 @@ class FormTest extends TestCase
 
         $form = Form::make();
         $form->schema([new \stdClass()]);
-    }
-
-    /**
-     * Test form schema clears previous layout
-     */
-    public function test_form_schema_clears_previous_layout(): void
-    {
-        $form = Form::make();
-        $row = $this->createMock(Row::class);
-
-        $form->addRow($row);
-        $this->assertCount(1, $form->layout());
-
-        $form->schema([]);
-        $this->assertEmpty($form->layout());
-    }
-
-    /**
-     * Test form add row multiple times
-     */
-    public function test_form_add_row_multiple_times(): void
-    {
-        $form = Form::make();
-        $row1 = $this->createMock(Row::class);
-        $row2 = $this->createMock(Row::class);
-
-        $form->addRow($row1)->addRow($row2);
-
-        $layout = $form->layout();
-        $this->assertCount(2, $layout);
-    }
-
-    /**
-     * Test form fields helper creates row
-     */
-    public function test_form_fields_helper_creates_row(): void
-    {
-        $form = Form::make();
-        $fields = [];
-
-        $form->fields($fields);
-
-        $layout = $form->layout();
-        $this->assertCount(1, $layout);
     }
 
     /**
@@ -412,8 +296,6 @@ class FormTest extends TestCase
         $publicMethods = [
             'make',
             'schema',
-            'addRow',
-            'fields',
             'submitLabel',
             'cancelUrl',
             'layout',

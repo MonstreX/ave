@@ -5,11 +5,10 @@ namespace Monstrex\Ave\Core;
 use InvalidArgumentException;
 use Monstrex\Ave\Contracts\FormField;
 use Monstrex\Ave\Core\Components\FormComponent;
-use Monstrex\Ave\Core\Components\RowComponent;
 
 class Form
 {
-    /** @var array<int,RowComponent|FormComponent> */
+    /** @var array<int,FormComponent> */
     protected array $layout = [];
 
     protected ?string $submitLabel = null;
@@ -36,29 +35,6 @@ class Form
         return $this;
     }
 
-    /**
-     * Add single row to form.
-     */
-    public function addRow(Row $row): static
-    {
-        $this->layout[] = RowComponent::fromRow($row);
-
-        return $this;
-    }
-
-    /**
-     * Quick helper: add fields in single column.
-     *
-     * @param array<int,FormField> $fields
-     */
-    public function fields(array $fields): static
-    {
-        $row = Row::make()->columns([
-            Col::make(12)->fields($fields),
-        ]);
-
-        return $this->addRow($row);
-    }
 
     public function submitLabel(string $label): static
     {
@@ -163,31 +139,24 @@ class Form
     }
 
     /**
+     * Normalize component to FormComponent.
+     *
+     * Only accepts FormComponent instances (including Div, Tabs, Group, etc.).
+     * For other types, throws InvalidArgumentException.
+     *
      * @param mixed $component
      */
-    protected function normalizeComponent(mixed $component): RowComponent|FormComponent
+    protected function normalizeComponent(mixed $component): FormComponent
     {
-        if ($component instanceof RowComponent) {
-            return $component;
-        }
-
-        if ($component instanceof Row) {
-            return RowComponent::fromRow($component);
-        }
-
         if ($component instanceof FormComponent) {
             return $component;
         }
 
-        if (is_array($component)) {
-            $row = Row::make()->columns([
-                Col::make(12)->fields($component),
-            ]);
-
-            return RowComponent::fromRow($row);
-        }
-
-        throw new InvalidArgumentException('Unsupported form schema component.');
+        throw new InvalidArgumentException(
+            sprintf('Unsupported form schema component: %s. Only FormComponent instances are supported.',
+                is_object($component) ? get_class($component) : gettype($component)
+            )
+        );
     }
 }
 

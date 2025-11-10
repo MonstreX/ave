@@ -3,7 +3,6 @@
 namespace Monstrex\Ave\Core\Fields\Fieldset;
 
 use Monstrex\Ave\Core\Fields\AbstractField;
-use Monstrex\Ave\Core\Row;
 
 /**
  * Trait TraversesChildSchema
@@ -13,7 +12,6 @@ use Monstrex\Ave\Core\Row;
  *
  * The schema can contain:
  * - AbstractField instances (direct fields)
- * - Row instances (containing columns with fields)
  *
  * Usage:
  *     $this->forEachChildInSchema(function(AbstractField $field) {
@@ -25,16 +23,15 @@ trait TraversesChildSchema
     /**
      * Get the child schema for this fieldset
      *
-     * @return array<int, AbstractField|Row>
+     * @return array<int, AbstractField>
      */
     abstract public function getChildSchema(): array;
 
     /**
      * Iterate through all fields in the child schema
      *
-     * Handles nested structures:
-     * - Row -> Column -> Field
-     * - Direct Field
+     * Handles nested structures through ItemFactory/schema processing.
+     * This method only operates on direct AbstractField items.
      *
      * @param callable(AbstractField): void $callback - Function to call for each field
      * @return void
@@ -42,19 +39,7 @@ trait TraversesChildSchema
     protected function forEachChildInSchema(callable $callback): void
     {
         foreach ($this->getChildSchema() as $schemaItem) {
-            // Handle Row containers - iterate through columns and their fields
-            if ($schemaItem instanceof Row) {
-                foreach ($schemaItem->getColumns() as $column) {
-                    foreach ($column->getFields() as $field) {
-                        if ($field instanceof AbstractField) {
-                            $callback($field);
-                        }
-                    }
-                }
-                continue;
-            }
-
-            // Handle direct AbstractField
+            // Only process direct AbstractField instances
             if ($schemaItem instanceof AbstractField) {
                 $callback($schemaItem);
             }
