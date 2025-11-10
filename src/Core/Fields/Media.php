@@ -228,6 +228,32 @@ class Media extends AbstractField implements ProvidesValidationRules, HandlesPer
     }
 
     /**
+     * Set custom path generator callback
+     *
+     * Callback is executed at field render time with model context.
+     * The resulting path string is transmitted to frontend as data-custom-path.
+     *
+     * @param callable $callback Callable that receives $model, $recordId, $root, $date
+     * @return static
+     */
+    public function pathGenerator(callable $callback): static
+    {
+        $this->config->setPathGenerator($callback);
+
+        return $this;
+    }
+
+    /**
+     * Get custom path generator callback
+     *
+     * @return \Closure|null
+     */
+    public function getPathGenerator(): ?\Closure
+    {
+        return $this->config->pathGenerator();
+    }
+
+    /**
      * Get the meta key for this field (used in HTML data-meta-key attribute).
      *
      * The meta key is derived from the state path and used by JavaScript

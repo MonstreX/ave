@@ -25,6 +25,16 @@ class MediaRenderer
         // The metaKey is used in HTML data-meta-key attribute for JS to identify the field
         if ($field) {
             $fieldData['metaKey'] = $field->getMetaKey();
+
+            // Execute custom path generator if provided
+            if ($field->getPathGenerator() && $record) {
+                $customPath = $this->executePathGenerator(
+                    $field->getPathGenerator(),
+                    $record,
+                    $record->getKey()
+                );
+                $fieldData['customPath'] = $customPath;
+            }
         }
 
         return view($view, [
@@ -34,6 +44,32 @@ class MediaRenderer
             'errors' => $context->getErrors($fieldData['key']),
             'attributes' => '',
         ])->render();
+    }
+
+    /**
+     * Execute path generator callback with model context
+     *
+     * @param \Closure $callback Generator callback
+     * @param Model $model Current model instance
+     * @param mixed $recordId Model record ID
+     * @return string Generated path
+     */
+    private function executePathGenerator(\Closure $callback, Model $model, mixed $recordId): string
+    {
+        $root = config('ave.media.storage.root', 'media');
+        $date = (object) [
+            'year' => date('Y'),
+            'month' => date('m'),
+            'full' => date('Y/m'),
+        ];
+
+        $result = $callback($model, $recordId, $root, $date);
+
+        // Ensure result is a string and normalize
+        $result = (string) $result;
+        $result = ltrim($result, '/');
+
+        return rtrim($result, '/');
     }
 }
 

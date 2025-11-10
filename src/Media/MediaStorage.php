@@ -35,6 +35,8 @@ class MediaStorage
 
     protected string $pathStrategy = '';
 
+    protected ?string $directPath = null;
+
     protected string $filenameStrategy = '';
 
     protected string $filenameSeparator = '';
@@ -106,6 +108,17 @@ class MediaStorage
     public function pathStrategy(string $strategy): MediaStorage
     {
         $this->pathStrategy = $strategy;
+
+        return $this;
+    }
+
+    /*
+     * Set direct path (overrides path generation strategies)
+     * Used when pathGenerator callback has already computed the path
+     */
+    public function directPath(string $path): MediaStorage
+    {
+        $this->directPath = rtrim($path, '/');
 
         return $this;
     }
@@ -303,6 +316,7 @@ class MediaStorage
                 'disk' => $this->fileService->getDisk(),
                 'model' => $this->model,
                 'collectionName' => $this->collectionName,
+                'directPath' => $this->directPath,
                 'pathStrategy' => $this->pathStrategy ?: null,
                 'filenameStrategy' => $this->filenameStrategy ?: null,
                 'filenameSeparator' => $this->filenameSeparator ?: null,
@@ -340,6 +354,7 @@ class MediaStorage
         $this->collectionId = null;
         $this->preserveOriginal = false;
         $this->pathStrategy = '';
+        $this->directPath = null;
         $this->filenameStrategy = '';
         $this->filenameSeparator = '';
         $this->filenameLocale = '';

@@ -139,6 +139,7 @@ export default function initMediaFields(root = document) {
         const uploadUrl = container.dataset.uploadUrl;
         const modelType = container.dataset.modelType || '';
         const modelId = container.dataset.modelId || '';
+        const customPath = container.dataset.customPath || '';  // Custom path from pathGenerator
         const fieldName = container.closest('[data-field-name]')?.dataset.fieldName || 'media';
         let metaKey = computeMetaKey(container.dataset.metaKey || fieldName);
         container.dataset.metaKey = metaKey;
@@ -356,6 +357,10 @@ export default function initMediaFields(root = document) {
             }
             if (maxSize) {
                 formData.append('max_size', maxSize);
+            }
+            // Add custom path from pathGenerator if set
+            if (customPath) {
+                formData.append('customPath', customPath);
             }
             // Add path strategy from field config if set
             const pathStrategy = container.dataset.pathStrategy;

@@ -34,6 +34,8 @@ class MediaConfiguration
 
     protected string $pathStrategy = '';
 
+    protected ?\Closure $pathGenerator = null;
+
     public function __clone()
     {
         $this->accept = array_values($this->accept);
@@ -163,6 +165,16 @@ class MediaConfiguration
     public function pathStrategy(): string
     {
         return $this->pathStrategy;
+    }
+
+    public function setPathGenerator(?\Closure $generator): void
+    {
+        $this->pathGenerator = $generator;
+    }
+
+    public function pathGenerator(): ?\Closure
+    {
+        return $this->pathGenerator;
     }
 }
 

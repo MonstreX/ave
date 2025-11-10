@@ -41,6 +41,7 @@ class MediaController extends Controller
                 'model_id' => 'nullable|integer',
                 'collection' => 'nullable|string|max:255',
                 'pathStrategy' => 'nullable|in:flat,dated',
+                'customPath' => 'nullable|string|max:255',
             ]);
 
             // Single image upload (RichEditor)
@@ -199,6 +200,7 @@ class MediaController extends Controller
             $modelId = $request->input('model_id');
             $collection = $request->input('collection');
             $pathStrategy = $request->input('pathStrategy');
+            $customPath = $request->input('customPath');
 
             // Load model if context provided
             $model = null;
@@ -233,8 +235,11 @@ class MediaController extends Controller
                         ->collection($collection ?: 'default')
                         ->disk('public');
 
-                    // Apply path strategy if provided
-                    if ($pathStrategy) {
+                    // Apply custom path if provided (from pathGenerator callback)
+                    if ($customPath) {
+                        $mediaBuilder->directPath($customPath);
+                    } elseif ($pathStrategy) {
+                        // Apply path strategy if provided
                         $mediaBuilder->pathStrategy($pathStrategy);
                     }
 
