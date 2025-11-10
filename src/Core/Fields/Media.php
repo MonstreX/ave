@@ -220,6 +220,10 @@ class Media extends AbstractField implements ProvidesValidationRules, HandlesPer
     /**
      * Set custom path generator callback
      *
+     * Note: Custom callbacks only work when MediaStorage is used directly in code.
+     * For AJAX uploads (Media field), only built-in strategies ('flat', 'dated') are supported,
+     * as callbacks cannot be serialized and transmitted over HTTP.
+     *
      * @param callable $callback Callable that receives $model, $recordId, $root, $date
      * @return static
      */
