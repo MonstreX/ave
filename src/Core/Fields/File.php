@@ -3,6 +3,7 @@
 namespace Monstrex\Ave\Core\Fields;
 
 use Monstrex\Ave\Services\FilenameGeneratorService;
+use Monstrex\Ave\Core\FormContext;
 
 /**
  * File Field
@@ -81,6 +82,11 @@ class File extends AbstractField
      * Path generation strategy
      */
     protected string $pathStrategy = '';
+
+    /**
+     * Custom path generator callback
+     */
+    protected ?\Closure $pathGenerator = null;
 
     /**
      * Enable/disable multiple file uploads
@@ -300,6 +306,43 @@ class File extends AbstractField
     public function getPathStrategy(): string
     {
         return $this->pathStrategy;
+    }
+
+    /**
+     * Set custom path generator callback
+     *
+     * Callback is executed at field render time with model context.
+     * The resulting path string is transmitted to frontend as data-custom-path.
+     *
+     * @param callable $callback Callable that receives $model, $recordId, $root, $date
+     * @return static
+     */
+    public function pathGenerator(callable $callback): static
+    {
+        $this->pathGenerator = $callback;
+        return $this;
+    }
+
+    /**
+     * Get custom path generator callback
+     *
+     * @return \Closure|null
+     */
+    public function getPathGenerator(): ?\Closure
+    {
+        return $this->pathGenerator;
+    }
+
+    /**
+     * Render the field to HTML
+     */
+    public function render(FormContext $context): string
+    {
+        $renderer = new File\FileRenderer();
+        $view = $this->view ?? $this->resolveDefaultView();
+        $fieldData = array_merge($this->toArray(), ['field' => $this]);
+
+        return $renderer->render($view, $fieldData, $context, $this);
     }
 
     /**

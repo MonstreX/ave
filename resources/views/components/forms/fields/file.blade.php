@@ -20,7 +20,9 @@
         </label>
     @endif
 
-    <div class="file-upload-wrapper" data-file-field="{{ $key }}">
+    <div class="file-upload-wrapper"
+         data-file-field="{{ $key }}"
+         @if($customPath ?? false) data-custom-path="{{ $customPath }}" @endif>
         <!-- File preview if exists -->
         @if($hasFile)
             <div class="file-preview">
