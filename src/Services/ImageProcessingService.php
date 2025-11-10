@@ -54,26 +54,30 @@ class ImageProcessingService
         // Create absolute path for ImageProcessor
         $absolutePath = $disk->path($filePath);
 
-        // Process the image
-        $processor = new ImageProcessor();
-        $processor->read($absolutePath);
+        try {
+            // Process the image
+            $processor = new ImageProcessor();
+            $processor->read($absolutePath);
 
-        // Crop first
-        $processor->crop($x, $y, $width, $height);
+            // Crop first
+            $processor->crop($x, $y, $width, $height);
 
-        // Then resize if needed
-        if ($cropWidth != $width || $cropHeight != $height) {
-            $processor->scale($cropWidth, $cropHeight);
+            // Then resize if needed
+            if ($cropWidth != $width || $cropHeight != $height) {
+                $processor->scale($cropWidth, $cropHeight);
+            }
+
+            $croppedImageData = $processor->encode();
+
+            // Save cropped image back to file
+            $disk->put($filePath, $croppedImageData);
+
+            // Update media record with new file size
+            $newFileSize = $disk->size($filePath);
+            $media->update(['size' => $newFileSize]);
+        } catch (\Exception $e) {
+            throw new \Exception('Failed to process image: ' . $e->getMessage(), 0, $e);
         }
-
-        $croppedImageData = $processor->encode();
-
-        // Save cropped image back to file
-        $disk->put($filePath, $croppedImageData);
-
-        // Update media record with new file size
-        $newFileSize = $disk->size($filePath);
-        $media->update(['size' => $newFileSize]);
 
         return [
             'id' => $media->id,

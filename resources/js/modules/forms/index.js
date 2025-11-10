@@ -38,12 +38,6 @@ export default function initForms(container = document) {
             // Update all media field hidden inputs before form submission
             updateAllMediaHiddenInputs();
 
-            // Log all form data for debugging
-            const formData = new FormData(form);
-            for (let [key, value] of formData.entries()) {
-                if (key.includes('attachment') || key.includes('featured') || key.includes('file')) {
-                }
-            }
         });
     });
 }

@@ -365,5 +365,10 @@ class File extends AbstractField implements \Monstrex\Ave\Contracts\ProvidesVali
         ]);
     }
 
-    public function buildValidationRules(): array    {        return [            $this->key() => "nullable|string",        ];    }
+    public function buildValidationRules(): array
+    {
+        return [
+            $this->key() => "nullable|string",
+        ];
+    }
 }
