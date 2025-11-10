@@ -357,6 +357,11 @@ export default function initMediaFields(root = document) {
             if (maxSize) {
                 formData.append('max_size', maxSize);
             }
+            // Add path strategy from field config if set
+            const pathStrategy = container.dataset.pathStrategy;
+            if (pathStrategy) {
+                formData.append('pathStrategy', pathStrategy);
+            }
 
             // Show progress
             const progressBar = uploadArea?.querySelector('.upload-progress');

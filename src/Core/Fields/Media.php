@@ -231,6 +231,26 @@ class Media extends AbstractField implements ProvidesValidationRules, HandlesPer
     }
 
     /**
+     * Get path generation strategy
+     *
+     * @return string
+     */
+    public function getPathStrategy(): string
+    {
+        return $this->config->pathStrategy();
+    }
+
+    /**
+     * Get custom path generator callback
+     *
+     * @return \Closure|null
+     */
+    public function getPathGenerator(): ?\Closure
+    {
+        return $this->config->pathGenerator();
+    }
+
+    /**
      * Get the meta key for this field (used in HTML data-meta-key attribute).
      *
      * The meta key is derived from the state path and used by JavaScript
@@ -581,6 +601,8 @@ class Media extends AbstractField implements ProvidesValidationRules, HandlesPer
             'imageConversions' => $this->config->imageConversions(),
             'uploadUrl' => route('ave.media.upload'),
             'propNames' => $this->config->propNames(),
+            'pathStrategy' => $this->getPathStrategy(),
+            'pathGenerator' => null, // Callbacks cannot be serialized, only used server-side
             'modelType' => null,
             'modelId' => null,
             'metaKey' => $this->isTemplate() ? '' : $this->metaKey(),
