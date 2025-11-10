@@ -54,7 +54,9 @@ export default function initFieldSet(root = document) {
                 .replace(/__INDEX__/g, itemId)
                 .replace(/__index__/g, itemId)
                 .replace(/__ITEM__/g, itemId)
-                .replace(/__item__/g, itemId);
+                .replace(/__item__/g, itemId)
+                .replace(/__TEMPLATE__/g, itemId)
+                .replace(/__template__/g, itemId);
         };
 
         const applyPlaceholders = (element, displayIndex, itemId) => {
@@ -374,4 +376,3 @@ export default function initFieldSet(root = document) {
         // This centralized function is shared between default and cards display modes
     });
 }
-
