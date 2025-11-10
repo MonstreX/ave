@@ -6,85 +6,158 @@ use InvalidArgumentException;
 use Monstrex\Ave\Core\FormContext;
 
 /**
- * Tabs component - renders Bootstrap tabs with multiple Tab children
+ * Tabs - Tabbed interface container
+ *
+ * Container for organizing content into multiple tabs.
+ * Can only contain Tab components.
+ *
+ * Features:
+ * - Multiple tab panes with individual content
+ * - Automatic first-tab-active behavior
+ * - Tab navigation with data-driven attributes
+ * - Flexible schema with Tab objects
+ *
+ * Architecture:
+ * - Tabs is the container (FormComponent)
+ * - Each Tab is a ComponentContainer with fields/components
+ * - Navigation and content are rendered from same Tab definitions
  *
  * Example:
- * ```php
- * Tabs::make([
- *     Tab::make('General')->schema([...]),
- *     Tab::make('Settings')->schema([...]),
- * ])->active('tab-general')
- * ```
+ *   Tabs::make()->schema([
+ *       Tab::make('Tab 1')->schema([
+ *           TextInput::make('field1'),
+ *       ]),
+ *       Tab::make('Tab 2')->schema([
+ *           TextInput::make('field2'),
+ *       ]),
+ *   ])
  */
-class Tabs extends ComponentContainer
+class Tabs extends FormComponent
 {
-    protected ?string $activeTab = null;
+    /**
+     * @var array<int,Tab>
+     */
+    protected array $tabs = [];
 
-    protected function getDefaultViewTemplate(): string
+    protected string $id;
+
+    protected ?string $activeTabId = null;
+
+    public function __construct()
     {
-        return 'ave::components.forms.tabs';
+        $this->id = 'tabs-' . uniqid();
     }
 
     public static function make(array $tabs = []): static
     {
-        $instance = new static;
-
-        if ($tabs) {
+        $instance = new static();
+        if (!empty($tabs)) {
             $instance->schema($tabs);
         }
 
         return $instance;
     }
 
-    public function schema(array $components): static
-    {
-        foreach ($components as $component) {
-            if (!$component instanceof Tab) {
-                throw new InvalidArgumentException('Tabs container expects Tab components.');
-            }
-        }
-
-        return parent::schema($components);
-    }
-
     /**
-     * Set the active tab by ID
+     * Set active tab by ID
      */
-    public function active(string $tabId): static
+    public function active(?string $tabId): static
     {
-        $this->activeTab = $tabId;
+        $this->activeTabId = $tabId;
 
         return $this;
     }
 
+    /**
+     * Get active tab ID
+     */
     public function getActiveTab(): ?string
     {
-        return $this->activeTab;
+        return $this->activeTabId;
     }
 
     /**
-     * Generate unique DOM ID for this tabs container
+     * Get DOM ID for tabs container
      */
     public function getDomId(): string
     {
-        return 'tabs-' . substr(md5(spl_object_hash($this)), 0, 8);
+        return $this->id;
     }
 
-    public function render(FormContext $context): string
+    /**
+     * Set tabs schema
+     *
+     * @param array<int,Tab> $tabs
+     */
+    public function schema(array $tabs): static
     {
-        $tabs = $this->getChildComponents();
+        $this->tabs = [];
 
-        $active = $this->activeTab;
-        if (!$active && isset($tabs[0])) {
-            $active = $tabs[0]->getId();
+        foreach ($tabs as $index => $tab) {
+            if (!$tab instanceof Tab) {
+                throw new InvalidArgumentException(
+                    'Tabs container expects Tab components'
+                );
+            }
+
+            // Set first tab as active by default if not explicitly set
+            if ($index === 0 && !$tab->isActive()) {
+                $tab->active(true);
+            }
+
+            $this->tabs[] = $tab;
         }
 
-        return view($this->getViewTemplate(), [
-            'component' => $this,
-            'tabs' => $tabs,
+        return $this;
+    }
+
+    /**
+     * Get all tabs
+     *
+     * @return array<int,Tab>
+     */
+    public function getTabs(): array
+    {
+        return $this->tabs;
+    }
+
+    /**
+     * Get active Tab object (helper method - not in interface)
+     */
+    public function getActiveTabObject(): ?Tab
+    {
+        foreach ($this->tabs as $tab) {
+            if ($tab->isActive()) {
+                return $tab;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Flatten all fields from all tabs
+     */
+    public function flattenFields(): array
+    {
+        $fields = [];
+
+        foreach ($this->tabs as $tab) {
+            $fields = array_merge($fields, $tab->flattenFields());
+        }
+
+        return $fields;
+    }
+
+    /**
+     * Render tabs interface
+     */
+    public function render(FormContext $context): string
+    {
+        return view('ave::components.forms.tabs', [
+            'tabs' => $this->tabs,
             'context' => $context,
-            'activeTab' => $active,
-            'domId' => $this->getDomId(),
+            'domId' => $this->id,
         ])->render();
     }
 }
