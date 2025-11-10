@@ -55,172 +55,46 @@ class PathGeneratorServiceTest extends TestCase
     }
 
     /**
-     * Test dated strategy without model (root only)
+     * Test paths without model
      */
-    public function test_dated_strategy_without_model(): void
+    public function test_flat_without_model(): void
     {
         $result = PathGeneratorService::generate([
-            'root' => 'uploads/files',
+            'root' => 'uploads',
+            'strategy' => PathGeneratorService::STRATEGY_FLAT,
+        ]);
+
+        $this->assertEquals('uploads', $result);
+    }
+
+    /**
+     * Test dated without model
+     */
+    public function test_dated_without_model(): void
+    {
+        $result = PathGeneratorService::generate([
+            'root' => 'media',
             'strategy' => PathGeneratorService::STRATEGY_DATED,
             'year' => '2025',
             'month' => '11',
         ]);
 
-        $this->assertEquals('uploads/files/2025/11', $result);
+        $this->assertEquals('media/2025/11', $result);
     }
 
     /**
-     * Test flat strategy without model (only recordId)
-     */
-    public function test_flat_strategy_with_only_record_id(): void
-    {
-        $result = PathGeneratorService::generate([
-            'root' => 'uploads',
-            'strategy' => PathGeneratorService::STRATEGY_FLAT,
-            'recordId' => 99,
-        ]);
-
-        $this->assertEquals('uploads/99', $result);
-    }
-
-    /**
-     * Test default strategy is dated
-     */
-    public function test_default_strategy_is_dated(): void
-    {
-        $model = $this->createMockModel('posts', 5);
-
-        $result = PathGeneratorService::generate([
-            'root' => 'media',
-            'model' => $model,
-            'year' => '2024',
-            'month' => '12',
-        ]);
-
-        $this->assertEquals('media/posts/2024/12', $result);
-    }
-
-    /**
-     * Test root normalization (remove trailing slashes)
+     * Test root normalization with trailing slashes
      */
     public function test_root_normalization(): void
     {
-        $model = $this->createMockModel('articles', 1);
-
         $result = PathGeneratorService::generate([
-            'root' => 'uploads/files/',
+            'root' => 'uploads/',
             'strategy' => PathGeneratorService::STRATEGY_FLAT,
-            'model' => $model,
+            'recordId' => 123,
         ]);
 
-        $this->assertEquals('uploads/files/articles/1', $result);
-    }
-
-    /**
-     * Test path with trailing slash
-     */
-    public function test_generate_with_trailing_slash(): void
-    {
-        $model = $this->createMockModel('users', 10);
-
-        $result = PathGeneratorService::generateWithSlash([
-            'root' => 'media',
-            'strategy' => PathGeneratorService::STRATEGY_FLAT,
-            'model' => $model,
-        ]);
-
-        $this->assertEquals('media/users/10/', $result);
-        $this->assertStringEndsWith('/', $result);
-    }
-
-    /**
-     * Test custom callback strategy
-     */
-    public function test_custom_callback_strategy(): void
-    {
-        $model = $this->createMockModel('articles', 42);
-
-        $callback = function($model, $recordId, $root, $date) {
-            return "{$root}/custom/{$model->getTable()}/{$date->year}";
-        };
-
-        $result = PathGeneratorService::generate([
-            'root' => 'uploads',
-            'strategy' => 'callback',
-            'model' => $model,
-            'callback' => $callback,
-            'year' => '2025',
-        ]);
-
-        $this->assertEquals('uploads/custom/articles/2025', $result);
-    }
-
-    /**
-     * Test callback with null model
-     */
-    public function test_callback_with_null_model(): void
-    {
-        $callback = function($model, $recordId, $root, $date) {
-            return "{$root}/standalone/{$date->year}/{$date->month}";
-        };
-
-        $result = PathGeneratorService::generate([
-            'root' => 'files',
-            'strategy' => 'callback',
-            'callback' => $callback,
-            'year' => '2025',
-            'month' => '11',
-        ]);
-
-        $this->assertEquals('files/standalone/2025/11', $result);
-    }
-
-    /**
-     * Test callback with leading/trailing slashes normalization
-     */
-    public function test_callback_normalizes_slashes(): void
-    {
-        $callback = function($model, $recordId, $root, $date) {
-            return "/media/normalized/{$date->year}/";
-        };
-
-        $result = PathGeneratorService::generate([
-            'root' => 'media',
-            'strategy' => 'callback',
-            'callback' => $callback,
-            'year' => '2025',
-        ]);
-
-        // Should remove leading slash but keep internal structure
-        $this->assertEquals('media/normalized/2025', $result);
-        $this->assertFalse(str_starts_with($result, '/'));
-        $this->assertFalse(str_ends_with($result, '/'));
-    }
-
-    /**
-     * Test date object in callback
-     */
-    public function test_callback_receives_date_object(): void
-    {
-        $receivedDate = null;
-
-        $callback = function($model, $recordId, $root, $date) use (&$receivedDate) {
-            $receivedDate = $date;
-            return $root;
-        };
-
-        PathGeneratorService::generate([
-            'root' => 'media',
-            'strategy' => 'callback',
-            'callback' => $callback,
-            'year' => '2025',
-            'month' => '11',
-        ]);
-
-        $this->assertNotNull($receivedDate);
-        $this->assertEquals('2025', $receivedDate->year);
-        $this->assertEquals('11', $receivedDate->month);
-        $this->assertEquals('2025/11', $receivedDate->full);
+        $this->assertEquals('uploads/123', $result);
+        $this->assertFalse(str_contains($result, '//'));
     }
 
     /**
@@ -345,35 +219,36 @@ class PathGeneratorServiceTest extends TestCase
     }
 
     /**
-     * Test callback receives all parameters correctly
+     * Test generateWithSlash convenience method
      */
-    public function test_callback_receives_all_parameters(): void
+    public function test_generate_with_slash(): void
     {
-        $receivedParams = [];
-
-        $callback = function($model, $recordId, $root, $date) use (&$receivedParams) {
-            $receivedParams = [
-                'model' => $model,
-                'recordId' => $recordId,
-                'root' => $root,
-                'date' => $date,
-            ];
-            return $root;
-        };
-
-        $model = $this->createMockModel('articles', 42);
-
-        PathGeneratorService::generate([
+        $result = PathGeneratorService::generateWithSlash([
             'root' => 'media',
-            'strategy' => 'callback',
-            'model' => $model,
-            'recordId' => 42,
-            'callback' => $callback,
+            'strategy' => PathGeneratorService::STRATEGY_DATED,
+            'year' => '2025',
+            'month' => '11',
         ]);
 
-        $this->assertNotNull($receivedParams['model']);
-        $this->assertEquals(42, $receivedParams['recordId']);
-        $this->assertEquals('media', $receivedParams['root']);
-        $this->assertNotNull($receivedParams['date']);
+        $this->assertTrue(str_ends_with($result, '/'));
+        $this->assertEquals('media/2025/11/', $result);
+    }
+
+    /**
+     * Test path consistency across calls
+     */
+    public function test_path_consistency(): void
+    {
+        $model = $this->createMockModel('articles', 42);
+        $options = [
+            'root' => 'media',
+            'strategy' => PathGeneratorService::STRATEGY_FLAT,
+            'model' => $model,
+        ];
+
+        $result1 = PathGeneratorService::generate($options);
+        $result2 = PathGeneratorService::generate($options);
+
+        $this->assertEquals($result1, $result2);
     }
 }

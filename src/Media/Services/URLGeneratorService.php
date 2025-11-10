@@ -33,7 +33,6 @@ class URLGeneratorService
             'recordId' => $params['model'] ? $params['model']->getKey() : null,
             'year' => date('Y'),
             'month' => date('m'),
-            'callback' => $params['pathCallback'] ?? null,
         ]);
 
         foreach ($params['files'] as $key => $file) {

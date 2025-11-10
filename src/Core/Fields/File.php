@@ -83,11 +83,6 @@ class File extends AbstractField
     protected string $pathStrategy = '';
 
     /**
-     * Custom path generator callback
-     */
-    protected ?\Closure $pathGenerator = null;
-
-    /**
      * Enable/disable multiple file uploads
      *
      * @param bool $multiple Whether to allow multiple files
@@ -305,28 +300,6 @@ class File extends AbstractField
     public function getPathStrategy(): string
     {
         return $this->pathStrategy;
-    }
-
-    /**
-     * Set custom path generator callback
-     *
-     * @param callable $callback Callable that receives $model, $recordId, $root, $date
-     * @return static
-     */
-    public function pathGenerator(callable $callback): static
-    {
-        $this->pathGenerator = $callback;
-        return $this;
-    }
-
-    /**
-     * Get custom path generator callback
-     *
-     * @return \Closure|null
-     */
-    public function getPathGenerator(): ?\Closure
-    {
-        return $this->pathGenerator;
     }
 
     /**

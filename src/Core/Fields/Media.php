@@ -218,23 +218,6 @@ class Media extends AbstractField implements ProvidesValidationRules, HandlesPer
     }
 
     /**
-     * Set custom path generator callback
-     *
-     * Note: Custom callbacks only work when MediaStorage is used directly in code.
-     * For AJAX uploads (Media field), only built-in strategies ('flat', 'dated') are supported,
-     * as callbacks cannot be serialized and transmitted over HTTP.
-     *
-     * @param callable $callback Callable that receives $model, $recordId, $root, $date
-     * @return static
-     */
-    public function pathGenerator(callable $callback): static
-    {
-        $this->config->setPathGenerator($callback);
-
-        return $this;
-    }
-
-    /**
      * Get path generation strategy
      *
      * @return string
@@ -242,16 +225,6 @@ class Media extends AbstractField implements ProvidesValidationRules, HandlesPer
     public function getPathStrategy(): string
     {
         return $this->config->pathStrategy();
-    }
-
-    /**
-     * Get custom path generator callback
-     *
-     * @return \Closure|null
-     */
-    public function getPathGenerator(): ?\Closure
-    {
-        return $this->config->pathGenerator();
     }
 
     /**
@@ -606,7 +579,6 @@ class Media extends AbstractField implements ProvidesValidationRules, HandlesPer
             'uploadUrl' => route('ave.media.upload'),
             'propNames' => $this->config->propNames(),
             'pathStrategy' => $this->getPathStrategy(),
-            'pathGenerator' => null, // Callbacks cannot be serialized, only used server-side
             'modelType' => null,
             'modelId' => null,
             'metaKey' => $this->isTemplate() ? '' : $this->metaKey(),

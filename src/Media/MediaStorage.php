@@ -35,8 +35,6 @@ class MediaStorage
 
     protected string $pathStrategy = '';
 
-    protected ?\Closure $pathGenerator = null;
-
     protected string $filenameStrategy = '';
 
     protected string $filenameSeparator = '';
@@ -108,17 +106,6 @@ class MediaStorage
     public function pathStrategy(string $strategy): MediaStorage
     {
         $this->pathStrategy = $strategy;
-
-        return $this;
-    }
-
-    /*
-     * Set custom path generator callback
-     * Callback receives: $model, $recordId, $root, $date
-     */
-    public function pathGenerator(callable $callback): MediaStorage
-    {
-        $this->pathGenerator = $callback;
 
         return $this;
     }
@@ -317,7 +304,6 @@ class MediaStorage
                 'model' => $this->model,
                 'collectionName' => $this->collectionName,
                 'pathStrategy' => $this->pathStrategy ?: null,
-                'pathCallback' => $this->pathGenerator,
                 'filenameStrategy' => $this->filenameStrategy ?: null,
                 'filenameSeparator' => $this->filenameSeparator ?: null,
                 'filenameLocale' => $this->filenameLocale ?: null,
@@ -354,7 +340,6 @@ class MediaStorage
         $this->collectionId = null;
         $this->preserveOriginal = false;
         $this->pathStrategy = '';
-        $this->pathGenerator = null;
         $this->filenameStrategy = '';
         $this->filenameSeparator = '';
         $this->filenameLocale = '';
