@@ -775,6 +775,7 @@ class MediaController extends Controller
                 'pathStrategy' => 'nullable|in:flat,dated',
                 'filenameStrategy' => 'nullable|in:original,transliterate,unique',
                 'locale' => 'nullable|string',
+                'customPath' => 'nullable|string|max:255',
             ]);
 
             \Log::debug('[uploadFile] Request received', [
@@ -793,6 +794,8 @@ class MediaController extends Controller
             $filenameLocale = $request->input('locale') ?? config('ave.files.filename.locale', 'ru');
 
             // Get path strategy
+            // Get custom path if provided (from pathGenerator callback)
+            $customPath = $request->input('customPath');
             $pathStrategy = $request->input('pathStrategy') ??
                            config('ave.files.path.strategy', 'dated');
 
@@ -829,16 +832,20 @@ class MediaController extends Controller
                 }
             }
 
-            // Generate path using PathGeneratorService
-            $path = \Monstrex\Ave\Services\PathGeneratorService::generate([
-                'root' => config('ave.files.root', 'uploads/files'),
-                'strategy' => $pathStrategy,
-                'model' => $model,
-                'recordId' => $request->input('model_id'),
-                'year' => date('Y'),
-                'month' => date('m'),
-            ]);
-
+            // Use custom path if provided, otherwise generate it
+            if ($customPath) {
+                $path = $customPath;
+            } else {
+                // Generate path using PathGeneratorService
+                $path = \Monstrex\Ave\Services\PathGeneratorService::generate([
+                    'root' => config('ave.files.root', 'uploads/files'),
+                    'strategy' => $pathStrategy,
+                    'model' => $model,
+                    'recordId' => $request->input('model_id'),
+                    'year' => date('Y'),
+                    'month' => date('m'),
+                ]);
+            }
             // Generate filename using FilenameGeneratorService
             $fileName = \Monstrex\Ave\Services\FilenameGeneratorService::generate(
                 $file->getClientOriginalName(),
