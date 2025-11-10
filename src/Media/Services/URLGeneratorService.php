@@ -3,6 +3,7 @@
 namespace Monstrex\Ave\Media\Services;
 
 use Monstrex\Ave\Services\FilenameGeneratorService;
+use Monstrex\Ave\Services\PathGeneratorService;
 
 class URLGeneratorService
 {
@@ -15,15 +16,25 @@ class URLGeneratorService
 
     public function handle(array $params): array
     {
-        $targetPath = config('ave.media.storage.root', 'media').'/'.
-                        ($params['model'] ? $params['model']->getTable().'/' : '').
-                        date('Y').'/'.date('m');
+        // Get path generation strategy from params or config
+        $pathStrategy = $params['pathStrategy'] ?? config('ave.media.path.strategy', 'dated');
 
         // Get filename generation options from params or config
         $filenameStrategy = $params['filenameStrategy'] ?? config('ave.media.filename.strategy', 'transliterate');
         $filenameSeparator = $params['filenameSeparator'] ?? config('ave.media.filename.separator', '-');
         $filenameLocale = $params['filenameLocale'] ?? config('ave.media.filename.locale', 'ru');
         $replaceFile = $params['replaceFile'] ?? false;
+
+        // Generate target path using PathGeneratorService
+        $targetPath = PathGeneratorService::generate([
+            'root' => config('ave.media.storage.root', 'media'),
+            'strategy' => $pathStrategy,
+            'model' => $params['model'] ?? null,
+            'recordId' => $params['model'] ? $params['model']->getKey() : null,
+            'year' => date('Y'),
+            'month' => date('m'),
+            'callback' => $params['pathCallback'] ?? null,
+        ]);
 
         foreach ($params['files'] as $key => $file) {
             $sourceFile = $file['sourceFile'];

@@ -33,6 +33,10 @@ class MediaStorage
 
     protected bool $preserveOriginal = false;
 
+    protected string $pathStrategy = '';
+
+    protected ?callable $pathGenerator = null;
+
     protected string $filenameStrategy = '';
 
     protected string $filenameSeparator = '';
@@ -94,6 +98,27 @@ class MediaStorage
     public function props(array $props): MediaStorage
     {
         $this->props = $props;
+
+        return $this;
+    }
+
+    /*
+     * Set path generation strategy: 'flat' or 'dated'
+     */
+    public function pathStrategy(string $strategy): MediaStorage
+    {
+        $this->pathStrategy = $strategy;
+
+        return $this;
+    }
+
+    /*
+     * Set custom path generator callback
+     * Callback receives: $model, $recordId, $root, $date
+     */
+    public function pathGenerator(callable $callback): MediaStorage
+    {
+        $this->pathGenerator = $callback;
 
         return $this;
     }
@@ -291,6 +316,8 @@ class MediaStorage
                 'disk' => $this->fileService->getDisk(),
                 'model' => $this->model,
                 'collectionName' => $this->collectionName,
+                'pathStrategy' => $this->pathStrategy ?: null,
+                'pathCallback' => $this->pathGenerator,
                 'filenameStrategy' => $this->filenameStrategy ?: null,
                 'filenameSeparator' => $this->filenameSeparator ?: null,
                 'filenameLocale' => $this->filenameLocale ?: null,
@@ -326,6 +353,8 @@ class MediaStorage
         $this->collectionName = null;
         $this->collectionId = null;
         $this->preserveOriginal = false;
+        $this->pathStrategy = '';
+        $this->pathGenerator = null;
         $this->filenameStrategy = '';
         $this->filenameSeparator = '';
         $this->filenameLocale = '';

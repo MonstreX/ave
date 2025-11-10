@@ -44,6 +44,47 @@ return [
             'locale' => 'ru',    // Used for transliterate strategy
             'uniqueness' => 'suffix',  // 'suffix' (adds -1,-2,-3) or 'replace'
         ],
+
+        /*
+         * Path generation strategy for media files.
+         * Available strategies:
+         * - 'flat': Organize by model and record ID: {root}/{model_table}/{record_id}/
+         * - 'dated': Organize by model and date: {root}/{model_table}/{year}/{month}/
+         * Can be overridden per field via ->pathStrategy() or ->pathGenerator(callback)
+         */
+        'path' => [
+            'strategy' => env('AVE_MEDIA_PATH_STRATEGY', 'dated'),  // flat|dated
+        ],
+    ],
+
+    /*
+     * File storage configuration (for File field uploads).
+     */
+    'files' => [
+        'root' => env('AVE_FILES_ROOT', 'uploads/files'),
+        'disk' => 'public',
+
+        /*
+         * Path generation strategy for file field uploads.
+         * Available strategies:
+         * - 'flat': Organize by model and record ID: {root}/{model_table}/{record_id}/
+         * - 'dated': Organize by model and date: {root}/{model_table}/{year}/{month}/
+         * Can be overridden per field via ->pathStrategy() or ->pathGenerator(callback)
+         */
+        'path' => [
+            'strategy' => env('AVE_FILES_PATH_STRATEGY', 'dated'),  // flat|dated
+        ],
+
+        /*
+         * Filename generation strategy for file field uploads.
+         * Same options as media.filename (see above).
+         */
+        'filename' => [
+            'strategy' => env('AVE_FILES_FILENAME_STRATEGY', 'transliterate'),
+            'separator' => '-',
+            'locale' => 'ru',
+            'uniqueness' => 'suffix',
+        ],
     ],
 
     /*

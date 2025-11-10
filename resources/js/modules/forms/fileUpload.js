@@ -35,6 +35,17 @@ export default function initFileUpload(root = document) {
             formData.append('file', file);
             formData.append('field', fieldKey);
 
+            // Add model context from parent form (if editing)
+            const form = wrapper.closest('form');
+            const modelType = form?.dataset.modelType || '';
+            const modelId = form?.dataset.modelId || '';
+            if (modelType) {
+                formData.append('model_type', modelType);
+            }
+            if (modelId) {
+                formData.append('model_id', modelId);
+            }
+
             // Get CSRF token if available
             const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
 

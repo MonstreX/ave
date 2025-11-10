@@ -734,7 +734,10 @@ class MediaController extends Controller
      * Request params:
      * - file: single file upload
      * - field: field name (optional)
-     * - filenameStrategy: optional strategy ('original'|'transliterate'|'unique')
+     * - model_type: optional model class for path generation
+     * - model_id: optional model record ID for path generation
+     * - pathStrategy: optional path strategy ('flat'|'dated')
+     * - filenameStrategy: optional filename strategy ('original'|'transliterate'|'unique')
      * - locale: optional locale for transliterate strategy
      */
     public function uploadFile(Request $request): JsonResponse
@@ -743,30 +746,63 @@ class MediaController extends Controller
             $request->validate([
                 'file' => 'required|file|max:102400', // 100MB max
                 'field' => 'nullable|string',
+                'model_type' => 'nullable|string',
+                'model_id' => 'nullable',
+                'pathStrategy' => 'nullable|in:flat,dated',
                 'filenameStrategy' => 'nullable|in:original,transliterate,unique',
                 'locale' => 'nullable|string',
             ]);
 
             $file = $request->file('file');
-            $field = $request->input('field', 'file');
-            $strategy = $request->input('filenameStrategy') ?? config('ave.media.filename.strategy', 'transliterate');
-            $locale = $request->input('locale') ?? config('ave.media.filename.locale', 'ru');
-            $separator = config('ave.media.filename.separator', '-');
 
-            $path = 'uploads/files/' . $field;
+            // Get filename strategy
+            $filenameStrategy = $request->input('filenameStrategy') ??
+                              config('ave.files.filename.strategy', 'transliterate');
+            $filenameSeparator = config('ave.files.filename.separator', '-');
+            $filenameLocale = $request->input('locale') ?? config('ave.files.filename.locale', 'ru');
+
+            // Get path strategy
+            $pathStrategy = $request->input('pathStrategy') ??
+                           config('ave.files.path.strategy', 'dated');
+
+            // Try to resolve model if model_type provided
+            $model = null;
+            if ($modelType = $request->input('model_type')) {
+                if (class_exists($modelType) && $modelId = $request->input('model_id')) {
+                    try {
+                        $model = app($modelType)->find($modelId);
+                    } catch (\Exception $e) {
+                        // Model not found, proceed without model context
+                        \Log::debug('[MediaController] Could not resolve model', [
+                            'type' => $modelType,
+                            'id' => $modelId,
+                        ]);
+                    }
+                }
+            }
+
+            // Generate path using PathGeneratorService
+            $path = \Monstrex\Ave\Services\PathGeneratorService::generate([
+                'root' => config('ave.files.root', 'uploads/files'),
+                'strategy' => $pathStrategy,
+                'model' => $model,
+                'recordId' => $request->input('model_id'),
+                'year' => date('Y'),
+                'month' => date('m'),
+            ]);
 
             // Generate filename using FilenameGeneratorService
             $fileName = \Monstrex\Ave\Services\FilenameGeneratorService::generate(
                 $file->getClientOriginalName(),
                 [
-                    'strategy' => $strategy,
-                    'separator' => $separator,
-                    'locale' => $locale,
+                    'strategy' => $filenameStrategy,
+                    'separator' => $filenameSeparator,
+                    'locale' => $filenameLocale,
                 ]
             );
 
             // Store file
-            $storedPath = $file->storeAs($path, $fileName, 'public');
+            $storedPath = $file->storeAs($path, $fileName, config('ave.files.disk', 'public'));
 
             return response()->json([
                 'success' => true,
