@@ -40,6 +40,7 @@ class MediaController extends Controller
                 'model_type' => 'nullable|string',
                 'model_id' => 'nullable|integer',
                 'collection' => 'nullable|string|max:255',
+                'pathStrategy' => 'nullable|in:flat,dated',
             ]);
 
             // Single image upload (RichEditor)
@@ -92,6 +93,7 @@ class MediaController extends Controller
             $modelClass = $request->input('model_type');
             $modelId = $request->input('model_id');
             $collection = $request->input('collection');
+            $pathStrategy = $request->input('pathStrategy');
 
             // Scale image if needed before uploading
             if ($file && str_starts_with($file->getMimeType(), 'image/')) {
@@ -117,21 +119,33 @@ class MediaController extends Controller
                 }
 
                 // Upload and bind to model
-                $mediaCollection = Media::add($file)
+                $mediaBuilder = Media::add($file)
                     ->model($model)
                     ->collection($collection ?: 'default')
-                    ->disk('public')
-                    ->create();
+                    ->disk('public');
+
+                // Apply path strategy if provided
+                if ($pathStrategy) {
+                    $mediaBuilder->pathStrategy($pathStrategy);
+                }
+
+                $mediaCollection = $mediaBuilder->create();
             } else {
                 // For create forms: save to temporary collection
                 // These will be migrated to actual model+collection when form is saved
                 $tempCollection = '__pending_' . ($collection ?: 'default');
 
                 try {
-                    $mediaCollection = Media::add($file)
+                    $mediaBuilder = Media::add($file)
                         ->collection($tempCollection)
-                        ->disk('public')
-                        ->create();
+                        ->disk('public');
+
+                    // Apply path strategy if provided
+                    if ($pathStrategy) {
+                        $mediaBuilder->pathStrategy($pathStrategy);
+                    }
+
+                    $mediaCollection = $mediaBuilder->create();
                 } catch (\Exception $e) {
                     \Log::error('[uploadSingleImage] Error during media creation', [
                         'error' => $e->getMessage(),
@@ -184,6 +198,7 @@ class MediaController extends Controller
             $modelClass = $request->input('model_type');
             $modelId = $request->input('model_id');
             $collection = $request->input('collection');
+            $pathStrategy = $request->input('pathStrategy');
 
             // Load model if context provided
             $model = null;
@@ -214,19 +229,23 @@ class MediaController extends Controller
                         $this->processImageBeforeUpload($file);
                     }
 
+                    $mediaBuilder = Media::add($file)
+                        ->collection($collection ?: 'default')
+                        ->disk('public');
+
+                    // Apply path strategy if provided
+                    if ($pathStrategy) {
+                        $mediaBuilder->pathStrategy($pathStrategy);
+                    }
+
                     if ($model) {
                         // Bind to model if available
-                        $mediaCollection = Media::add($file)
+                        $mediaCollection = $mediaBuilder
                             ->model($model)
-                            ->collection($collection ?: 'default')
-                            ->disk('public')
                             ->create();
                     } else {
                         // Upload without model binding
-                        $mediaCollection = Media::add($file)
-                            ->collection($collection ?: 'default')
-                            ->disk('public')
-                            ->create();
+                        $mediaCollection = $mediaBuilder->create();
                     }
 
                     if ($mediaCollection->isEmpty()) {
