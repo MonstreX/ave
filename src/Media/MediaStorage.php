@@ -35,7 +35,7 @@ class MediaStorage
 
     protected string $pathStrategy = '';
 
-    protected ?callable $pathGenerator = null;
+    protected ?\Closure $pathGenerator = null;
 
     protected string $filenameStrategy = '';
 
