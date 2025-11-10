@@ -37,11 +37,12 @@
 </div>
 
 <?php
+$authUser = ave_auth_user();
 $user_avatar = asset('vendor/ave/assets/images/captain-avatar.png');
-if (auth()->check() && auth()->user()->avatar) {
-    if (\Illuminate\Support\Str::startsWith(auth()->user()->avatar, 'http://') ||
-        \Illuminate\Support\Str::startsWith(auth()->user()->avatar, 'https://')) {
-        $user_avatar = auth()->user()->avatar;
+if ($authUser && $authUser->avatar) {
+    if (\Illuminate\Support\Str::startsWith($authUser->avatar, 'http://') ||
+        \Illuminate\Support\Str::startsWith($authUser->avatar, 'https://')) {
+        $user_avatar = $authUser->avatar;
     }
 }
 ?>
@@ -108,4 +109,3 @@ if (auth()->check() && auth()->user()->avatar) {
 
 </body>
 </html>
-

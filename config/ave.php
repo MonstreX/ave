@@ -9,7 +9,7 @@ return [
     /*
      * Authentication guard that should be used for Ave routes.
      */
-    'auth_guard' => env('AVE_AUTH_GUARD'),
+    'auth_guard' => 'web',
 
     /*
      * Middleware stack applied to Ave routes (in addition to the auth guard).
@@ -86,6 +86,28 @@ return [
             'uniqueness' => 'suffix',
         ],
     ],
+
+    'acl' => [
+        'enabled' => (bool) env('AVE_ACL_ENABLED', true),
+        'default_abilities' => [
+            'viewAny',
+            'view',
+            'create',
+            'update',
+            'delete',
+        ],
+        'super_role' => env('AVE_ACL_SUPER_ROLE', 'admin'),
+        'cache_ttl' => env('AVE_ACL_CACHE_TTL', 300),
+    ],
+
+    'menu' => [
+        'default_slug' => env('AVE_MENU_DEFAULT', 'main'),
+    ],
+
+    'user_model' => env('AVE_USER_MODEL', config('auth.providers.users.model')),
+    'user_table' => env('AVE_USER_TABLE', 'users'),
+    'login_route' => 'login',
+    'login_submit_route' => 'login.submit',
 
     /*
      * Discovery cache configuration.

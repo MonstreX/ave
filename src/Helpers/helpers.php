@@ -23,3 +23,43 @@ if (! function_exists('humanFileSize')) {
         return $formatted . $sizes[$factor];
     }
 }
+
+if (! function_exists('ave_auth_guard')) {
+    function ave_auth_guard(): ?string
+    {
+        $guard = trim((string) config('ave.auth_guard'));
+        return $guard !== '' ? $guard : null;
+    }
+}
+
+if (! function_exists('ave_auth_user')) {
+    function ave_auth_user()
+    {
+        $guard = ave_auth_guard();
+
+        return $guard ? auth($guard)->user() : auth()->user();
+    }
+}
+
+if (! function_exists('ave_auth_check')) {
+    function ave_auth_check(): bool
+    {
+        $guard = ave_auth_guard();
+
+        return $guard ? auth($guard)->check() : auth()->check();
+    }
+}
+
+if (! function_exists('ave_login_route_name')) {
+    function ave_login_route_name(): string
+    {
+        return config('ave.login_route', 'login');
+    }
+}
+
+if (! function_exists('ave_login_submit_route_name')) {
+    function ave_login_submit_route_name(): string
+    {
+        return config('ave.login_submit_route', 'login.submit');
+    }
+}

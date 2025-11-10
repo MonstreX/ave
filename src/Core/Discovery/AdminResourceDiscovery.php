@@ -141,6 +141,7 @@ class AdminResourceDiscovery
 
         $defaults = [
             $this->normalizePath(__DIR__ . '/../../Resources'),
+            $this->normalizePath(__DIR__ . '/../../Admin/Resources'),
             $this->normalizePath(app_path('Ave/Resources')),
         ];
 

@@ -2,6 +2,7 @@
 
 namespace Monstrex\Ave\Core;
 
+use Monstrex\Ave\Admin\Access\AccessManager;
 use Monstrex\Ave\Core\Discovery\AdminResourceDiscovery;
 use Monstrex\Ave\Core\Registry\ResourceRegistry;
 
@@ -13,6 +14,7 @@ class ResourceManager
     public function __construct(
         protected AdminResourceDiscovery $discovery,
         protected ResourceRegistry $registry,
+        protected ?AccessManager $accessManager = null,
     ) {}
 
     /**
@@ -31,7 +33,7 @@ class ResourceManager
     public function discover(): self
     {
         foreach ($this->discovery->discover() as $slug => $resourceClass) {
-            $this->registry->register($resourceClass, $slug);
+            $this->register($resourceClass, $slug);
         }
 
         return $this;
@@ -42,7 +44,22 @@ class ResourceManager
      */
     public function register(string $resourceClass, ?string $slug = null): self
     {
-        $this->registry->register($resourceClass, $slug);
+        $resolvedSlug = $slug;
+
+        if (class_exists($resourceClass) && is_subclass_of($resourceClass, Resource::class)) {
+            $resolvedSlug ??= $resourceClass::getSlug();
+
+            $this->registry->register($resourceClass, $resolvedSlug);
+
+            if ($this->accessManager) {
+                $this->accessManager->registerPermissions($resolvedSlug, $resourceClass::permissionAbilities());
+            }
+
+            return $this;
+        }
+
+        $resolvedSlug ??= $resourceClass;
+        $this->registry->register($resourceClass, $resolvedSlug);
 
         return $this;
     }

@@ -5,7 +5,7 @@
 
         <p>Sign in below</p>
 
-        <form action="{{ route('ave.login') }}" method="POST">
+        <form action="{{ route(ave_login_submit_route_name()) }}" method="POST">
             @csrf
             <div class="form-field form-field-default" id="emailGroup">
                 <label>Email</label>

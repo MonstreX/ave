@@ -329,7 +329,7 @@ class ResourceManagerTest extends TestCase
 
         $this->assertNotNull($constructor);
         $parameters = $constructor->getParameters();
-        $this->assertCount(2, $parameters);
+        $this->assertCount(3, $parameters);
     }
 
     /**

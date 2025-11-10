@@ -315,7 +315,7 @@ class ResourceTest extends TestCase
         $user = $this->createMock(Authenticatable::class);
         $result = $resource->can('view', $user);
 
-        $this->assertTrue($result);
+        $this->assertFalse($result);
     }
 
     /**

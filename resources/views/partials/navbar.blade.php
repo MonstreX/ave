@@ -37,7 +37,7 @@
             @show
         </div>
         <div class="ave-navbar__right">
-            @php $user = auth()->user(); @endphp
+            @php $user = ave_auth_user(); @endphp
             @if($user)
                 <ul class="ave-navbar__nav">
                     <li class="dropdown profile">

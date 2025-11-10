@@ -2,9 +2,10 @@
 
 namespace Monstrex\Ave\Core;
 
+use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Contracts\Auth\Authenticatable;
+use Monstrex\Ave\Admin\Access\AccessManager;
 use Monstrex\Ave\Contracts\Authorizable;
 
 /**
@@ -84,18 +85,37 @@ abstract class Resource implements Authorizable
      */
     public function can(string $ability, ?Authenticatable $user, mixed $model = null): bool
     {
-        // Check if resource has a policy configured
-        if (!static::$policy) {
-            return true; // No policy = allowed by default
+        $accessManager = app()->bound(AccessManager::class)
+            ? app(AccessManager::class)
+            : null;
+
+        if ($accessManager && $accessManager->isEnabled()) {
+            return $accessManager->allows($user, static::getSlug(), $ability);
         }
 
-        // If no user, deny access
         if (!$user) {
             return false;
         }
 
-        // Use Laravel Gate to check policy
+        if (!static::$policy) {
+            return false;
+        }
+
         return Gate::forUser($user)->allows($ability, $model ?? static::$model);
+    }
+
+    /**
+     * @return array<int|string,string|array<string,mixed>>
+     */
+    public static function permissionAbilities(): array
+    {
+        return config('ave.acl.default_abilities', [
+            'viewAny',
+            'view',
+            'create',
+            'update',
+            'delete',
+        ]);
     }
 
     /**
@@ -197,4 +217,3 @@ abstract class Resource implements Authorizable
         return static::applyEagerLoading($query);
     }
 }
-

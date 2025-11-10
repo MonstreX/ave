@@ -19,6 +19,7 @@ use Monstrex\Ave\Core\Discovery\AdminPageDiscovery;
 use Monstrex\Ave\Console\Commands\CacheClearCommand;
 use Monstrex\Ave\View\Composers\SidebarComposer;
 use Monstrex\Ave\Support\PackageAssets;
+use Monstrex\Ave\Admin\Access\AccessManager;
 use Monstrex\Ave\Media\MediaStorage;
 use Monstrex\Ave\Core\Media\MediaRepository;
 use Monstrex\Ave\Exceptions\AveException;
@@ -44,11 +45,13 @@ class AveServiceProvider extends ServiceProvider
         $this->app->singleton(PageRegistry::class);
         $this->app->singleton(AdminResourceDiscovery::class);
         $this->app->singleton(AdminPageDiscovery::class);
+        $this->app->singleton(AccessManager::class);
 
         $this->app->singleton(ResourceManager::class, function ($app) {
             return new ResourceManager(
                 $app->make(AdminResourceDiscovery::class),
                 $app->make(ResourceRegistry::class),
+                $app->make(AccessManager::class),
             );
         });
 
@@ -87,6 +90,8 @@ class AveServiceProvider extends ServiceProvider
     {
         $this->registerPublishing();
         $this->registerExceptionHandlers();
+
+        $this->loadMigrationsFrom(__DIR__ . '/../../database/migrations');
 
         // Load views
         $this->loadViewsFrom(__DIR__ . '/../../resources/views', 'ave');
