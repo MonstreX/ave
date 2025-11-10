@@ -36,7 +36,7 @@ use Monstrex\Ave\Core\FormContext;
  *           'text/plain'
  *       ])
  */
-class File extends AbstractField
+class File extends AbstractField implements \Monstrex\Ave\Contracts\ProvidesValidationRules
 {
     /**
      * Allow multiple file uploads
@@ -364,4 +364,6 @@ class File extends AbstractField
             'filenameLocale'     => $this->filenameLocale,
         ]);
     }
+
+    public function buildValidationRules(): array    {        return [            $this->key() => "nullable|string",        ];    }
 }
