@@ -30,7 +30,7 @@ class ResourceRendererTest extends TestCase
         parent::setUp();
         $this->viewResolver = $this->createMock(ViewResolver::class);
         $this->renderer = new ResourceRenderer($this->viewResolver);
-        $this->request = $this->createMock(Request::class);
+        $this->request = Request::create('/resource-renderer-test', 'GET');
         $this->paginator = $this->createMock(LengthAwarePaginator::class);
     }
 

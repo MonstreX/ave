@@ -5,7 +5,6 @@ namespace Monstrex\Ave\Tests\Unit\Core\Query;
 use PHPUnit\Framework\TestCase;
 use Monstrex\Ave\Core\Query\TableQueryBuilder;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Http\Request;
 use Monstrex\Ave\Core\Table;
 
 /**
@@ -20,14 +19,12 @@ use Monstrex\Ave\Core\Table;
 class TableQueryBuilderTest extends TestCase
 {
     private Builder $queryBuilder;
-    private Request $request;
     private Table $table;
 
     protected function setUp(): void
     {
         parent::setUp();
         $this->queryBuilder = $this->createMock(Builder::class);
-        $this->request = $this->createMock(Request::class);
         $this->table = $this->createMock(Table::class);
     }
 

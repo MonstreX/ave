@@ -345,8 +345,7 @@ class PageAndPageManagerTest extends TestCase
             public static ?string $label = 'Dashboard';
         };
 
-        $request = $this->createMock(Request::class);
-        $result = $page->render($request);
+        $result = $page->render($this->makeRequest());
 
         $this->assertIsArray($result);
         $this->assertArrayHasKey('title', $result);
@@ -361,8 +360,7 @@ class PageAndPageManagerTest extends TestCase
             public static ?string $label = 'My Dashboard';
         };
 
-        $request = $this->createMock(Request::class);
-        $result = $page->render($request);
+        $result = $page->render($this->makeRequest());
 
         $this->assertEquals('My Dashboard', $result['title']);
     }
@@ -377,8 +375,7 @@ class PageAndPageManagerTest extends TestCase
             public static ?string $slug = 'dashboard';
         };
 
-        $request = $this->createMock(Request::class);
-        $result = $page->render($request);
+        $result = $page->render($this->makeRequest());
 
         $this->assertEquals('dashboard', $result['title']);
     }
@@ -393,8 +390,7 @@ class PageAndPageManagerTest extends TestCase
             public static ?string $slug = null;
         };
 
-        $request = $this->createMock(Request::class);
-        $result = $page->render($request);
+        $result = $page->render($this->makeRequest());
 
         $this->assertEquals('Page', $result['title']);
     }
@@ -579,8 +575,8 @@ class PageAndPageManagerTest extends TestCase
             public static ?string $label = 'Test Page';
         };
 
-        $request1 = $this->createMock(Request::class);
-        $request2 = $this->createMock(Request::class);
+        $request1 = $this->makeRequest();
+        $request2 = $this->makeRequest();
 
         $result1 = $page->render($request1);
         $result2 = $page->render($request2);
@@ -610,5 +606,10 @@ class PageAndPageManagerTest extends TestCase
         };
 
         $this->assertEquals('user-admin-settings', $page->getSlug());
+    }
+
+    private function makeRequest(): Request
+    {
+        return Request::create('/page-test', 'GET');
     }
 }

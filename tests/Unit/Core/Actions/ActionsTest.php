@@ -306,7 +306,7 @@ class ActionsTest extends TestCase
                 return 'done';
             });
 
-        $result = $action->execute([], $this->createMock(Request::class));
+        $result = $action->execute([], $this->makeRequest());
         $this->assertTrue($executed);
         $this->assertEquals('done', $result);
     }
@@ -322,7 +322,7 @@ class ActionsTest extends TestCase
                 return count($recordsArg);
             });
 
-        $result = $action->execute($records, $this->createMock(Request::class));
+        $result = $action->execute($records, $this->makeRequest());
         $this->assertEquals(2, $result);
     }
 
@@ -332,12 +332,11 @@ class ActionsTest extends TestCase
     public function test_bulk_action_execute_two_params(): void
     {
         $records = [['id' => 1]];
-        $request = $this->createMock(Request::class);
-        $request->id = 123;
+        $request = $this->makeRequest(['id' => 123]);
 
         $action = BulkAction::make('test')
-            ->handle(function($recordsArg, $requestArg) {
-                return $requestArg->id;
+            ->handle(function($recordsArg, Request $requestArg) {
+                return $requestArg->input('id');
             });
 
         $result = $action->execute($records, $request);
@@ -350,7 +349,7 @@ class ActionsTest extends TestCase
     public function test_bulk_action_execute_without_callback(): void
     {
         $action = new BulkAction('test');
-        $result = $action->execute([], $this->createMock(Request::class));
+        $result = $action->execute([], $this->makeRequest());
         $this->assertNull($result);
     }
 
@@ -503,5 +502,10 @@ class ActionsTest extends TestCase
     {
         $reflection = new \ReflectionClass(BulkAction::class);
         $this->assertEquals('Monstrex\\Ave\\Core\\Actions', $reflection->getNamespaceName());
+    }
+
+    private function makeRequest(array $data = []): Request
+    {
+        return Request::create('/bulk-action-test', 'POST', $data);
     }
 }
