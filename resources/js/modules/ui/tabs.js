@@ -1,4 +1,4 @@
-import { recalculateToggleWidth } from '../forms/toggleBootstrap';
+import { aveEvents } from '../../core/EventBus';
 
 export default function initTabs() {
     const tabNavigations = document.querySelectorAll('[data-ave-tabs="nav"]');
@@ -41,7 +41,7 @@ export default function initTabs() {
 }
 
 /**
- * Activate specific tab and reinitialize Toggle widths
+ * Activate specific tab and emit event for components to reinitialize
  */
 function activateTab(items, panes, activeItem, activePane, tabsRoot) {
     items.forEach((otherItem) => {
@@ -59,13 +59,11 @@ function activateTab(items, panes, activeItem, activePane, tabsRoot) {
         pane.classList.toggle('active', pane === activePane);
     });
 
-    // Recalculate Toggle widths in the newly activated pane
-    // Use requestAnimationFrame to wait for DOM to fully render
-    requestAnimationFrame(() => {
-        const toggles = activePane.querySelectorAll('.toggle[data-toggle="toggle"]');
-        toggles.forEach(toggle => {
-            recalculateToggleWidth(toggle);
-        });
+    // Emit event to notify components that a tab became visible
+    // Components can use this to reinitialize (e.g., recalculate dimensions)
+    aveEvents.emit('tab:activated', {
+        pane: activePane,
+        tabsRoot: tabsRoot
     });
 }
 

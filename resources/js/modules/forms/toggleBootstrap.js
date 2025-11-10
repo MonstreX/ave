@@ -1,3 +1,5 @@
+import { aveEvents } from '../../core/EventBus';
+
 /**
  * Initialize Bootstrap Toggle components
  * @param {HTMLElement|Document} root - Container to search for toggle elements
@@ -37,6 +39,9 @@ export default function initToggleBootstrap(root = document) {
             checkbox.dispatchEvent(new Event('change'));
         });
     });
+
+    // Subscribe to tab activation event to recalculate widths
+    subscribeToTabActivation();
 }
 
 /**
@@ -63,3 +68,26 @@ export function recalculateToggleWidth(toggle) {
         toggleOff.style.minWidth = maxWidth + 'px';
     }
 }
+
+/**
+ * Subscribe to tab:activated event and recalculate widths
+ * This provides a decoupled way for toggle to respond to tab changes
+ */
+let tabActivationListenerAttached = false;
+
+function subscribeToTabActivation() {
+    // Only attach listener once globally
+    if (tabActivationListenerAttached) return;
+    tabActivationListenerAttached = true;
+
+    aveEvents.on('tab:activated', ({ pane }) => {
+        // When a tab is activated, recalculate widths for all toggles in that pane
+        requestAnimationFrame(() => {
+            const toggles = pane.querySelectorAll('.toggle[data-toggle="toggle"]');
+            toggles.forEach(toggle => {
+                recalculateToggleWidth(toggle);
+            });
+        });
+    });
+}
+
