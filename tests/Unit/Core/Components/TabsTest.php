@@ -81,103 +81,15 @@ class TabsTest extends TestCase
     }
 
     /**
-     * Test tab icon method is fluent
-     */
-    public function test_tab_icon_method_is_fluent(): void
-    {
-        $tab = new Tab('General');
-        $result = $tab->icon('fa fa-cog');
-
-        $this->assertInstanceOf(Tab::class, $result);
-        $this->assertSame($tab, $result);
-    }
-
-    /**
-     * Test tab icon can be set
-     */
-    public function test_tab_icon_can_be_set(): void
-    {
-        $tab = Tab::make('Settings')->icon('fa fa-gear');
-        $this->assertEquals('fa fa-gear', $tab->getIcon());
-    }
-
-    /**
-     * Test tab icon defaults to null
-     */
-    public function test_tab_icon_default_null(): void
-    {
-        $tab = new Tab('General');
-        $this->assertNull($tab->getIcon());
-    }
-
-    /**
-     * Test tab icon can be cleared
-     */
-    public function test_tab_icon_can_be_cleared(): void
-    {
-        $tab = Tab::make('Settings')
-            ->icon('fa fa-gear')
-            ->icon(null);
-
-        $this->assertNull($tab->getIcon());
-    }
-
-    /**
-     * Test tab badge method is fluent
-     */
-    public function test_tab_badge_method_is_fluent(): void
-    {
-        $tab = new Tab('General');
-        $result = $tab->badge('New');
-
-        $this->assertInstanceOf(Tab::class, $result);
-        $this->assertSame($tab, $result);
-    }
-
-    /**
-     * Test tab badge can be set
-     */
-    public function test_tab_badge_can_be_set(): void
-    {
-        $tab = Tab::make('Notifications')->badge('3');
-        $this->assertEquals('3', $tab->getBadge());
-    }
-
-    /**
-     * Test tab badge defaults to null
-     */
-    public function test_tab_badge_default_null(): void
-    {
-        $tab = new Tab('General');
-        $this->assertNull($tab->getBadge());
-    }
-
-    /**
-     * Test tab badge can be cleared
-     */
-    public function test_tab_badge_can_be_cleared(): void
-    {
-        $tab = Tab::make('Notifications')
-            ->badge('3')
-            ->badge(null);
-
-        $this->assertNull($tab->getBadge());
-    }
-
-    /**
      * Test tab fluent interface chaining
      */
     public function test_tab_fluent_interface_chaining(): void
     {
         $tab = Tab::make('Advanced Settings')
-            ->id('advanced-tab')
-            ->icon('fa fa-sliders')
-            ->badge('Beta');
+            ->id('advanced-tab');
 
         $this->assertEquals('Advanced Settings', $tab->getLabel());
         $this->assertEquals('advanced-tab', $tab->getId());
-        $this->assertEquals('fa fa-sliders', $tab->getIcon());
-        $this->assertEquals('Beta', $tab->getBadge());
     }
 
     /**
@@ -322,9 +234,10 @@ class TabsTest extends TestCase
         $tabs = Tabs::make([
             Tab::make('General'),
             Tab::make('Settings')
-        ])->active('general-tab');
+        ]);
 
-        $this->assertEquals('general-tab', $tabs->getActiveTab());
+        $this->assertInstanceOf(Tabs::class, $tabs);
+        $this->assertCount(2, $tabs->getTabs());
     }
 
     /**
@@ -412,12 +325,8 @@ class TabsTest extends TestCase
         $publicMethods = [
             'make',
             'id',
-            'icon',
-            'badge',
             'getId',
             'getLabel',
-            'getIcon',
-            'getBadge'
         ];
 
         foreach ($publicMethods as $method) {

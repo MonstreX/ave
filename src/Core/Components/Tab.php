@@ -36,10 +36,6 @@ class Tab extends ComponentContainer
 
     protected bool $active = false;
 
-    protected ?string $icon = null;
-
-    protected ?string $badge = null;
-
     public function __construct(string $title)
     {
         $this->title = $title;
@@ -84,42 +80,6 @@ class Tab extends ComponentContainer
     public function getLabel(): string
     {
         return $this->title;
-    }
-
-    /**
-     * Set tab icon (CSS class) - accepts null to clear
-     */
-    public function icon(?string $icon): static
-    {
-        $this->icon = $icon;
-
-        return $this;
-    }
-
-    /**
-     * Get tab icon
-     */
-    public function getIcon(): ?string
-    {
-        return $this->icon;
-    }
-
-    /**
-     * Set tab badge text - accepts null to clear
-     */
-    public function badge(?string $badge): static
-    {
-        $this->badge = $badge;
-
-        return $this;
-    }
-
-    /**
-     * Get tab badge
-     */
-    public function getBadge(): ?string
-    {
-        return $this->badge;
     }
 
     /**

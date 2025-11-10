@@ -12,13 +12,7 @@
             @endphp
             <li role="presentation" class="{{ $isActive ? 'active' : '' }}" data-ave-tab-target="#{{ $tabId }}">
                 <a href="#{{ $tabId }}">
-                    @if($tab->getIcon())
-                        <i class="{{ $tab->getIcon() }}" aria-hidden="true"></i>
-                    @endif
                     {{ $tab->getLabel() }}
-                    @if($tab->getBadge())
-                        <span class="badge">{{ $tab->getBadge() }}</span>
-                    @endif
                 </a>
             </li>
         @endforeach
@@ -35,4 +29,3 @@
         @endforeach
     </div>
 </div>
-
