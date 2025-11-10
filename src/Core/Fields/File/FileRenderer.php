@@ -18,6 +18,11 @@ class FileRenderer
     {
         $record = $context->record();
 
+        // Get value from model if editing
+        if ($record && $field) {
+            $fieldData['value'] = $record->{$field->key()} ?? null;
+        }
+
         // Execute custom path generator if provided
         if ($field && $field->getPathGenerator() && $record) {
             $customPath = $this->executePathGenerator(
