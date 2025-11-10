@@ -147,8 +147,23 @@ class ResourceController extends Controller
         [$resourceClass, $resource] = $this->resolveAndAuthorize($slug, 'create', $request);
 
         $form = $resourceClass::form($request);
-        $context = FormContext::forCreate([], $request);
-        $rules = $this->validator->rulesFromForm($form, $resourceClass, $request, mode: 'create', model: null, context: $context);
+        $modelClass = $resourceClass::$model;
+
+        if (!$modelClass) {
+            throw ResourceException::invalidModel($resourceClass);
+        }
+
+        $blankModel = new $modelClass();
+
+        $context = FormContext::forCreate([], $request, $blankModel);
+        $rules = $this->validator->rulesFromForm(
+            $form,
+            $resourceClass,
+            $request,
+            mode: 'create',
+            model: $blankModel,
+            context: $context
+        );
         try {
             $data = $request->validate($rules);
         } catch (ValidationException $exception) {

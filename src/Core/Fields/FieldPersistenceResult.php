@@ -27,6 +27,11 @@ class FieldPersistenceResult
         return new self($value, $deferred);
     }
 
+    public static function empty(): self
+    {
+        return new self(null, []);
+    }
+
     public function value(): mixed
     {
         return $this->value;

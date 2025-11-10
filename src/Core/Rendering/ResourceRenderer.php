@@ -34,7 +34,7 @@ class ResourceRenderer
 
         $context = $mode === 'edit'
             ? FormContext::forEdit($model, [], $request)
-            : FormContext::forCreate([], $request);
+            : FormContext::forCreate([], $request, $model);
 
         if ($request->hasSession()) {
             $context->withOldInput($request->old());

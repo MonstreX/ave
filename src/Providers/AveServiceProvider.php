@@ -2,6 +2,7 @@
 
 namespace Monstrex\Ave\Providers;
 
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
@@ -119,7 +120,7 @@ class AveServiceProvider extends ServiceProvider
         $exceptionHandler->renderable(
             function (AveException $e, $request) {
                 // Only handle Ave admin routes
-                if (!$request->is('admin/*') && !$request->is('admin')) {
+                if (! $this->isAveRequest($request)) {
                     return null; // Let other handlers process
                 }
 
@@ -158,7 +159,7 @@ class AveServiceProvider extends ServiceProvider
             $exceptionHandler->renderable(
                 function (\Throwable $e, $request) {
                     // Only handle Ave admin routes
-                    if (!$request->is('admin/*') && !$request->is('admin')) {
+                    if (! $this->isAveRequest($request)) {
                         return null; // Let other handlers process
                     }
 
@@ -292,5 +293,35 @@ class AveServiceProvider extends ServiceProvider
         }
 
         return false;
+    }
+
+    /**
+     * Determine if request belongs to Ave admin prefix.
+     */
+    protected function isAveRequest(Request $request): bool
+    {
+        foreach ($this->aveRoutePatterns() as $pattern) {
+            if ($request->is($pattern)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Build glob patterns for current Ave route prefix.
+     *
+     * @return array<int,string>
+     */
+    protected function aveRoutePatterns(): array
+    {
+        $prefix = trim((string) config('ave.route_prefix', 'admin'), '/');
+
+        if ($prefix === '') {
+            return ['admin', 'admin/*'];
+        }
+
+        return [$prefix, "{$prefix}/*"];
     }
 }

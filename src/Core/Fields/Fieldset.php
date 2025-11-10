@@ -92,6 +92,19 @@ class Fieldset extends AbstractField implements HandlesFormRequest, ProvidesVali
     }
 
     /**
+     * @return array<int,AbstractField>
+     */
+    public function getFlattenedChildFields(): array
+    {
+        $fields = [];
+        $this->forEachChildInSchema(static function (AbstractField $field) use (&$fields) {
+            $fields[] = $field;
+        });
+
+        return $fields;
+    }
+
+    /**
      * Get the state path for a specific item within this fieldset.
      *
      * Fieldsets are repeatable, so items have indexed paths like 'items.0', 'items.1', etc.
@@ -598,4 +611,3 @@ class Fieldset extends AbstractField implements HandlesFormRequest, ProvidesVali
         }
     }
 }
-

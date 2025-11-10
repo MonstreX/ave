@@ -35,6 +35,8 @@ class RequestProcessor
         $deferred = [];
         $usedIds = [];
 
+        $schemaFields = $this->fieldset->getFlattenedChildFields();
+
         foreach ($rawItems as $itemData) {
             if (!is_array($itemData)) {
                 continue;
@@ -44,11 +46,7 @@ class RequestProcessor
             $normalizedItem = ['_id' => $itemId];
             $hasMeaningfulData = false;
 
-            foreach ($this->fieldset->getChildSchema() as $schemaField) {
-                if (!$schemaField instanceof AbstractField) {
-                    continue;
-                }
-
+            foreach ($schemaFields as $schemaField) {
                 // Set state path for this item's field (e.g., 'features.0.icon')
                 $itemStatePath = $this->fieldset->getItemStatePath($itemId);
                 $childStatePath = "{$itemStatePath}.{$schemaField->baseKey()}";
@@ -161,11 +159,7 @@ class RequestProcessor
         // Build the state path for this item
         $itemStatePath = $this->fieldset->getItemStatePath($itemId);
 
-        foreach ($this->fieldset->getChildSchema() as $schemaField) {
-            if (!$schemaField instanceof AbstractField) {
-                continue;
-            }
-
+        foreach ($this->fieldset->getFlattenedChildFields() as $schemaField) {
             // Set state path and context for the field
             $childStatePath = "{$itemStatePath}.{$schemaField->baseKey()}";
             $nestedField = $schemaField

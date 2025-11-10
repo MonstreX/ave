@@ -29,6 +29,10 @@ class HandleAveExceptions
      */
     private function render(Throwable $e, Request $request): Response
     {
+        if (! $this->matchesAveRoute($request)) {
+            throw $e;
+        }
+
         // Get status code
         $statusCode = method_exists($e, 'getStatusCode') ? $e->getStatusCode() : 500;
 
@@ -62,5 +66,35 @@ class HandleAveExceptions
             'message' => $message,
             'exception' => config('app.debug') ? $e : null,
         ], $statusCode);
+    }
+
+    /**
+     * Determine if the current request targets Ave admin routes.
+     */
+    private function matchesAveRoute(Request $request): bool
+    {
+        foreach ($this->routePatterns() as $pattern) {
+            if ($request->is($pattern)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Build glob patterns for Ave route prefix.
+     *
+     * @return array<int,string>
+     */
+    private function routePatterns(): array
+    {
+        $prefix = trim((string) config('ave.route_prefix', 'admin'), '/');
+
+        if ($prefix === '') {
+            return ['admin', 'admin/*'];
+        }
+
+        return [$prefix, "{$prefix}/*"];
     }
 }

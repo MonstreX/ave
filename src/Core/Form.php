@@ -56,8 +56,8 @@ class Form
     public function layout(): array
     {
         return array_map(
-            static function (RowComponent|FormComponent $component): array {
-                if ($component instanceof RowComponent) {
+            static function (FormComponent $component): array {
+                if (method_exists($component, 'toLayoutArray')) {
                     return $component->toLayoutArray();
                 }
 
@@ -159,4 +159,3 @@ class Form
         );
     }
 }
-

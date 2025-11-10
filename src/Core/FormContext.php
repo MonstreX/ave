@@ -61,9 +61,9 @@ class FormContext
      * @param  Request|null  $request  Optional request
      * @return static
      */
-    public static function forCreate(array $meta = [], ?Request $request = null): self
+    public static function forCreate(array $meta = [], ?Request $request = null, ?Model $record = null): self
     {
-        return new self(self::MODE_CREATE, null, [], null, $meta, $request);
+        return new self(self::MODE_CREATE, $record, [], null, $meta, $request);
     }
 
     /**
