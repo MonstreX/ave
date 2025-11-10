@@ -32,6 +32,10 @@ class MediaConfiguration
 
     protected ?int $maxImageSize = null;
 
+    protected string $pathStrategy = '';
+
+    protected ?\Closure $pathGenerator = null;
+
     public function __clone()
     {
         $this->accept = array_values($this->accept);
@@ -151,6 +155,26 @@ class MediaConfiguration
     public function maxImageSize(): ?int
     {
         return $this->maxImageSize;
+    }
+
+    public function setPathStrategy(string $strategy): void
+    {
+        $this->pathStrategy = $strategy;
+    }
+
+    public function pathStrategy(): string
+    {
+        return $this->pathStrategy;
+    }
+
+    public function setPathGenerator(?\Closure $generator): void
+    {
+        $this->pathGenerator = $generator;
+    }
+
+    public function pathGenerator(): ?\Closure
+    {
+        return $this->pathGenerator;
     }
 }
 
