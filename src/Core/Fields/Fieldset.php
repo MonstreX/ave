@@ -17,6 +17,8 @@ use Monstrex\Ave\Core\Fields\Fieldset\RequestProcessor;
 use Monstrex\Ave\Core\Fields\Fieldset\TraversesChildSchema;
 use Monstrex\Ave\Core\Validation\FieldValidationRuleExtractor;
 use Monstrex\Ave\Exceptions\FieldsetNestingException;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 
 /**
  * Fieldset - repeatable group of fields stored within a single JSON column.
@@ -565,7 +567,34 @@ class Fieldset extends AbstractField implements HandlesFormRequest, ProvidesVali
 
     private function requestProcessor(): RequestProcessor
     {
-        return $this->requestProcessor ??= new RequestProcessor($this);
+        return $this->requestProcessor ??= new RequestProcessor($this, $this->resolveLogger());
+    }
+
+    private function resolveLogger(): LoggerInterface
+    {
+        if (class_exists(\Illuminate\Container\Container::class)) {
+            $container = \Illuminate\Container\Container::getInstance();
+            if ($container && $container->bound(LoggerInterface::class)) {
+                try {
+                    return $container->make(LoggerInterface::class);
+                } catch (\Throwable) {
+                    // fall through to null logger
+                }
+            }
+
+            if ($container && $container->bound('log')) {
+                try {
+                    $logger = $container->make('log');
+                    if ($logger instanceof LoggerInterface) {
+                        return $logger;
+                    }
+                } catch (\Throwable) {
+                    // ignore
+                }
+            }
+        }
+
+        return new NullLogger();
     }
 
     private function itemFactory(): ItemFactory

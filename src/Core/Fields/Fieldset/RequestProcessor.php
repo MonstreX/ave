@@ -3,12 +3,13 @@
 namespace Monstrex\Ave\Core\Fields\Fieldset;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 use Monstrex\Ave\Contracts\HandlesPersistence;
 use Monstrex\Ave\Contracts\HandlesNestedCleanup;
 use Monstrex\Ave\Core\FormContext;
 use Monstrex\Ave\Core\Fields\AbstractField;
 use Monstrex\Ave\Core\Fields\Fieldset as FieldsetField;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 
 /**
  * Normalises incoming request payload for Fieldset fields.
@@ -18,9 +19,13 @@ use Monstrex\Ave\Core\Fields\Fieldset as FieldsetField;
  */
 class RequestProcessor
 {
+    private LoggerInterface $logger;
+
     public function __construct(
         private FieldsetField $fieldset,
+        ?LoggerInterface $logger = null,
     ) {
+        $this->logger = $logger ?? new NullLogger();
     }
 
     public function process(Request $request, FormContext $context, mixed $originalValue = null): ProcessResult
@@ -75,14 +80,14 @@ class RequestProcessor
             }
 
             if (!$hasMeaningfulData) {
-                Log::debug('Fieldset request item skipped (no meaningful data)', [
+                $this->logger->debug('Fieldset request item skipped (no meaningful data)', [
                     'fieldset' => $this->fieldset->getKey(),
                     'item_id' => $itemId,
                 ]);
                 continue;
             }
 
-            Log::debug('Fieldset request item processed', [
+            $this->logger->debug('Fieldset request item processed', [
                 'fieldset' => $this->fieldset->getKey(),
                 'item_id' => $itemId,
                 'stored_keys' => array_keys($normalizedItem),
@@ -93,7 +98,7 @@ class RequestProcessor
         }
 
         // Process cleanup for deleted items
-        $cleanupActions = $this->collectCleanupActionsForDeletedItems($originalValue, $context);
+        $cleanupActions = $this->collectCleanupActionsForDeletedItems($originalValue, $context, $rawItems);
         $deferred = array_merge($deferred, $cleanupActions);
 
         return new ProcessResult($processedItems, $deferred);
@@ -106,7 +111,7 @@ class RequestProcessor
      * @param FormContext $context - The form context with record
      * @return array - Array of deferred action closures
      */
-    private function collectCleanupActionsForDeletedItems(mixed $originalValue, FormContext $context): array
+    private function collectCleanupActionsForDeletedItems(mixed $originalValue, FormContext $context, array $currentItems): array
     {
         if (!is_array($originalValue) || empty($originalValue)) {
             return [];
@@ -122,8 +127,7 @@ class RequestProcessor
 
         // Get current item IDs from request
         $currentIds = new \stdClass();
-        $currentIdsList = $this->collectCurrentItemIds();
-        foreach ($currentIdsList as $id) {
+        foreach ($this->collectCurrentItemIds($currentItems) as $id) {
             $currentIds->{$id} = true;
         }
 
@@ -191,10 +195,8 @@ class RequestProcessor
      *
      * @return array<int>
      */
-    private function collectCurrentItemIds(): array
+    private function collectCurrentItemIds(array $rawItems): array
     {
-        $rawItems = \request()->input($this->fieldset->getKey(), []);
-
         if (!is_array($rawItems)) {
             return [];
         }

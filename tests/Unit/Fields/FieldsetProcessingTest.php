@@ -2,7 +2,6 @@
 
 namespace Monstrex\Ave\Tests\Unit\Fields;
 
-use Illuminate\Container\Container;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Monstrex\Ave\Contracts\HandlesNestedCleanup;
@@ -11,31 +10,10 @@ use Monstrex\Ave\Core\Fields\TextInput;
 use Monstrex\Ave\Core\FormContext;
 use Monstrex\Ave\Core\Row;
 use Monstrex\Ave\Core\Col;
-use Illuminate\Support\Facades\Facade;
-use Psr\Log\LoggerInterface;
-use Psr\Log\NullLogger;
 use PHPUnit\Framework\TestCase;
 
 class FieldsetProcessingTest extends TestCase
 {
-    protected function setUp(): void
-    {
-        parent::setUp();
-        $container = new Container();
-        Container::setInstance($container);
-        Facade::setFacadeApplication($container);
-        $logger = new NullLogger();
-        $container->instance('log', $logger);
-        $container->instance(LoggerInterface::class, $logger);
-    }
-
-    protected function tearDown(): void
-    {
-        Facade::setFacadeApplication(null);
-        Container::setInstance(null);
-        parent::tearDown();
-    }
-
     public function test_fieldset_handles_nested_rows_and_columns(): void
     {
         $fieldset = Fieldset::make('features')->schema([
@@ -98,10 +76,7 @@ class FieldsetProcessingTest extends TestCase
 
     private function makeRequest(array $data): Request
     {
-        $request = Request::create('/fieldset-test', 'POST', $data);
-        Container::getInstance()?->instance('request', $request);
-
-        return $request;
+        return Request::create('/fieldset-test', 'POST', $data);
     }
 }
 
