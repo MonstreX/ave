@@ -19,6 +19,7 @@ use Monstrex\Ave\Core\Discovery\AdminPageDiscovery;
 use Monstrex\Ave\Console\Commands\CacheClearCommand;
 use Monstrex\Ave\View\Composers\SidebarComposer;
 use Monstrex\Ave\Support\PackageAssets;
+use Monstrex\Ave\Routing\RouteRegistrar;
 use Monstrex\Ave\Admin\Access\AccessManager;
 use Monstrex\Ave\Media\MediaStorage;
 use Monstrex\Ave\Core\Media\MediaRepository;
@@ -98,8 +99,7 @@ class AveServiceProvider extends ServiceProvider
 
         View::composer('ave::partials.sidebar', SidebarComposer::class);
 
-        // Load routes
-        $this->loadRoutesFrom(__DIR__ . '/../routes/admin.php');
+        RouteRegistrar::create($this->app['router'])->register();
 
         // Register commands
         if ($this->app->runningInConsole()) {
