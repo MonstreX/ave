@@ -778,7 +778,6 @@ class MediaController extends Controller
                 'customPath' => 'nullable|string|max:255',
             ]);
 
-            \Log::debug('[uploadFile] Request received', [
                 'file' => $request->file('file')->getClientOriginalName(),
                 'model_type' => $request->input('model_type'),
                 'model_id' => $request->input('model_id'),
@@ -804,26 +803,22 @@ class MediaController extends Controller
             if ($modelType = $request->input('model_type')) {
                 if (class_exists($modelType) && $modelId = $request->input('model_id')) {
                     try {
-                        \Log::debug('[uploadFile] Attempting to find model', [
                             'type' => $modelType,
                             'id' => $modelId,
                             'id_type' => gettype($modelId),
                         ]);
                         $model = app($modelType)->find($modelId);
                         if ($model) {
-                            \Log::debug('[uploadFile] Model found', [
                                 'model_id' => $model->getKey(),
                                 'model_class' => get_class($model),
                             ]);
                         } else {
-                            \Log::warning('[uploadFile] Model not found', [
                                 'type' => $modelType,
                                 'id' => $modelId,
                             ]);
                         }
                     } catch (\Exception $e) {
                         // Model not found, proceed without model context
-                        \Log::warning('[uploadFile] Exception while resolving model', [
                             'type' => $modelType,
                             'id' => $modelId,
                             'error' => $e->getMessage(),

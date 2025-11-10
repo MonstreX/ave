@@ -73,11 +73,9 @@ export default function initFileUpload(root = document) {
                     try {
                         const response = JSON.parse(xhr.responseText);
                         if (response.success && response.path) {
-                            console.log('[Ave] File uploaded, path:', response.path);
 
                             // Update hidden input with the actual file path
                             pathInput.value = response.path;
-                            console.log('[Ave] Updated hidden input value:', pathInput.value);
 
                             // Show preview
                             showFilePreview(wrapper, file.name, response.path);
@@ -121,7 +119,6 @@ export default function initFileUpload(root = document) {
                 e.preventDefault();
                 e.stopPropagation();
 
-                console.log('[Ave] File deleted from field:', fieldKey);
 
                 // Clear path input
                 pathInput.value = '';

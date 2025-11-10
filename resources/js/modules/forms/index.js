@@ -40,10 +40,8 @@ export default function initForms(container = document) {
 
             // Log all form data for debugging
             const formData = new FormData(form);
-            console.log('[Ave] Form submission - checking file fields:');
             for (let [key, value] of formData.entries()) {
                 if (key.includes('attachment') || key.includes('featured') || key.includes('file')) {
-                    console.log('[Ave] Field:', key, 'Value:', value);
                 }
             }
         });
