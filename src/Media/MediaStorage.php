@@ -8,6 +8,7 @@ use Monstrex\Ave\Media\Services\FileService;
 use Monstrex\Ave\Media\Services\MediaService;
 use Monstrex\Ave\Media\Services\URLGeneratorService;
 use Monstrex\Ave\Models\Media;
+use Monstrex\Ave\Services\FilenameGeneratorService;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 class MediaStorage
@@ -32,7 +33,11 @@ class MediaStorage
 
     protected bool $preserveOriginal = false;
 
-    protected string $transLang = '';
+    protected string $filenameStrategy = '';
+
+    protected string $filenameSeparator = '';
+
+    protected string $filenameLocale = '';
 
     protected bool $replaceFile = false;
 
@@ -94,11 +99,51 @@ class MediaStorage
     }
 
     /*
-     * Transliterate file names before saving files
+     * Set filename generation strategy: 'original', 'transliterate', or 'unique'
      */
-    public function transliterate(string $lang = ''): MediaStorage
+    public function filenameStrategy(string $strategy): MediaStorage
     {
-        $this->transLang = $lang;
+        $this->filenameStrategy = $strategy;
+
+        return $this;
+    }
+
+    /*
+     * Set separator for transliterate strategy (default: '-')
+     */
+    public function separator(string $separator): MediaStorage
+    {
+        $this->filenameSeparator = $separator;
+
+        return $this;
+    }
+
+    /*
+     * Set locale for transliterate strategy (default: 'ru')
+     */
+    public function locale(string $locale): MediaStorage
+    {
+        $this->filenameLocale = $locale;
+
+        return $this;
+    }
+
+    /*
+     * Keep original filename (alias for filenameStrategy('original'))
+     */
+    public function keepOriginal(): MediaStorage
+    {
+        $this->filenameStrategy = FilenameGeneratorService::STRATEGY_ORIGINAL;
+
+        return $this;
+    }
+
+    /*
+     * Generate unique random filename (alias for filenameStrategy('unique'))
+     */
+    public function generateUnique(): MediaStorage
+    {
+        $this->filenameStrategy = FilenameGeneratorService::STRATEGY_UNIQUE;
 
         return $this;
     }
@@ -246,7 +291,9 @@ class MediaStorage
                 'disk' => $this->fileService->getDisk(),
                 'model' => $this->model,
                 'collectionName' => $this->collectionName,
-                'transLang' => $this->transLang,
+                'filenameStrategy' => $this->filenameStrategy ?: null,
+                'filenameSeparator' => $this->filenameSeparator ?: null,
+                'filenameLocale' => $this->filenameLocale ?: null,
                 'replaceFile' => $this->replaceFile,
             ]
         );
@@ -279,7 +326,9 @@ class MediaStorage
         $this->collectionName = null;
         $this->collectionId = null;
         $this->preserveOriginal = false;
-        $this->transLang = '';
+        $this->filenameStrategy = '';
+        $this->filenameSeparator = '';
+        $this->filenameLocale = '';
         $this->replaceFile = false;
     }
 }

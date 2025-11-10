@@ -2,6 +2,8 @@
 
 namespace Monstrex\Ave\Media\Services;
 
+use Monstrex\Ave\Services\FilenameGeneratorService;
+
 class URLGeneratorService
 {
     protected ?FileService $fileService;
@@ -13,25 +15,30 @@ class URLGeneratorService
 
     public function handle(array $params): array
     {
-
         $targetPath = config('ave.media.storage.root', 'media').'/'.
                         ($params['model'] ? $params['model']->getTable().'/' : '').
                         date('Y').'/'.date('m');
 
+        // Get filename generation options from params or config
+        $filenameStrategy = $params['filenameStrategy'] ?? config('ave.media.filename.strategy', 'transliterate');
+        $filenameSeparator = $params['filenameSeparator'] ?? config('ave.media.filename.separator', '-');
+        $filenameLocale = $params['filenameLocale'] ?? config('ave.media.filename.locale', 'ru');
+        $replaceFile = $params['replaceFile'] ?? false;
+
         foreach ($params['files'] as $key => $file) {
+            $sourceFile = $file['sourceFile'];
 
-            // Get Original File Info
-            $fileName = $file['sourceFile']->getClientOriginalName();
-            $fileName = empty($params['transLang']) ? $fileName : strtr($fileName, config('ave.media.transliterations.'.$params['transLang']));
-            $fileInfo = pathinfo($fileName);
-
-            if (! $params['replaceFile']) {
-                $fileCopy = 1;
-                while ($this->fileService->exists($targetPath.'/'.$fileName)) {
-                    $fileCopy++;
-                    $fileName = $fileInfo['filename'].'-'.$fileCopy.'.'.$fileInfo['extension'];
-                }
-            }
+            // Generate filename using FilenameGeneratorService
+            $fileName = FilenameGeneratorService::generate(
+                $sourceFile->getClientOriginalName(),
+                [
+                    'strategy' => $filenameStrategy,
+                    'separator' => $filenameSeparator,
+                    'locale' => $filenameLocale,
+                    'uniqueness' => $replaceFile ? FilenameGeneratorService::UNIQUENESS_REPLACE : FilenameGeneratorService::UNIQUENESS_SUFFIX,
+                    'existsCallback' => fn(string $filename) => $this->fileService->exists($targetPath . '/' . $filename),
+                ]
+            );
 
             $params['files'][$key]['targetDisk'] = $params['disk'];
             $params['files'][$key]['targetPath'] = $targetPath;

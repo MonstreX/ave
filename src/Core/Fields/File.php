@@ -2,6 +2,8 @@
 
 namespace Monstrex\Ave\Core\Fields;
 
+use Monstrex\Ave\Services\FilenameGeneratorService;
+
 /**
  * File Field
  *
@@ -13,6 +15,7 @@ namespace Monstrex\Ave\Core\Fields;
  * - Maximum file size validation
  * - File count constraints
  * - Drag & drop support via HTML5
+ * - Flexible filename generation strategies (original, transliterate, unique)
  *
  * Example (Single file):
  *   File::make('document')
@@ -20,10 +23,11 @@ namespace Monstrex\Ave\Core\Fields;
  *       ->accept(['application/pdf', 'application/msword'])
  *       ->maxFileSize(5120) // 5MB in KB
  *
- * Example (Multiple files):
+ * Example (Multiple files with transliterate):
  *   File::make('attachments')
  *       ->label('Upload Files')
  *       ->multiple(true)
+ *       ->filenameStrategy('transliterate')
  *       ->maxFileSize(10240) // 10MB
  *       ->accept([
  *           'application/pdf',
@@ -57,6 +61,21 @@ class File extends AbstractField
      * Minimum number of files required
      */
     protected ?int $minFiles = null;
+
+    /**
+     * Filename generation strategy
+     */
+    protected string $filenameStrategy = '';
+
+    /**
+     * Separator for transliterate strategy
+     */
+    protected string $filenameSeparator = '';
+
+    /**
+     * Locale for transliterate strategy
+     */
+    protected string $filenameLocale = '';
 
     /**
      * Enable/disable multiple file uploads
@@ -169,6 +188,94 @@ class File extends AbstractField
     }
 
     /**
+     * Set filename generation strategy: 'original', 'transliterate', or 'unique'
+     *
+     * @param string $strategy The strategy to use
+     * @return static
+     */
+    public function filenameStrategy(string $strategy): static
+    {
+        $this->filenameStrategy = $strategy;
+        return $this;
+    }
+
+    /**
+     * Get filename generation strategy
+     *
+     * @return string
+     */
+    public function getFilenameStrategy(): string
+    {
+        return $this->filenameStrategy;
+    }
+
+    /**
+     * Set separator for transliterate strategy (default: '-')
+     *
+     * @param string $separator The separator character
+     * @return static
+     */
+    public function separator(string $separator): static
+    {
+        $this->filenameSeparator = $separator;
+        return $this;
+    }
+
+    /**
+     * Get separator for transliterate strategy
+     *
+     * @return string
+     */
+    public function getSeparator(): string
+    {
+        return $this->filenameSeparator;
+    }
+
+    /**
+     * Set locale for transliterate strategy (default: 'ru')
+     *
+     * @param string $locale The locale code
+     * @return static
+     */
+    public function locale(string $locale): static
+    {
+        $this->filenameLocale = $locale;
+        return $this;
+    }
+
+    /**
+     * Get locale for transliterate strategy
+     *
+     * @return string
+     */
+    public function getLocale(): string
+    {
+        return $this->filenameLocale;
+    }
+
+    /**
+     * Keep original filename (alias for filenameStrategy('original'))
+     *
+     * @return static
+     */
+    public function keepOriginal(): static
+    {
+        $this->filenameStrategy = FilenameGeneratorService::STRATEGY_ORIGINAL;
+        return $this;
+    }
+
+    /**
+     * Generate unique random filename (alias for filenameStrategy('unique'))
+     *
+     * @return static
+     */
+    public function generateUnique(): static
+    {
+        $this->filenameStrategy = FilenameGeneratorService::STRATEGY_UNIQUE;
+        return $this;
+    }
+
+    /**
      * Convert field to array representation for Blade template
      *
      * @return array Field data
@@ -176,11 +283,14 @@ class File extends AbstractField
     public function toArray(): array
     {
         return array_merge(parent::toArray(), [
-            'multiple'       => $this->multipleFiles,
-            'acceptedMimes'  => $this->acceptedMimes,
-            'maxFileSize'    => $this->maxSizeKb,
-            'maxFiles'       => $this->maxFiles,
-            'minFiles'       => $this->minFiles,
+            'multiple'           => $this->multipleFiles,
+            'acceptedMimes'      => $this->acceptedMimes,
+            'maxFileSize'        => $this->maxSizeKb,
+            'maxFiles'           => $this->maxFiles,
+            'minFiles'           => $this->minFiles,
+            'filenameStrategy'   => $this->filenameStrategy,
+            'filenameSeparator'  => $this->filenameSeparator,
+            'filenameLocale'     => $this->filenameLocale,
         ]);
     }
 }

@@ -19,7 +19,7 @@ return [
     ],
 
     /*
-     * Media storage configuration reused from v1 implementation.
+     * Media storage configuration.
      */
     'media' => [
         'url_generator' => Monstrex\Ave\Media\Services\URLGeneratorService::class,
@@ -30,76 +30,19 @@ return [
         // Global maximum image size (in pixels, by longest side)
         // Used for automatic image scaling on upload
         'max_image_size' => env('AVE_MEDIA_MAX_IMAGE_SIZE', 2000),
-        'transliterations' => [
-            'ru' => [
-                'А' => 'A',
-                'Б' => 'B',
-                'В' => 'V',
-                'Г' => 'G',
-                'Д' => 'D',
-                'Е' => 'E',
-                'Ё' => 'E',
-                'Ж' => 'J',
-                'З' => 'Z',
-                'И' => 'I',
-                'Й' => 'Y',
-                'К' => 'K',
-                'Л' => 'L',
-                'М' => 'M',
-                'Н' => 'N',
-                'О' => 'O',
-                'П' => 'P',
-                'Р' => 'R',
-                'С' => 'S',
-                'Т' => 'T',
-                'У' => 'U',
-                'Ф' => 'F',
-                'Х' => 'H',
-                'Ц' => 'TS',
-                'Ч' => 'CH',
-                'Ш' => 'SH',
-                'Щ' => 'SCH',
-                'Ъ' => '',
-                'Ы' => 'YI',
-                'Ь' => '',
-                'Э' => 'E',
-                'Ю' => 'YU',
-                'Я' => 'YA',
-                'а' => 'a',
-                'б' => 'b',
-                'в' => 'v',
-                'г' => 'g',
-                'д' => 'd',
-                'е' => 'e',
-                'ё' => 'e',
-                'ж' => 'j',
-                'з' => 'z',
-                'и' => 'i',
-                'й' => 'y',
-                'к' => 'k',
-                'л' => 'l',
-                'м' => 'm',
-                'н' => 'n',
-                'о' => 'o',
-                'п' => 'p',
-                'р' => 'r',
-                'с' => 's',
-                'т' => 't',
-                'у' => 'u',
-                'ф' => 'f',
-                'х' => 'h',
-                'ц' => 'ts',
-                'ч' => 'ch',
-                'ш' => 'sh',
-                'щ' => 'sch',
-                'ъ' => 'y',
-                'ы' => 'yi',
-                'ь' => '',
-                'э' => 'e',
-                'ю' => 'yu',
-                'я' => 'ya',
-                ' ' => '_',
-            ],
+
+        /*
+         * Filename generation strategy for all file uploads.
+         * Available strategies:
+         * - 'original': Keep original filename as-is
+         * - 'transliterate': Convert to slug format (e.g., "мой файл.jpg" → "moj-fajl.jpg")
+         * - 'unique': Generate completely random unique filename (e.g., "a7f3b9c1e5d4f8a2.jpg")
+         */
+        'filename' => [
+            'strategy' => env('AVE_MEDIA_FILENAME_STRATEGY', 'transliterate'),
+            'separator' => '-',  // Used for transliterate strategy
+            'locale' => 'ru',    // Used for transliterate strategy
+            'uniqueness' => 'suffix',  // 'suffix' (adds -1,-2,-3) or 'replace'
         ],
     ],
 

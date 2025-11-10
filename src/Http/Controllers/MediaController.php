@@ -734,6 +734,8 @@ class MediaController extends Controller
      * Request params:
      * - file: single file upload
      * - field: field name (optional)
+     * - filenameStrategy: optional strategy ('original'|'transliterate'|'unique')
+     * - locale: optional locale for transliterate strategy
      */
     public function uploadFile(Request $request): JsonResponse
     {
@@ -741,14 +743,27 @@ class MediaController extends Controller
             $request->validate([
                 'file' => 'required|file|max:102400', // 100MB max
                 'field' => 'nullable|string',
+                'filenameStrategy' => 'nullable|in:original,transliterate,unique',
+                'locale' => 'nullable|string',
             ]);
 
             $file = $request->file('file');
             $field = $request->input('field', 'file');
+            $strategy = $request->input('filenameStrategy') ?? config('ave.media.filename.strategy', 'transliterate');
+            $locale = $request->input('locale') ?? config('ave.media.filename.locale', 'ru');
+            $separator = config('ave.media.filename.separator', '-');
 
-            // Generate unique filename
-            $fileName = time() . '_' . $file->getClientOriginalName();
             $path = 'uploads/files/' . $field;
+
+            // Generate filename using FilenameGeneratorService
+            $fileName = \Monstrex\Ave\Services\FilenameGeneratorService::generate(
+                $file->getClientOriginalName(),
+                [
+                    'strategy' => $strategy,
+                    'separator' => $separator,
+                    'locale' => $locale,
+                ]
+            );
 
             // Store file
             $storedPath = $file->storeAs($path, $fileName, 'public');
