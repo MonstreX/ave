@@ -1,9 +1,9 @@
 @php
     $dashboardRoute = $dashboardRoute ?? null;
-    $groupedResources = $groupedResources instanceof \Illuminate\Support\Collection
-        ? $groupedResources
-        : collect($groupedResources ?? []);
-    $groupedResources = $groupedResources->filter();
+    $resources = $resources instanceof \Illuminate\Support\Collection
+        ? $resources
+        : collect($resources ?? []);
+    $resources = $resources->filter();
     $user = auth()->user();
 @endphp
 
@@ -36,36 +36,12 @@
                     </li>
                 @endif
 
-                @foreach($groupedResources as $groupName => $resources)
-                    @php
-                        $menuId = 'ave-menu-' . \Illuminate\Support\Str::slug($groupName);
-                        $isExpanded = $resources->contains(fn($entry) => request()->routeIs('ave.resource.*') && request()->route('slug') === $entry['slug']);
-                    @endphp
-                    <li class="ave-sidebar__item ave-sidebar__item--expanded" data-ave-menu="item">
-                        <button
-                            type="button"
-                            class="ave-sidebar__link ave-sidebar__toggle"
-                            data-ave-submenu="{{ $menuId }}"
-                            aria-controls="{{ $menuId }}"
-                            aria-expanded="{{ $isExpanded ? 'true' : 'false' }}"
-                        >
-                            <span class="ave-sidebar__icon voyager-data" aria-hidden="true"></span>
-                            <span class="ave-sidebar__label">{{ $groupName }}</span>
-                            <span class="ave-sidebar__caret voyager-angle-down" aria-hidden="true"></span>
-                        </button>
-
-                        <div class="ave-sidebar__submenu {{ $isExpanded ? 'ave-sidebar__submenu--open' : '' }}" id="{{ $menuId }}" data-ave-menu="submenu">
-                            <ul class="ave-sidebar__submenu-list ave-sidebar__submenu-list--level-2">
-                                @foreach($resources as $entry)
-                                    <li class="ave-sidebar__submenu-item {{ request()->routeIs('ave.resource.*') && request()->route('slug') === $entry['slug'] ? 'ave-sidebar__submenu-item--active' : '' }}">
-                                        <a href="{{ route('ave.resource.index', ['slug' => $entry['slug']]) }}" class="ave-sidebar__submenu-link">
-                                            <span class="ave-sidebar__submenu-icon {{ $entry['icon'] }}" aria-hidden="true"></span>
-                                            <span class="ave-sidebar__submenu-label">{{ $entry['label'] }}</span>
-                                        </a>
-                                    </li>
-                                @endforeach
-                            </ul>
-                        </div>
+                @foreach($resources as $entry)
+                    <li class="ave-sidebar__item {{ request()->routeIs('ave.resource.*') && request()->route('slug') === $entry['slug'] ? 'ave-sidebar__item--active' : '' }}">
+                        <a href="{{ route('ave.resource.index', ['slug' => $entry['slug']]) }}" class="ave-sidebar__link">
+                            <span class="ave-sidebar__icon {{ $entry['icon'] }}" aria-hidden="true"></span>
+                            <span class="ave-sidebar__label">{{ $entry['label'] }}</span>
+                        </a>
                     </li>
                 @endforeach
             </ul>

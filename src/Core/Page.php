@@ -7,7 +7,6 @@ abstract class Page
     public static ?string $label = null;
     public static ?string $icon = null;
     public static ?string $slug = null;
-    public static ?int $navSort = null;
 
     /**
      * Render page and return payload for view

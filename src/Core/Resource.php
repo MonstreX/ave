@@ -21,9 +21,7 @@ abstract class Resource implements Authorizable
     public static ?string $label = null;
     public static ?string $singularLabel = null;
     public static ?string $icon = null;
-    public static ?string $group = null;
     public static ?string $slug = null;
-    public static ?int $navSort = null;
 
     /** @var array<string> Relations to eager load on index */
     public static array $with = [];
@@ -152,21 +150,6 @@ abstract class Resource implements Authorizable
         return static::$icon;
     }
 
-    /**
-     * Get navigation group name.
-     */
-    public static function getGroup(): string
-    {
-        return static::$group ?? 'Resources';
-    }
-
-    /**
-     * Get navigation sort order.
-     */
-    public static function getNavSort(): int
-    {
-        return static::$navSort ?? 0;
-    }
 
     /**
      * Get resource slug (alternative method for controller)
@@ -195,16 +178,6 @@ abstract class Resource implements Authorizable
     public function icon(): ?string
     {
         return static::getIcon();
-    }
-
-    public function group(): string
-    {
-        return static::getGroup();
-    }
-
-    public function navSort(): int
-    {
-        return static::getNavSort();
     }
 
     /**

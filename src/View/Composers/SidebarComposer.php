@@ -27,22 +27,14 @@ class SidebarComposer
                 'class' => $resourceClass,
                 'label' => $resourceClass::getLabel(),
                 'icon' => $resourceClass::getIcon() ?: 'voyager-data',
-                'group' => $resourceClass::getGroup(),
-                'sort' => $resourceClass::getNavSort(),
             ]);
         }
 
-        $groupedResources = $resourceEntries
-            ->sortBy([
-                ['group', 'asc'],
-                ['sort', 'asc'],
-                ['label', 'asc'],
-            ])
-            ->groupBy('group');
+        $resources = $resourceEntries->sortBy('label');
 
         $view->with([
             'dashboardRoute' => Route::has('ave.dashboard') ? route('ave.dashboard') : null,
-            'groupedResources' => $groupedResources,
+            'resources' => $resources,
         ]);
     }
 }

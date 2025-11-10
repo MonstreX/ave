@@ -196,78 +196,6 @@ class ResourceTest extends TestCase
     }
 
     /**
-     * Test resource get group with custom group
-     */
-    public function test_resource_get_group_with_custom(): void
-    {
-        $resource = new class extends Resource {
-            public static ?string $group = 'Content';
-        };
-
-        $this->assertEquals('Content', $resource::getGroup());
-    }
-
-    /**
-     * Test resource get group defaults to resources
-     */
-    public function test_resource_get_group_defaults(): void
-    {
-        $resource = new class extends Resource {
-            public static ?string $group = null;
-        };
-
-        $this->assertEquals('Resources', $resource::getGroup());
-    }
-
-    /**
-     * Test resource group instance method
-     */
-    public function test_resource_group_instance_method(): void
-    {
-        $resource = new class extends Resource {
-            public static ?string $group = 'Content';
-        };
-
-        $this->assertEquals('Content', $resource->group());
-    }
-
-    /**
-     * Test resource get nav sort with custom sort
-     */
-    public function test_resource_get_nav_sort_with_custom(): void
-    {
-        $resource = new class extends Resource {
-            public static ?int $navSort = 5;
-        };
-
-        $this->assertEquals(5, $resource::getNavSort());
-    }
-
-    /**
-     * Test resource get nav sort defaults to zero
-     */
-    public function test_resource_get_nav_sort_defaults(): void
-    {
-        $resource = new class extends Resource {
-            public static ?int $navSort = null;
-        };
-
-        $this->assertEquals(0, $resource::getNavSort());
-    }
-
-    /**
-     * Test resource nav sort instance method
-     */
-    public function test_resource_nav_sort_instance_method(): void
-    {
-        $resource = new class extends Resource {
-            public static ?int $navSort = 3;
-        };
-
-        $this->assertEquals(3, $resource->navSort());
-    }
-
-    /**
      * Test resource table method returns table instance
      */
     public function test_resource_table_returns_table(): void
@@ -413,9 +341,7 @@ class ResourceTest extends TestCase
             public static ?string $label = 'Articles';
             public static ?string $singularLabel = 'Article';
             public static ?string $icon = 'fa fa-file';
-            public static ?string $group = 'Content';
             public static ?string $slug = 'articles';
-            public static ?int $navSort = 5;
             public static array $with = ['author'];
             public static array $withCount = ['comments'];
         };
@@ -423,9 +349,7 @@ class ResourceTest extends TestCase
         $this->assertEquals('Articles', $resource::$label);
         $this->assertEquals('Article', $resource::$singularLabel);
         $this->assertEquals('fa fa-file', $resource::$icon);
-        $this->assertEquals('Content', $resource::$group);
         $this->assertEquals('articles', $resource::$slug);
-        $this->assertEquals(5, $resource::$navSort);
         $this->assertCount(1, $resource::$with);
         $this->assertCount(1, $resource::$withCount);
     }
@@ -478,14 +402,10 @@ class ResourceTest extends TestCase
             'getLabel',
             'getSingularLabel',
             'getIcon',
-            'getGroup',
-            'getNavSort',
             'slug',
             'label',
             'singularLabel',
             'icon',
-            'group',
-            'navSort'
         ];
 
         foreach ($publicMethods as $method) {
@@ -618,47 +538,4 @@ class ResourceTest extends TestCase
         $this->assertTrue($reflection->hasMethod('newQuery'));
     }
 
-    /**
-     * Test resource group with different values
-     */
-    public function test_resource_group_with_different_values(): void
-    {
-        $resource1 = new class extends Resource {
-            public static ?string $group = 'Content';
-        };
-
-        $resource2 = new class extends Resource {
-            public static ?string $group = 'Users';
-        };
-
-        $resource3 = new class extends Resource {
-            public static ?string $group = null;
-        };
-
-        $this->assertEquals('Content', $resource1::getGroup());
-        $this->assertEquals('Users', $resource2::getGroup());
-        $this->assertEquals('Resources', $resource3::getGroup());
-    }
-
-    /**
-     * Test resource nav sort with different values
-     */
-    public function test_resource_nav_sort_with_different_values(): void
-    {
-        $resource1 = new class extends Resource {
-            public static ?int $navSort = 1;
-        };
-
-        $resource2 = new class extends Resource {
-            public static ?int $navSort = 10;
-        };
-
-        $resource3 = new class extends Resource {
-            public static ?int $navSort = null;
-        };
-
-        $this->assertEquals(1, $resource1::getNavSort());
-        $this->assertEquals(10, $resource2::getNavSort());
-        $this->assertEquals(0, $resource3::getNavSort());
-    }
 }
