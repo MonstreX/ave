@@ -4,6 +4,7 @@ namespace Monstrex\Ave\Admin\Resources\Menu;
 
 use Monstrex\Ave\Admin\Models\Menu as MenuModel;
 use Monstrex\Ave\Core\Columns\Column;
+use Monstrex\Ave\Core\Components\Div;
 use Monstrex\Ave\Core\Fields\TextInput;
 use Monstrex\Ave\Core\Fields\Toggle;
 use Monstrex\Ave\Core\Form;
@@ -40,14 +41,24 @@ class Resource extends BaseResource
     public static function form($context): Form
     {
         return Form::make()->schema([
-            TextInput::make('name')
-                ->label('Menu name')
-                ->required(),
-            TextInput::make('slug')
-                ->label('Slug')
-                ->required(),
-            Toggle::make('is_default')
-                ->label('Default menu'),
+            Div::make('row')->schema([
+                Div::make('col-12 col-md-6')->schema([
+                    TextInput::make('name')
+                        ->label('Menu name')
+                        ->required(),
+                ]),
+                Div::make('col-12 col-md-6')->schema([
+                    TextInput::make('slug')
+                        ->label('Slug')
+                        ->required(),
+                ]),
+            ]),
+            Div::make('row')->schema([
+                Div::make('col-12 col-md-4')->schema([
+                    Toggle::make('is_default')
+                        ->label('Default menu'),
+                ]),
+            ]),
         ]);
     }
 }

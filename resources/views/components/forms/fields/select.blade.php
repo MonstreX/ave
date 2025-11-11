@@ -6,6 +6,9 @@
     $isDisabled = $disabled ?? false;
     $isReadonly = $readonly ?? false;
     $isMultiple = $multiple ?? false;
+    $options = $options ?? [];
+    $emptyOption = $emptyOption ?? null;
+    $sizeAttr = $size ?? 4;
 @endphp
 
 <div class="form-field @if($hasError) has-error @endif">
@@ -21,14 +24,14 @@
     <select
         id="{{ $key }}"
         name="{{ $key }}{{ $isMultiple ? '[]' : '' }}"
-        @if($isMultiple) multiple size="{{ $size }}" @endif
+        @if($isMultiple) multiple size="{{ $sizeAttr }}" @endif
         @if($isRequired) required @endif
         @if($isDisabled) disabled @endif
         @if($isReadonly) readonly @endif
         class="form-control {{ $class ?? '' }}"
         {!! $attributes !!}
     >
-        @if($emptyOption && !$multiple)
+        @if($emptyOption && !$isMultiple)
             <option value="">{{ $emptyOption }}</option>
         @endif
 

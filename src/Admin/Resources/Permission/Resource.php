@@ -4,6 +4,7 @@ namespace Monstrex\Ave\Admin\Resources\Permission;
 
 use Monstrex\Ave\Admin\Models\Permission as PermissionModel;
 use Monstrex\Ave\Core\Columns\Column;
+use Monstrex\Ave\Core\Components\Div;
 use Monstrex\Ave\Core\Fields\Textarea;
 use Monstrex\Ave\Core\Fields\TextInput;
 use Monstrex\Ave\Core\Form;
@@ -43,17 +44,31 @@ class Resource extends BaseResource
     public static function form($context): Form
     {
         return Form::make()->schema([
-            TextInput::make('resource_slug')
-                ->label('Resource slug')
-                ->required(),
-            TextInput::make('ability')
-                ->label('Ability')
-                ->required(),
-            TextInput::make('name')
-                ->label('Display name'),
-            Textarea::make('description')
-                ->label('Description')
-                ->rows(3),
+            Div::make('row')->schema([
+                Div::make('col-12 col-md-6')->schema([
+                    TextInput::make('resource_slug')
+                        ->label('Resource slug')
+                        ->required(),
+                ]),
+                Div::make('col-12 col-md-6')->schema([
+                    TextInput::make('ability')
+                        ->label('Ability')
+                        ->required(),
+                ]),
+            ]),
+            Div::make('row')->schema([
+                Div::make('col-12')->schema([
+                    TextInput::make('name')
+                        ->label('Display name'),
+                ]),
+            ]),
+            Div::make('row')->schema([
+                Div::make('col-12')->schema([
+                    Textarea::make('description')
+                        ->label('Description')
+                        ->rows(3),
+                ]),
+            ]),
         ]);
     }
 }

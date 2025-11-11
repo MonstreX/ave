@@ -4,6 +4,7 @@ namespace Monstrex\Ave\Admin\Resources\User;
 
 use Monstrex\Ave\Admin\Models\User as UserModel;
 use Monstrex\Ave\Core\Columns\Column;
+use Monstrex\Ave\Core\Components\Div;
 use Monstrex\Ave\Core\Fields\BelongsToManySelect;
 use Monstrex\Ave\Core\Fields\TextInput;
 use Monstrex\Ave\Core\Form;
@@ -41,20 +42,30 @@ class Resource extends BaseResource
     public static function form($context): Form
     {
         return Form::make()->schema([
-            TextInput::make('name')
-                ->label('Name')
-                ->disabled()
-                ->placeholder('Managed via application'),
-            TextInput::make('email')
-                ->label('Email')
-                ->disabled()
-                ->placeholder('Managed via application'),
-            BelongsToManySelect::make('roles')
-                ->label('Roles')
-                ->relationship('roles', 'name')
-                ->searchable()
-                ->optionsLimit(100)
-                ->help('Assign one or more roles to this user'),
+            Div::make('row')->schema([
+                Div::make('col-12 col-md-6')->schema([
+                    TextInput::make('name')
+                        ->label('Name')
+                        ->disabled()
+                        ->placeholder('Managed via application'),
+                ]),
+                Div::make('col-12 col-md-6')->schema([
+                    TextInput::make('email')
+                        ->label('Email')
+                        ->disabled()
+                        ->placeholder('Managed via application'),
+                ]),
+            ]),
+            Div::make('row')->schema([
+                Div::make('col-12')->schema([
+                    BelongsToManySelect::make('roles')
+                        ->label('Roles')
+                        ->relationship('roles', 'name')
+                        ->searchable()
+                        ->optionsLimit(100)
+                        ->help('Assign one or more roles to this user'),
+                ]),
+            ]),
         ]);
     }
 }

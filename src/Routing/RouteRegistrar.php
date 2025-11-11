@@ -28,6 +28,7 @@ class RouteRegistrar
     public function register(): void
     {
         $this->registerGuestRoutes();
+
         $this->registerProtectedRoutes();
     }
 

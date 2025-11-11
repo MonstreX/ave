@@ -36,6 +36,7 @@
 @use './components/forms/rich-editor';
 @use './components/forms/code-editor';
 @use './components/forms/content-editor';
+@use './components/forms/matrix';
 
 // Auth pages
 @use './auth/login';

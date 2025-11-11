@@ -7,30 +7,31 @@ use Illuminate\Routing\Router;
 class RouteConfigurator
 {
     public function __construct(
-        protected Router ,
-        protected array  = [],
-    ) {}
-
-    public static function make(Router , array  = []): self
-    {
-        return new self(, );
+        protected Router $router,
+        protected array $options = [],
+    ) {
     }
 
-    public static function forAdmin(Router , string , array ): self
+    public static function make(Router $router, array $options = []): self
     {
-        return self::make(, [
-            'prefix' => ,
-            'middleware' => ,
+        return new self($router, $options);
+    }
+
+    public static function forAdmin(Router $router, string $prefix, array $middleware): self
+    {
+        return self::make($router, [
+            'prefix' => $prefix,
+            'middleware' => $middleware,
         ]);
     }
 
     /**
-     * @param  callable(\Illuminate\Routing\Router): void  
+     * @param  callable(\Illuminate\Routing\Router): void  $callback
      */
-    public function register(callable ): void
+    public function register(callable $callback): void
     {
-        ->router->group(->options, function (Router ) use () {
-            ();
+        $this->router->group($this->options, function (Router $router) use ($callback) {
+            $callback($router);
         });
     }
 }
