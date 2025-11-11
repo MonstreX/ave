@@ -41,6 +41,7 @@ class MediaController extends Controller
                 'collection' => 'nullable|string|max:255',
                 'pathStrategy' => 'nullable|in:flat,dated',
                 'customPath' => 'nullable|string|max:255',
+                'pathPrefix' => 'nullable|string|max:255',
             ]);
 
             if ($request->hasFile('image')) {
@@ -49,7 +50,8 @@ class MediaController extends Controller
                     $request->input('model_type'),
                     $request->input('model_id'),
                     $request->input('collection'),
-                    $request->input('pathStrategy')
+                    $request->input('pathStrategy'),
+                    $request->input('pathPrefix') ? trim($request->input('pathPrefix')) : null
                 );
 
                 return response()->json([
@@ -68,7 +70,8 @@ class MediaController extends Controller
                 $request->input('model_id'),
                 $request->input('collection', 'default'),
                 $request->input('pathStrategy'),
-                $request->input('customPath')
+                $request->input('customPath'),
+                $request->input('pathPrefix') ? trim($request->input('pathPrefix')) : null
             );
 
             return response()->json([
@@ -341,6 +344,7 @@ class MediaController extends Controller
                 'filenameStrategy' => 'nullable|in:original,transliterate,unique',
                 'locale' => 'nullable|string',
                 'customPath' => 'nullable|string|max:255',
+                'pathPrefix' => 'nullable|string|max:255',
             ]);
 
             $path = $this->uploadService->uploadFile(
@@ -350,7 +354,8 @@ class MediaController extends Controller
                 $request->input('customPath'),
                 $request->input('model_type'),
                 $request->input('model_id'),
-                $request->input('locale')
+                $request->input('locale'),
+                $request->input('pathPrefix') ? trim($request->input('pathPrefix')) : null
             );
 
             return response()->json([

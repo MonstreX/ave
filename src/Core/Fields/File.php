@@ -88,6 +88,8 @@ class File extends AbstractField implements \Monstrex\Ave\Contracts\ProvidesVali
      */
     protected ?\Closure $pathGenerator = null;
 
+    protected ?string $pathPrefix = null;
+
     /**
      * Enable/disable multiple file uploads
      *
@@ -308,6 +310,18 @@ class File extends AbstractField implements \Monstrex\Ave\Contracts\ProvidesVali
         return $this->pathStrategy;
     }
 
+    public function pathPrefix(?string $prefix): static
+    {
+        $this->pathPrefix = $prefix ? trim($prefix, '/') : null;
+
+        return $this;
+    }
+
+    public function getPathPrefix(): ?string
+    {
+        return $this->pathPrefix;
+    }
+
     /**
      * Set custom path generator callback
      *
@@ -362,6 +376,7 @@ class File extends AbstractField implements \Monstrex\Ave\Contracts\ProvidesVali
             'filenameStrategy'   => $this->filenameStrategy,
             'filenameSeparator'  => $this->filenameSeparator,
             'filenameLocale'     => $this->filenameLocale,
+            'pathPrefix'         => $this->pathPrefix,
         ]);
     }
 

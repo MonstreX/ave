@@ -33,6 +33,7 @@
          data-model-id="{{ $modelId ?? '' }}"
          data-meta-key="{{ $metaKey ?? '' }}"
          data-path-strategy="{{ $pathStrategy ?? '' }}"
+         data-path-prefix="{{ $pathPrefix ?? '' }}"
          @if($customPath ?? false) data-custom-path="{{ $customPath }}" @endif
          data-prop-names="{{ json_encode($propNames ?? []) }}"
          @if($previewUrl) data-preview-url="{{ $previewUrl }}" @endif>

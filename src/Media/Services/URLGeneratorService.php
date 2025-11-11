@@ -2,8 +2,7 @@
 
 namespace Monstrex\Ave\Media\Services;
 
-use Monstrex\Ave\Services\FilenameGeneratorService;
-use Monstrex\Ave\Services\PathGeneratorService;
+use Monstrex\Ave\Support\StorageProfile;
 
 class URLGeneratorService
 {
@@ -16,41 +15,37 @@ class URLGeneratorService
 
     public function handle(array $params): array
     {
+        $profileOverrides = $params['storage'] ?? [];
+        $profile = StorageProfile::make($profileOverrides);
+
+        if (!empty($params['pathPrefix'])) {
+            $profile = $profile->with(['path_prefix' => $params['pathPrefix']]);
+        }
+
         // Check if direct path was provided (from pathGenerator callback)
         $targetPath = $params['directPath'] ?? null;
 
         if (!$targetPath) {
-            // Get path generation strategy from params or config
-            $pathStrategy = $params['pathStrategy'] ?? config('ave.media.path.strategy', 'dated');
-
-            // Generate target path using PathGeneratorService
-            $targetPath = PathGeneratorService::generate([
-                'root' => config('ave.media.storage.root', 'media'),
-                'strategy' => $pathStrategy,
+            $targetPath = $profile->buildPath([
+                'pathStrategy' => $params['pathStrategy'] ?? null,
                 'model' => $params['model'] ?? null,
                 'recordId' => $params['model'] ? $params['model']->getKey() : null,
-                'year' => date('Y'),
-                'month' => date('m'),
+                'pathPrefix' => $params['pathPrefix'] ?? null,
             ]);
+        } else {
+            $targetPath = trim($targetPath, '/');
         }
-
-        // Get filename generation options from params or config
-        $filenameStrategy = $params['filenameStrategy'] ?? config('ave.media.filename.strategy', 'transliterate');
-        $filenameSeparator = $params['filenameSeparator'] ?? config('ave.media.filename.separator', '-');
-        $filenameLocale = $params['filenameLocale'] ?? config('ave.media.filename.locale', 'ru');
-        $replaceFile = $params['replaceFile'] ?? false;
 
         foreach ($params['files'] as $key => $file) {
             $sourceFile = $file['sourceFile'];
 
-            // Generate filename using FilenameGeneratorService
-            $fileName = FilenameGeneratorService::generate(
+            $fileName = $profile->generateFilename(
                 $sourceFile->getClientOriginalName(),
                 [
-                    'strategy' => $filenameStrategy,
-                    'separator' => $filenameSeparator,
-                    'locale' => $filenameLocale,
-                    'uniqueness' => $replaceFile ? FilenameGeneratorService::UNIQUENESS_REPLACE : FilenameGeneratorService::UNIQUENESS_SUFFIX,
+                    'filenameStrategy' => $params['filenameStrategy'] ?? null,
+                    'filenameSeparator' => $params['filenameSeparator'] ?? null,
+                    'filenameLocale' => $params['filenameLocale'] ?? null,
+                    'replaceFile' => $params['replaceFile'] ?? false,
                     'existsCallback' => fn(string $filename) => $this->fileService->exists($targetPath . '/' . $filename),
                 ]
             );

@@ -36,6 +36,8 @@ class MediaConfiguration
 
     protected ?\Closure $pathGenerator = null;
 
+    protected ?string $pathPrefix = null;
+
     public function __clone()
     {
         $this->accept = array_values($this->accept);
@@ -176,5 +178,14 @@ class MediaConfiguration
     {
         return $this->pathGenerator;
     }
-}
 
+    public function setPathPrefix(?string $prefix): void
+    {
+        $this->pathPrefix = $prefix ? trim($prefix, '/') : null;
+    }
+
+    public function pathPrefix(): ?string
+    {
+        return $this->pathPrefix;
+    }
+}

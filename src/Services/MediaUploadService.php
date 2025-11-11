@@ -3,8 +3,10 @@
 namespace Monstrex\Ave\Services;
 
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Monstrex\Ave\Media\Facades\Media;
 use Monstrex\Ave\Media\ImageProcessor;
+use Monstrex\Ave\Support\StorageProfile;
 
 /**
  * MediaUploadService - Handles all media and file upload operations
@@ -19,12 +21,15 @@ class MediaUploadService
         ?string $modelClass = null,
         ?int $modelId = null,
         ?string $collection = null,
-        ?string $pathStrategy = null
+        ?string $pathStrategy = null,
+        ?string $pathPrefix = null
     ) {
         // Scale image if needed before uploading
         if (str_starts_with($file->getMimeType(), 'image/')) {
             $this->processImageBeforeUpload($file);
         }
+
+        $defaultDisk = StorageProfile::make()->disk();
 
         // If model context provided, bind to model
         if ($modelClass && $modelId) {
@@ -42,11 +47,15 @@ class MediaUploadService
             $mediaBuilder = Media::add($file)
                 ->model($model)
                 ->collection($collection ?: 'default')
-                ->disk('public');
+                ->disk($defaultDisk);
 
             // Apply path strategy if provided
             if ($pathStrategy) {
                 $mediaBuilder->pathStrategy($pathStrategy);
+            }
+
+            if ($pathPrefix) {
+                $mediaBuilder->pathPrefix($pathPrefix);
             }
 
             $mediaCollection = $mediaBuilder->create();
@@ -57,11 +66,15 @@ class MediaUploadService
 
             $mediaBuilder = Media::add($file)
                 ->collection($tempCollection)
-                ->disk('public');
+                ->disk($defaultDisk);
 
             // Apply path strategy if provided
             if ($pathStrategy) {
                 $mediaBuilder->pathStrategy($pathStrategy);
+            }
+
+            if ($pathPrefix) {
+                $mediaBuilder->pathPrefix($pathPrefix);
             }
 
             $mediaCollection = $mediaBuilder->create();
@@ -83,8 +96,11 @@ class MediaUploadService
         ?int $modelId = null,
         string $collection = 'default',
         ?string $pathStrategy = null,
-        ?string $customPath = null
+        ?string $customPath = null,
+        ?string $pathPrefix = null
     ): array {
+        $defaultDisk = StorageProfile::make()->disk();
+
         // Load model if context provided
         $model = null;
         if ($modelClass && $modelId) {
@@ -110,7 +126,7 @@ class MediaUploadService
 
                 $mediaBuilder = Media::add($file)
                     ->collection($collection)
-                    ->disk('public');
+                    ->disk($defaultDisk);
 
                 // Apply custom path if provided (from pathGenerator callback)
                 if ($customPath) {
@@ -118,6 +134,10 @@ class MediaUploadService
                 } elseif ($pathStrategy) {
                     // Apply path strategy if provided
                     $mediaBuilder->pathStrategy($pathStrategy);
+                }
+
+                if ($pathPrefix) {
+                    $mediaBuilder->pathPrefix($pathPrefix);
                 }
 
                 if ($model) {
@@ -170,18 +190,15 @@ class MediaUploadService
         ?string $customPath = null,
         ?string $modelType = null,
         ?int $modelId = null,
-        ?string $locale = null
+        ?string $locale = null,
+        ?string $pathPrefix = null
     ): string {
-        // Get filename strategy
-        $filenameStrategy = $filenameStrategy ??
-                          config('ave.files.filename.strategy', 'transliterate');
-        $filenameSeparator = config('ave.files.filename.separator', '-');
-        $filenameLocale = $locale ?? config('ave.files.filename.locale', 'ru');
-
-        // Get path strategy
-        $customPath = $customPath;
-        $pathStrategy = $pathStrategy ??
-                       config('ave.files.path.strategy', 'dated');
+        $profile = StorageProfile::make()->with(array_filter([
+            'path.strategy' => $pathStrategy,
+            'filename.strategy' => $filenameStrategy,
+            'filename.locale' => $locale,
+            'path_prefix' => $pathPrefix,
+        ], static fn ($value) => $value !== null));
 
         // Try to resolve model if model_type provided
         $model = null;
@@ -195,33 +212,24 @@ class MediaUploadService
             }
         }
 
-        // Use custom path if provided, otherwise generate it
-        if ($customPath) {
-            $path = $customPath;
-        } else {
-            // Generate path using PathGeneratorService
-            $path = PathGeneratorService::generate([
-                'root' => config('ave.files.root', 'uploads/files'),
-                'strategy' => $pathStrategy,
-                'model' => $model,
-                'recordId' => $modelId,
-                'year' => date('Y'),
-                'month' => date('m'),
-            ]);
-        }
+        $path = $profile->buildPath([
+            'customPath' => $customPath,
+            'model' => $model,
+            'recordId' => $modelId,
+            'pathPrefix' => $pathPrefix,
+        ]);
 
-        // Generate filename using FilenameGeneratorService
-        $fileName = FilenameGeneratorService::generate(
+        $disk = $profile->disk();
+        $filesystem = Storage::disk($disk);
+
+        $fileName = $profile->generateFilename(
             $file->getClientOriginalName(),
             [
-                'strategy' => $filenameStrategy,
-                'separator' => $filenameSeparator,
-                'locale' => $filenameLocale,
+                'existsCallback' => fn(string $candidate) => $filesystem->exists($path . '/' . $candidate),
             ]
         );
 
-        // Store file
-        $storedPath = $file->storeAs($path, $fileName, config('ave.files.disk', 'public'));
+        $storedPath = $file->storeAs($path, $fileName, $disk);
 
         return '/storage/' . $storedPath;
     }
@@ -231,8 +239,8 @@ class MediaUploadService
      */
     protected function processImageBeforeUpload(UploadedFile $file): void
     {
-        // Get max image size from config
-        $maxSize = config('ave.media.max_image_size', 2000);
+        // Get max image size from storage profile
+        $maxSize = StorageProfile::make()->imageMaxSize();
 
         if (!$maxSize || $maxSize <= 0) {
             return;

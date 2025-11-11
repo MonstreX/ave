@@ -6,6 +6,7 @@ use finfo;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\File;
+use Monstrex\Ave\Support\StorageProfile;
 use Storage;
 
 class FileService
@@ -17,7 +18,7 @@ class FileService
     public function __construct()
     {
         $this->filesystem = app(Filesystem::class);
-        $this->disk = config('ave.media.storage.disk', 'public');
+        $this->disk = StorageProfile::make()->disk();
     }
 
     public function disk(string $disk = 'public'): object

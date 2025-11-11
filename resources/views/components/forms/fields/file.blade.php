@@ -22,6 +22,7 @@
 
     <div class="file-upload-wrapper"
          data-file-field="{{ $key }}"
+         data-path-prefix="{{ $pathPrefix ?? '' }}"
          @if($customPath ?? false) data-custom-path="{{ $customPath }}" @endif>
         <!-- File preview if exists -->
         @if($hasFile)

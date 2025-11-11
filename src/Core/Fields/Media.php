@@ -45,6 +45,7 @@ class Media extends AbstractField implements ProvidesValidationRules, HandlesPer
 
         // If collection not explicitly set, use field key as collection name
         $this->config->setCollection($key);
+        $this->config->setPathPrefix('media');
     }
 
     public function __clone()
@@ -225,6 +226,18 @@ class Media extends AbstractField implements ProvidesValidationRules, HandlesPer
     public function getPathStrategy(): string
     {
         return $this->config->pathStrategy();
+    }
+
+    public function pathPrefix(?string $prefix): static
+    {
+        $this->config->setPathPrefix($prefix);
+
+        return $this;
+    }
+
+    public function getPathPrefix(): ?string
+    {
+        return $this->config->pathPrefix();
     }
 
     /**
@@ -605,6 +618,7 @@ class Media extends AbstractField implements ProvidesValidationRules, HandlesPer
             'uploadUrl' => route('ave.media.upload'),
             'propNames' => $this->config->propNames(),
             'pathStrategy' => $this->getPathStrategy(),
+            'pathPrefix' => $this->getPathPrefix(),
             'modelType' => null,
             'modelId' => null,
             'metaKey' => $this->isTemplate() ? '' : $this->metaKey(),

@@ -27,71 +27,23 @@ return [
     ],
 
     /*
-     * Media storage configuration.
+     * Unified storage configuration for media and file uploads.
      */
-    'media' => [
+    'storage' => [
         'url_generator' => Monstrex\Ave\Media\Services\URLGeneratorService::class,
-        'storage' => [
-            'root' => 'media',
-            'disk' => 'public',
-        ],
-        // Global maximum image size (in pixels, by longest side)
-        // Used for automatic image scaling on upload
-        'max_image_size' => env('AVE_MEDIA_MAX_IMAGE_SIZE', 2000),
-
-        /*
-         * Filename generation strategy for all file uploads.
-         * Available strategies:
-         * - 'original': Keep original filename as-is
-         * - 'transliterate': Convert to slug format (e.g., "мой файл.jpg" → "moj-fajl.jpg")
-         * - 'unique': Generate completely random unique filename (e.g., "a7f3b9c1e5d4f8a2.jpg")
-         */
-        'filename' => [
-            'strategy' => env('AVE_MEDIA_FILENAME_STRATEGY', 'transliterate'),
-            'separator' => '-',  // Used for transliterate strategy
-            'locale' => 'ru',    // Used for transliterate strategy
-            'uniqueness' => 'suffix',  // 'suffix' (adds -1,-2,-3) or 'replace'
-        ],
-
-        /*
-         * Path generation strategy for media files.
-         * Available strategies:
-         * - 'flat': Organize by model and record ID: {root}/{model_table}/{record_id}/
-         * - 'dated': Organize by model and date: {root}/{model_table}/{year}/{month}/
-         * Can be overridden per field via ->pathStrategy() or ->pathGenerator(callback)
-         */
+        'disk' => env('AVE_STORAGE_DISK', 'public'),
+        'root' => env('AVE_STORAGE_ROOT', 'files'),
         'path' => [
-            'strategy' => env('AVE_MEDIA_PATH_STRATEGY', 'dated'),  // flat|dated
+            'strategy' => env('AVE_STORAGE_PATH', 'dated'), // flat|dated
         ],
-    ],
-
-    /*
-     * File storage configuration (for File field uploads).
-     */
-    'files' => [
-        'root' => env('AVE_FILES_ROOT', 'uploads/files'),
-        'disk' => 'public',
-
-        /*
-         * Path generation strategy for file field uploads.
-         * Available strategies:
-         * - 'flat': Organize by model and record ID: {root}/{model_table}/{record_id}/
-         * - 'dated': Organize by model and date: {root}/{model_table}/{year}/{month}/
-         * Can be overridden per field via ->pathStrategy() or ->pathGenerator(callback)
-         */
-        'path' => [
-            'strategy' => env('AVE_FILES_PATH_STRATEGY', 'dated'),  // flat|dated
-        ],
-
-        /*
-         * Filename generation strategy for file field uploads.
-         * Same options as media.filename (see above).
-         */
         'filename' => [
-            'strategy' => env('AVE_FILES_FILENAME_STRATEGY', 'transliterate'),
-            'separator' => '-',
-            'locale' => 'ru',
-            'uniqueness' => 'suffix',
+            'strategy' => env('AVE_STORAGE_FILENAME', 'transliterate'),
+            'separator' => env('AVE_STORAGE_SEPARATOR', '-'),
+            'locale' => env('AVE_STORAGE_LOCALE', 'en'),
+            'uniqueness' => env('AVE_STORAGE_UNIQUENESS', 'suffix'),
+        ],
+        'image' => [
+            'max_size' => env('AVE_STORAGE_IMAGE_MAX', 2000),
         ],
     ],
 

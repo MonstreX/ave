@@ -9,6 +9,7 @@ export default function initFileUpload(root = document) {
     fileFields.forEach(wrapper => {
         const fieldKey = wrapper.dataset.fileField;
         const customPath = wrapper.dataset.customPath || '';  // Custom path from pathGenerator
+        const pathPrefix = wrapper.dataset.pathPrefix || '';
         const fileInput = wrapper.querySelector('[data-file-input]');
         const deleteBtn = wrapper.querySelector('[data-file-delete]');
         const pathInput = wrapper.querySelector('.file-path-input');
@@ -50,6 +51,9 @@ export default function initFileUpload(root = document) {
             // Add custom path from pathGenerator if set
             if (customPath) {
                 formData.append('customPath', customPath);
+            }
+            if (pathPrefix) {
+                formData.append('pathPrefix', pathPrefix);
             }
 
             // Get CSRF token if available

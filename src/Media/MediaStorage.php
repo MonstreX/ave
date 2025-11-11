@@ -9,6 +9,7 @@ use Monstrex\Ave\Media\Services\MediaService;
 use Monstrex\Ave\Media\Services\URLGeneratorService;
 use Monstrex\Ave\Models\Media;
 use Monstrex\Ave\Services\FilenameGeneratorService;
+use Monstrex\Ave\Support\StorageProfile;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 class MediaStorage
@@ -45,12 +46,18 @@ class MediaStorage
 
     protected bool $replaceFile = false;
 
+    protected ?string $pathPrefix = null;
+
+    protected StorageProfile $storageProfile;
+
     public function __construct()
     {
-        $this->generator = app(config('ave.media.url_generator'));
+        $generatorClass = config('ave.storage.url_generator', URLGeneratorService::class);
+        $this->storageProfile = StorageProfile::make();
+        $this->generator = app($generatorClass);
         $this->mediaService = app(MediaService::class);
         $this->fileService = app(FileService::class);
-        $this->fileService->disk(config('ave.media.storage.disk', 'public'));
+        $this->fileService->disk($this->storageProfile->disk());
     }
 
     /*
@@ -108,6 +115,13 @@ class MediaStorage
     public function pathStrategy(string $strategy): MediaStorage
     {
         $this->pathStrategy = $strategy;
+
+        return $this;
+    }
+
+    public function pathPrefix(?string $prefix): MediaStorage
+    {
+        $this->pathPrefix = $prefix ? trim($prefix, '/') : null;
 
         return $this;
     }
@@ -318,6 +332,7 @@ class MediaStorage
                 'collectionName' => $this->collectionName,
                 'directPath' => $this->directPath,
                 'pathStrategy' => $this->pathStrategy ?: null,
+                'pathPrefix' => $this->pathPrefix,
                 'filenameStrategy' => $this->filenameStrategy ?: null,
                 'filenameSeparator' => $this->filenameSeparator ?: null,
                 'filenameLocale' => $this->filenameLocale ?: null,
@@ -359,5 +374,6 @@ class MediaStorage
         $this->filenameSeparator = '';
         $this->filenameLocale = '';
         $this->replaceFile = false;
+        $this->pathPrefix = null;
     }
 }

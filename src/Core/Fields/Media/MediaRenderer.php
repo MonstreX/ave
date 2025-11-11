@@ -5,6 +5,7 @@ namespace Monstrex\Ave\Core\Fields\Media;
 use Illuminate\Database\Eloquent\Model;
 use Monstrex\Ave\Core\Fields\Media as MediaField;
 use Monstrex\Ave\Core\FormContext;
+use Monstrex\Ave\Support\StorageProfile;
 
 /**
  * Small dedicated renderer for the Media field view.
@@ -31,7 +32,8 @@ class MediaRenderer
                 $customPath = $this->executePathGenerator(
                     $field->getPathGenerator(),
                     $record,
-                    $record->getKey()
+                    $record->getKey(),
+                    $fieldData['pathPrefix'] ?? null
                 );
                 $fieldData['customPath'] = $customPath;
             }
@@ -54,9 +56,15 @@ class MediaRenderer
      * @param mixed $recordId Model record ID
      * @return string Generated path
      */
-    private function executePathGenerator(\Closure $callback, Model $model, mixed $recordId): string
+    private function executePathGenerator(\Closure $callback, Model $model, mixed $recordId, ?string $pathPrefix = null): string
     {
-        $root = config('ave.media.storage.root', 'media');
+        $profile = StorageProfile::make();
+
+        if ($pathPrefix) {
+            $profile = $profile->with(['path_prefix' => $pathPrefix]);
+        }
+
+        $root = $profile->resolvedRoot($pathPrefix);
         $date = (object) [
             'year' => date('Y'),
             'month' => date('m'),

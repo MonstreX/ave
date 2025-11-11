@@ -5,6 +5,7 @@ namespace Monstrex\Ave\Core\Fields\File;
 use Illuminate\Database\Eloquent\Model;
 use Monstrex\Ave\Core\Fields\File as FileField;
 use Monstrex\Ave\Core\FormContext;
+use Monstrex\Ave\Support\StorageProfile;
 
 /**
  * Dedicated renderer for the File field view.
@@ -28,7 +29,8 @@ class FileRenderer
             $customPath = $this->executePathGenerator(
                 $field->getPathGenerator(),
                 $record,
-                $record->getKey()
+                $record->getKey(),
+                $field->getPathPrefix()
             );
             $fieldData['customPath'] = $customPath;
         }
@@ -50,9 +52,15 @@ class FileRenderer
      * @param mixed $recordId Model record ID
      * @return string Generated path
      */
-    private function executePathGenerator(\Closure $callback, Model $model, mixed $recordId): string
+    private function executePathGenerator(\Closure $callback, Model $model, mixed $recordId, ?string $pathPrefix = null): string
     {
-        $root = config('ave.files.root', 'uploads/files');
+        $profile = StorageProfile::make();
+
+        if ($pathPrefix) {
+            $profile = $profile->with(['path_prefix' => $pathPrefix]);
+        }
+
+        $root = $profile->resolvedRoot($pathPrefix);
         $date = (object) [
             'year' => date('Y'),
             'month' => date('m'),
