@@ -8,11 +8,6 @@
 @if($hasBadges)
     <div class="query-tags">
         @if($hasCriteriaBadges)
-            <a href="{{ route('ave.resource.index', ['slug' => $slug]) }}" class="query-tag-btn query-tag-reset">
-                <i class="voyager-x"></i>
-                <span>Clear All Filters</span>
-            </a>
-
             @foreach($criteriaBadges as $badge)
                 @php
                     $variantClass = 'btn-' . ($badge['variant'] ?? 'primary');
@@ -69,4 +64,3 @@
         @endif
     </div>
 @endif
-
