@@ -12,7 +12,10 @@
                 <tr>
                     @if($hasBulkSelection)
                         <th class="checkbox-column">
-                            <input type="checkbox" class="select-all-checkbox" id="select-all" />
+                            <label class="checkbox-label checkbox-label--compact">
+                                <input type="checkbox" class="checkbox-input select-all-checkbox" id="select-all" />
+                                <span class="checkbox-custom checkbox-custom--sm"></span>
+                            </label>
                         </th>
                     @endif
                     @foreach($table->getColumns() as $column)
@@ -40,7 +43,18 @@
                     <tr class="resource-row" data-id="{{ $item->getKey() }}">
                         @if($hasBulkSelection)
                             <td class="checkbox-column">
-                                <input type="checkbox" class="row-selector" value="{{ $item->getKey() }}" />
+                                @php
+                                    $rowCheckboxId = 'row-select-' . $item->getKey();
+                                @endphp
+                                <label class="checkbox-label checkbox-label--compact" for="{{ $rowCheckboxId }}">
+                                    <input
+                                        type="checkbox"
+                                        id="{{ $rowCheckboxId }}"
+                                        class="checkbox-input row-selector"
+                                        value="{{ $item->getKey() }}"
+                                    />
+                                    <span class="checkbox-custom checkbox-custom--sm"></span>
+                                </label>
                             </td>
                         @endif
                         @foreach($table->getColumns() as $column)

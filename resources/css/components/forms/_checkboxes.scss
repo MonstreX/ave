@@ -48,6 +48,14 @@
     display: block;
 }
 
+.checkbox-wrapper--compact {
+    display: inline-flex;
+}
+
+.checkbox-label--compact {
+    gap: 6px;
+}
+
 .checkbox-label {
     display: flex;
     align-items: center;
@@ -85,6 +93,18 @@
             border: solid #fff;
             border-width: 0 2px 2px 0;
             transform: rotate(45deg);
+        }
+    }
+
+    .checkbox-custom.checkbox-custom--sm {
+        width: 16px;
+        height: 16px;
+
+        &::after {
+            left: 4px;
+            top: 1px;
+            width: 4px;
+            height: 8px;
         }
     }
 

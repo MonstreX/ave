@@ -16,6 +16,7 @@
 @section('page_header')
     @include('ave::partials.index.toolbar', [
         'globalActions' => $globalActions ?? [],
+        'bulkActions' => $bulkActions ?? [],
     ])
 @endsection
 
@@ -33,10 +34,6 @@
         @include('ave::partials.index.criteria_badges', [
             'criteriaBadges' => $criteriaBadges ?? [],
             'slug' => $slug,
-        ])
-
-        @include('ave::partials.index.bulk_actions', [
-            'bulkActions' => $bulkActions ?? [],
         ])
 
         @include('ave::partials.index.table', [

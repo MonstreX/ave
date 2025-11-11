@@ -54,5 +54,10 @@
                 <i class="voyager-plus"></i> <span>Create {{ $resource::getSingularLabel() }}</span>
             </a>
         @endif
+
+        @include('ave::partials.index.bulk_actions', [
+            'bulkActions' => $bulkActions ?? [],
+            'slug' => $slug,
+        ])
     </div>
 </div>

@@ -233,6 +233,7 @@ function setupBulkSelection() {
         selectAllCheckbox.addEventListener('change', (event) => {
             rowCheckboxes.forEach((checkbox) => {
                 checkbox.checked = event.target.checked;
+                toggleRowHighlight(checkbox);
             });
             updateToolbar();
         });
@@ -240,19 +241,11 @@ function setupBulkSelection() {
 
     rowCheckboxes.forEach((checkbox) => {
         checkbox.addEventListener('change', () => {
-            const row = checkbox.closest('.resource-row');
-            if (row) {
-                row.classList.toggle('is-selected', checkbox.checked);
-            }
+            toggleRowHighlight(checkbox);
             updateToolbar();
         });
 
-        if (checkbox.checked) {
-            const row = checkbox.closest('.resource-row');
-            if (row) {
-                row.classList.add('is-selected');
-            }
-        }
+        toggleRowHighlight(checkbox);
     });
 
     updateToolbar();
@@ -262,6 +255,13 @@ function getSelectedIds() {
     return Array.from(document.querySelectorAll('.row-selector:checked')).map(
         (checkbox) => checkbox.value
     );
+}
+
+function toggleRowHighlight(checkbox) {
+    const row = checkbox.closest('.resource-row');
+    if (row) {
+        row.classList.toggle('is-selected', checkbox.checked);
+    }
 }
 
 function openFormModal(trigger, config, runCallback) {

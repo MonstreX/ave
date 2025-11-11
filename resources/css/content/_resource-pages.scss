@@ -11,6 +11,25 @@
     margin-bottom: 20px;
 }
 
+.bulk-actions-inline {
+    display: none;
+    align-items: center;
+    gap: 10px;
+    margin-left: 10px;
+}
+
+.bulk-actions-inline.is-visible {
+    display: inline-flex;
+}
+
+.bulk-selection-count {
+    font-size: 13px;
+    color: #95a5a6;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
 .resource-toolbar .toolbar-actions {
     display: flex;
     align-items: center;

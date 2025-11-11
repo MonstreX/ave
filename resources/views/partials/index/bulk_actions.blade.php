@@ -3,9 +3,9 @@
 @endphp
 
 @if(!empty($bulkActions))
-    <div class="bulk-actions-toolbar" id="bulk-actions-toolbar">
+    <div class="bulk-actions-inline" id="bulk-actions-toolbar" aria-hidden="true">
         <span class="bulk-selection-count">
-            <span id="selected-count">0</span> selected
+            <span id="selected-count">0</span> {{ __('Selected') }}
         </span>
         @foreach($bulkActions as $action)
             @php
@@ -19,7 +19,7 @@
                 ];
             @endphp
             <button type="button"
-                    class="bulk-action-btn btn-{{ $variant }}"
+                    class="btn btn-{{ $variant }} bulk-action-btn"
                     data-ave-action="bulk"
                     data-ave-action-key="{{ $action->key() }}"
                     data-variant="{{ $variant }}"
