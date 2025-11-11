@@ -101,28 +101,8 @@
         @endif
 
         <div id="adminmenu" class="ave-sidebar__menu" data-ave-menu="container">
-                <ul class="ave-sidebar__list" data-ave-menu-root>
-                @if($dashboardRoute)
-                    <li class="ave-sidebar__item {{ request()->routeIs('ave.dashboard') ? 'ave-sidebar__item--active' : '' }}">
-                        <a href="{{ $dashboardRoute }}" class="ave-sidebar__link">
-                            <span class="ave-sidebar__icon voyager-boat" aria-hidden="true"></span>
-                            <span class="ave-sidebar__label">Dashboard</span>
-                        </a>
-                    </li>
-                @endif
-
-                @if($useMenu)
-                    {!! $renderMenu($menuItems->toArray()) !!}
-                @else
-                    @foreach($resources as $entry)
-                        <li class="ave-sidebar__item {{ request()->routeIs('ave.resource.*') && request()->route('slug') === $entry['slug'] ? 'ave-sidebar__item--active' : '' }}">
-                            <a href="{{ route('ave.resource.index', ['slug' => $entry['slug']]) }}" class="ave-sidebar__link">
-                                <span class="ave-sidebar__icon {{ $entry['icon'] }}" aria-hidden="true"></span>
-                                <span class="ave-sidebar__label">{{ $entry['label'] }}</span>
-                            </a>
-                        </li>
-                    @endforeach
-                @endif
+            <ul class="ave-sidebar__list" data-ave-menu-root>
+                {!! $renderMenu($menuItems->toArray()) !!}
             </ul>
         </div>
     </nav>
