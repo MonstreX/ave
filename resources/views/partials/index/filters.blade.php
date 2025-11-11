@@ -95,6 +95,7 @@
         </div>
     @endif
 
+    @if($hasFilters)
         <div class="filters-inline-actions">
             <input type="hidden" name="q" value="{{ request('q') }}">
             <input type="hidden" name="sort" value="{{ request('sort') }}">
@@ -110,4 +111,5 @@
                 </a>
             @endif
         </div>
+    @endif
 </form>
