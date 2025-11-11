@@ -17,15 +17,13 @@
                     }
                     $segments = $relative === '' ? [] : explode('/', $relative);
                     $segments = array_values(array_filter($segments, fn ($segment) => $segment !== ''));
-                    if (!empty($segments) && $segments[0] === 'resource') {
-                        array_shift($segments);
-                    }
                     if (!empty($segments)) {
                         $last = end($segments);
                         if (in_array($last, ['edit', 'create'], true)) {
                             array_pop($segments);
                         }
                     }
+                    $visibleSegments = array_values(array_filter($segments, fn ($segment) => $segment !== 'resource'));
                 }
             @endphp
             @section('breadcrumbs')
@@ -34,14 +32,26 @@
                     <li class="ave-navbar__breadcrumb-item">
                         <a href="{{ $dashboardRoute }}" class="ave-navbar__breadcrumb-link"><i class="voyager-boat"></i> {{ __('Dashboard') }}</a>
                     </li>
-                    @php $url = $dashboardRoute; @endphp
+                    @php
+                        $url = $dashboardRoute;
+                        $visibleCount = isset($visibleSegments) ? count($visibleSegments) : 0;
+                        $visibleIndex = 0;
+                    @endphp
                     @foreach ($segments as $segment)
                         @php $url .= '/' . $segment; @endphp
-                        @if ($loop->last)
-                            <li class="ave-navbar__breadcrumb-item">{{ ucfirst(urldecode($segment)) }}</li>
+                        @if ($segment === 'resource')
+                            @continue
+                        @endif
+                        @php
+                            $label = ucfirst(urldecode($segment));
+                            $isLastVisible = ($visibleIndex === $visibleCount - 1);
+                            $visibleIndex++;
+                        @endphp
+                        @if ($isLastVisible)
+                            <li class="ave-navbar__breadcrumb-item">{{ $label }}</li>
                         @else
                             <li class="ave-navbar__breadcrumb-item">
-                                <a href="{{ $url }}" class="ave-navbar__breadcrumb-link">{{ ucfirst(urldecode($segment)) }}</a>
+                                <a href="{{ $url }}" class="ave-navbar__breadcrumb-link">{{ $label }}</a>
                             </li>
                         @endif
                     @endforeach
