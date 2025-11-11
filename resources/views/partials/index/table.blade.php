@@ -27,7 +27,7 @@
         ])
 
         <div class="resource-table">
-            <table class="table">
+            <table class="table table-striped table-hover table-bordered">
                 <thead>
                 <tr>
                     @if($hasBulkSelection)
@@ -85,7 +85,7 @@
                         <td class="text-right">
                             <div class="table-actions">
                                 @if(!empty($rowActions))
-                                    <div class="btn-group table-row-actions">
+                                    <div class="table-action-buttons">
                                         @foreach($rowActions as $action)
                                             @php
                                                 $actionLabel = $action->label();
@@ -96,26 +96,31 @@
                                                     'label' => $actionLabel,
                                                     'form' => $action->form(),
                                                 ];
+                                                $fallbackIcon = match ($action->key()) {
+                                                    'edit' => 'voyager-edit',
+                                                    'delete' => 'voyager-trash',
+                                                    'view', 'show' => 'voyager-eye',
+                                                    default => 'voyager-dot-001',
+                                                };
+                                                $iconClass = $actionIcon ?: $fallbackIcon;
+                                                $isDeleteLike = $action->key() === 'delete' || $variant === 'danger';
                                             @endphp
-                                            <button
-                                                type="button"
-                                                class="btn btn-sm btn-{{ $variant }}"
-                                                data-ave-action="row"
-                                                data-ave-action-key="{{ $action->key() }}"
-                                                data-variant="{{ $variant }}"
-                                                data-action-endpoint="{{ route('ave.resource.action.row', ['slug' => $slug, 'id' => $item->getKey(), 'action' => $action->key()]) }}"
-                                                data-action-method="POST"
-                                                data-action-config='@json($actionConfig)'
-                                                @if($confirm)
-                                                    data-action-confirm="true"
-                                                    data-action-confirm-message="{{ $confirm }}"
-                                                @endif
+                                            <a href="javascript:void(0)"
+                                               class="table-action-icon {{ $isDeleteLike ? 'delete' : '' }}"
+                                               title="{{ $actionLabel }}"
+                                               data-ave-action="row"
+                                               data-ave-action-key="{{ $action->key() }}"
+                                               data-variant="{{ $variant }}"
+                                               data-action-endpoint="{{ route('ave.resource.action.row', ['slug' => $slug, 'id' => $item->getKey(), 'action' => $action->key()]) }}"
+                                               data-action-method="POST"
+                                               data-action-config='@json($actionConfig)'
+                                               @if($confirm)
+                                                   data-action-confirm="true"
+                                                   data-action-confirm-message="{{ $confirm }}"
+                                               @endif
                                             >
-                                                @if($actionIcon)
-                                                    <i class="{{ $actionIcon }}"></i>
-                                                @endif
-                                                <span>{{ $actionLabel }}</span>
-                                            </button>
+                                                <i class="{{ $iconClass }}"></i>
+                                            </a>
                                         @endforeach
                                     </div>
                                 @endif
