@@ -37,6 +37,7 @@
 @use './components/forms/code-editor';
 @use './components/forms/content-editor';
 @use './components/forms/matrix';
+@use './components/forms/date-range';
 
 // Auth pages
 @use './auth/login';

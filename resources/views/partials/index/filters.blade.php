@@ -72,7 +72,7 @@
                                 value="{{ $fromValue }}"
                                 placeholder="From"
                             >
-                            <span class="filters-field__range-sep">→</span>
+                            <span class="filters-field__range-sep"></span>
                             <input
                                 type="date"
                                 name="{{ $filterKey }}[to]"
@@ -100,12 +100,12 @@
             <input type="hidden" name="sort" value="{{ request('sort') }}">
             <input type="hidden" name="dir" value="{{ request('dir') }}">
 
-            <button type="submit" class="btn btn-primary btn-sm">
+            <button type="submit" class="btn btn-primary btn-35">
                 <i class="voyager-filter"></i> <span>Apply</span>
             </button>
 
             @if($hasActiveFilters)
-                <a href="{{ route('ave.resource.index', ['slug' => $slug]) }}" class="btn btn-default btn-sm">
+                <a href="{{ route('ave.resource.index', ['slug' => $slug]) }}" class="btn btn-default btn-35">
                     <i class="voyager-refresh"></i> <span>Reset</span>
                 </a>
             @endif
