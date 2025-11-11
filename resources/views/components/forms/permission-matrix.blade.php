@@ -2,6 +2,17 @@
     $matrixId = 'permission-matrix-' . substr(md5(spl_object_hash($component)), 0, 8);
     $groups = collect($groups ?? []);
     $selectedIds = collect($selected ?? [])->map(fn ($id) => (int) $id)->all();
+    $sectionedGroups = $sectionedGroups ?? [];
+    $sectionDefinitions = [
+        [
+            'key' => 'user',
+            'title' => __('User Resources'),
+        ],
+        [
+            'key' => 'system',
+            'title' => __('System Resources'),
+        ],
+    ];
 @endphp
 
 <div class="form-field" data-permission-matrix id="{{ $matrixId }}">
@@ -21,48 +32,60 @@
             {{ __('No permissions registered yet. They will appear after resources register their abilities.') }}
         </div>
     @else
-        <div class="matrix-list">
-            @foreach($groups as $group)
-                <div class="panel-matrix" data-permission-group="{{ $group['slug'] }}">
-                    <div class="panel-matrix-heading">
-                        <label class="checkbox-label">
-                            <input type="checkbox"
-                                   class="checkbox-input"
-                                   data-permission-group-toggle="{{ $group['slug'] }}">
-                            <span class="checkbox-custom"></span>
-                            <span class="checkbox-text">
-                                {{ $group['label'] }}
-                                <small class="text-muted">({{ $group['slug'] }})</small>
-                            </span>
-                        </label>
-                    </div>
-                    <div class="panel-matrix-body">
-                        <ul class="list-unstyled" data-permission-items="{{ $group['slug'] }}" style="margin-left: 30px;">
-                            @foreach($group['permissions'] as $permission)
-                                <li>
-                                    <label class="checkbox-label">
-                                        <input type="checkbox"
-                                               class="checkbox-input"
-                                               name="permissions[{{ $permission['id'] }}]"
-                                               value="{{ $permission['id'] }}"
-                                               data-permission-item
-                                               @checked(in_array($permission['id'], $selectedIds, true))>
-                                        <span class="checkbox-custom"></span>
-                                        <span class="checkbox-text">
-                                            <strong>{{ $permission['label'] }}</strong>
-                                            <small class="text-muted">({{ $permission['ability'] }})</small>
-                                        </span>
-                                    </label>
-                                    @if(!empty($permission['description']))
-                                        <div class="help-text">{{ $permission['description'] }}</div>
-                                    @endif
-                                </li>
-                            @endforeach
-                        </ul>
-                    </div>
+        @foreach($sectionDefinitions as $section)
+            @php
+                $sectionGroups = collect($sectionedGroups[$section['key']] ?? []);
+            @endphp
+            @if($sectionGroups->isEmpty())
+                @continue
+            @endif
+
+            <div class="permission-section">
+                <h4 class="permission-section__title">{{ $section['title'] }}</h4>
+                <div class="matrix-list">
+                    @foreach($sectionGroups as $group)
+                        <div class="panel-matrix" data-permission-group="{{ $group['slug'] }}">
+                            <div class="panel-matrix-heading">
+                                <label class="checkbox-label">
+                                    <input type="checkbox"
+                                           class="checkbox-input"
+                                           data-permission-group-toggle="{{ $group['slug'] }}">
+                                    <span class="checkbox-custom"></span>
+                                    <span class="checkbox-text">
+                                        {{ $group['label'] }}
+                                        <small class="text-muted">({{ $group['slug'] }})</small>
+                                    </span>
+                                </label>
+                            </div>
+                            <div class="panel-matrix-body">
+                                <ul class="list-unstyled" data-permission-items="{{ $group['slug'] }}" style="margin-left: 30px;">
+                                    @foreach($group['permissions'] as $permission)
+                                        <li>
+                                            <label class="checkbox-label">
+                                                <input type="checkbox"
+                                                       class="checkbox-input"
+                                                       name="permissions[{{ $permission['id'] }}]"
+                                                       value="{{ $permission['id'] }}"
+                                                       data-permission-item
+                                                       @checked(in_array($permission['id'], $selectedIds, true))>
+                                                <span class="checkbox-custom"></span>
+                                                <span class="checkbox-text">
+                                                    <strong>{{ $permission['label'] }}</strong>
+                                                    <small class="text-muted">({{ $permission['ability'] }})</small>
+                                                </span>
+                                            </label>
+                                            @if(!empty($permission['description']))
+                                                <div class="help-text">{{ $permission['description'] }}</div>
+                                            @endif
+                                        </li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        </div>
+                    @endforeach
                 </div>
-            @endforeach
-        </div>
+            </div>
+        @endforeach
     @endif
 </div>
 

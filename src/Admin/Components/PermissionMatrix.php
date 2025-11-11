@@ -14,6 +14,10 @@ use Monstrex\Ave\Core\ResourceManager;
 class PermissionMatrix extends FormComponent
 {
     protected ?Collection $groups = null;
+    protected array $sectionedGroups = [
+        'user' => [],
+        'system' => [],
+    ];
 
     /**
      * @var array<int,int>
@@ -42,6 +46,10 @@ class PermissionMatrix extends FormComponent
 
         if (! Schema::hasTable('ave_permissions')) {
             $this->groups = collect();
+            $this->sectionedGroups = [
+                'user' => [],
+                'system' => [],
+            ];
             $this->selected = $this->resolveSelectedPermissions($context);
 
             return;
@@ -49,19 +57,21 @@ class PermissionMatrix extends FormComponent
 
         $permissions = Permission::query()
             ->orderBy('resource_slug')
+            ->orderByRaw("CASE WHEN ability = 'viewAny' THEN 0 WHEN ability = 'view' THEN 1 ELSE 2 END")
             ->orderBy('ability')
             ->get();
 
-        $resourceLabels = $this->resolveResourceLabels(
+        $resourceMeta = $this->resolveResourceMeta(
             $permissions->pluck('resource_slug')->unique()->all()
         );
 
         $this->groups = $permissions
             ->groupBy('resource_slug')
-            ->map(function ($group, string $slug) use ($resourceLabels) {
+            ->map(function ($group, string $slug) use ($resourceMeta) {
                 return [
                     'slug' => $slug,
-                    'label' => $resourceLabels[$slug] ?? $this->humanizeSlug($slug),
+                    'label' => $resourceMeta[$slug]['label'] ?? $this->humanizeSlug($slug),
+                    'section' => $resourceMeta[$slug]['section'] ?? 'system',
                     'permissions' => $group->map(function (Permission $permission) {
                         return [
                             'id' => $permission->id,
@@ -74,6 +84,11 @@ class PermissionMatrix extends FormComponent
             })
             ->values();
 
+        $this->sectionedGroups = [
+            'user' => $this->groups->filter(fn ($group) => ($group['section'] ?? 'user') === 'user')->values(),
+            'system' => $this->groups->filter(fn ($group) => ($group['section'] ?? 'user') === 'system')->values(),
+        ];
+
         $this->selected = $this->resolveSelectedPermissions($context);
     }
 
@@ -84,26 +99,44 @@ class PermissionMatrix extends FormComponent
 
     /**
      * @param  array<int,string>  $slugs
-     * @return array<string,string>
+     * @return array<string,array{label:string,section:string}>
      */
-    protected function resolveResourceLabels(array $slugs): array
+    protected function resolveResourceMeta(array $slugs): array
     {
-        if (empty($slugs) || ! app()->bound(ResourceManager::class)) {
+        if (empty($slugs)) {
             return [];
         }
 
-        $labels = [];
-        $manager = app(ResourceManager::class);
+        $meta = [];
+        $manager = app()->bound(ResourceManager::class) ? app(ResourceManager::class) : null;
 
         foreach ($slugs as $slug) {
-            $resourceClass = $manager->resource($slug);
+            $label = $this->humanizeSlug($slug);
+            $section = 'user';
 
-            if ($resourceClass && method_exists($resourceClass, 'getLabel')) {
-                $labels[$slug] = $resourceClass::getLabel();
+            if ($manager) {
+                $resourceClass = $manager->resource($slug);
+
+                if ($resourceClass && method_exists($resourceClass, 'getLabel')) {
+                    $label = $resourceClass::getLabel();
+                }
+
+                if ($resourceClass && Str::startsWith($resourceClass, 'Monstrex\\Ave\\Admin\\Resources\\')) {
+                    $section = 'system';
+                } elseif ($resourceClass === null && Str::startsWith($slug, 'system')) {
+                    $section = 'system';
+                }
+            } elseif (Str::startsWith($slug, 'system')) {
+                $section = 'system';
             }
+
+            $meta[$slug] = [
+                'label' => $label,
+                'section' => $section,
+            ];
         }
 
-        return $labels;
+        return $meta;
     }
 
     /**
@@ -190,6 +223,7 @@ class PermissionMatrix extends FormComponent
             'component' => $this,
             'label' => $this->label,
             'groups' => $this->groups ?? collect(),
+            'sectionedGroups' => $this->sectionedGroups,
             'selected' => $this->selected,
         ])->render();
     }
