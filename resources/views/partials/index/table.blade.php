@@ -133,6 +133,12 @@
             </table>
         </div>
 
+        <div class="resource-table-footer">
+            <div class="resource-note">
+                Showing {{ $records->total() }} record{{ $records->total() === 1 ? '' : 's' }}
+            </div>
+        </div>
+
         <div class="resource-pagination">
             {{ $records->links() }}
         </div>
