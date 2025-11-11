@@ -1,6 +1,18 @@
 @php
     $filters = isset($table) && method_exists($table, 'getFilters') ? $table->getFilters() : [];
     $hasFilters = !empty($filters);
+    $filterKeys = array_map(fn($filter) => $filter->key(), $filters);
+    $hasActiveFilters = false;
+    foreach ($filterKeys as $key) {
+        $value = request()->input($key);
+        if (is_array($value)) {
+            $value = array_filter($value, fn($v) => $v !== null && $v !== '');
+        }
+        if ($value !== null && $value !== '' && $value !== []) {
+            $hasActiveFilters = true;
+            break;
+        }
+    }
 @endphp
 
 <form method="GET" class="filters-inline-form">
@@ -83,16 +95,19 @@
         </div>
     @endif
 
-    <div class="filters-inline-actions">
-        <input type="hidden" name="q" value="{{ request('q') }}">
-        <input type="hidden" name="sort" value="{{ request('sort') }}">
-        <input type="hidden" name="dir" value="{{ request('dir') }}">
+        <div class="filters-inline-actions">
+            <input type="hidden" name="q" value="{{ request('q') }}">
+            <input type="hidden" name="sort" value="{{ request('sort') }}">
+            <input type="hidden" name="dir" value="{{ request('dir') }}">
 
-        <button type="submit" class="btn btn-primary btn-sm">
-            <i class="voyager-filter"></i> <span>Apply</span>
-        </button>
-        <a href="{{ route('ave.resource.index', ['slug' => $slug]) }}" class="btn btn-default btn-sm">
-            <i class="voyager-refresh"></i> <span>Reset</span>
-        </a>
-    </div>
+            <button type="submit" class="btn btn-primary btn-sm">
+                <i class="voyager-filter"></i> <span>Apply</span>
+            </button>
+
+            @if($hasActiveFilters)
+                <a href="{{ route('ave.resource.index', ['slug' => $slug]) }}" class="btn btn-default btn-sm">
+                    <i class="voyager-refresh"></i> <span>Reset</span>
+                </a>
+            @endif
+        </div>
 </form>
