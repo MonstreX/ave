@@ -2,7 +2,7 @@
 
 namespace Monstrex\Ave\Admin\Resources\Menu;
 
-use Monstrex\Ave\Admin\Models\Menu as MenuModel;
+use Monstrex\Ave\Models\Menu as MenuModel;
 use Monstrex\Ave\Core\Columns\Column;
 use Monstrex\Ave\Core\Components\Div;
 use Monstrex\Ave\Core\Fields\TextInput;

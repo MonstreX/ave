@@ -2,7 +2,7 @@
 
 namespace Monstrex\Ave\Admin\Resources\Permission;
 
-use Monstrex\Ave\Admin\Models\Permission as PermissionModel;
+use Monstrex\Ave\Models\Permission as PermissionModel;
 use Monstrex\Ave\Core\Columns\Column;
 use Monstrex\Ave\Core\Components\Div;
 use Monstrex\Ave\Core\Fields\Textarea;

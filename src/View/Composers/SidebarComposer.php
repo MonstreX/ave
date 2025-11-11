@@ -7,8 +7,8 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Route;
 use Illuminate\View\View;
 use Monstrex\Ave\Admin\Access\AccessManager;
-use Monstrex\Ave\Admin\Models\Menu;
-use Monstrex\Ave\Admin\Models\MenuItem;
+use Monstrex\Ave\Models\Menu;
+use Monstrex\Ave\Models\MenuItem;
 use Monstrex\Ave\Core\ResourceManager;
 
 class SidebarComposer

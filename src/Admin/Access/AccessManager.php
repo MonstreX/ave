@@ -7,8 +7,8 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
-use Monstrex\Ave\Admin\Models\Permission;
-use Monstrex\Ave\Admin\Models\Role;
+use Monstrex\Ave\Models\Permission;
+use Monstrex\Ave\Models\Role;
 
 class AccessManager
 {

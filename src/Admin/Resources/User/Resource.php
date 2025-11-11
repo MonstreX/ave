@@ -2,7 +2,7 @@
 
 namespace Monstrex\Ave\Admin\Resources\User;
 
-use Monstrex\Ave\Admin\Models\User as UserModel;
+use Monstrex\Ave\Models\User as UserModel;
 use Monstrex\Ave\Core\Columns\Column;
 use Monstrex\Ave\Core\Components\Div;
 use Monstrex\Ave\Core\Fields\BelongsToManySelect;

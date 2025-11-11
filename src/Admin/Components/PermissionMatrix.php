@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
-use Monstrex\Ave\Admin\Models\Permission;
+use Monstrex\Ave\Models\Permission;
 use Monstrex\Ave\Core\Components\FormComponent;
 use Monstrex\Ave\Core\FormContext;
 use Monstrex\Ave\Core\ResourceManager;

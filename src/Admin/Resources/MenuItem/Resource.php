@@ -2,7 +2,7 @@
 
 namespace Monstrex\Ave\Admin\Resources\MenuItem;
 
-use Monstrex\Ave\Admin\Models\MenuItem as MenuItemModel;
+use Monstrex\Ave\Models\MenuItem as MenuItemModel;
 use Monstrex\Ave\Core\Columns\Column;
 use Monstrex\Ave\Core\Components\Div;
 use Monstrex\Ave\Core\Fields\BelongsToSelect;

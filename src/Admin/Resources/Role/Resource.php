@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 use Monstrex\Ave\Admin\Components\PermissionMatrix;
-use Monstrex\Ave\Admin\Models\Role as RoleModel;
+use Monstrex\Ave\Models\Role as RoleModel;
 use Monstrex\Ave\Core\Columns\Column;
 use Monstrex\Ave\Core\Components\Div;
 use Monstrex\Ave\Core\Fields\Textarea;
