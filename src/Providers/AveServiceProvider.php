@@ -25,6 +25,7 @@ use Monstrex\Ave\Media\MediaStorage;
 use Monstrex\Ave\Core\Media\MediaRepository;
 use Monstrex\Ave\Exceptions\AveException;
 use Monstrex\Ave\Exceptions\ResourceException;
+use RuntimeException;
 
 /**
  * AveServiceProvider Class
@@ -99,6 +100,7 @@ class AveServiceProvider extends ServiceProvider
 
         View::composer('ave::partials.sidebar', SidebarComposer::class);
 
+        $this->ensureGuardConfigured();
         RouteRegistrar::create($this->app['router'])->register();
 
         // Register commands
@@ -110,6 +112,21 @@ class AveServiceProvider extends ServiceProvider
 
         // Discover and register resources/pages
         $this->discoverAndRegister();
+    }
+
+    protected function ensureGuardConfigured(): void
+    {
+        $guard = config('ave.auth_guard');
+
+        if (! $guard) {
+            throw new RuntimeException('Ave admin guard is not configured. Set AVE_AUTH_GUARD in your environment or ave.auth_guard configuration.');
+        }
+
+        $guards = config('auth.guards', []);
+
+        if (! array_key_exists($guard, $guards)) {
+            throw new RuntimeException(sprintf('Ave admin guard [%s] is not defined in auth.guards configuration.', $guard));
+        }
     }
 
     /**

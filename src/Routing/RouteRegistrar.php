@@ -28,6 +28,7 @@ class RouteRegistrar
     public function register(): void
     {
         $this->registerGuestRoutes();
+        $this->registerApiRoutes();
 
         $this->registerProtectedRoutes();
     }
@@ -111,10 +112,15 @@ class RouteRegistrar
             ->name('ave.media.bulk-destroy');
     }
 
-    protected function registerApiRoutes(Router $router): void
+    protected function registerApiRoutes(): void
     {
-        $router->post('/api/slug', [SlugController::class, 'generate'])
-            ->name('ave.api.slug');
+        RouteConfigurator::make($this->router, [
+            'prefix' => $this->prefix(),
+            'middleware' => $this->apiMiddleware(),
+        ])->register(function (Router $router) {
+            $router->post('/api/slug', [SlugController::class, 'generate'])
+                ->name('ave.api.slug');
+        });
     }
 
     protected function prefix(): string
@@ -133,6 +139,7 @@ class RouteRegistrar
         $guard = ave_auth_guard();
 
         $middleware[] = $guard ? ('guest:' . $guard) : 'guest';
+        $middleware[] = $this->loginThrottleMiddleware();
 
         return $middleware;
     }
@@ -153,5 +160,30 @@ class RouteRegistrar
 
         return $middleware;
     }
-}
 
+    /**
+     * @return array<int,string>
+     */
+    protected function apiMiddleware(): array
+    {
+        return array_merge(
+            [HandleAveExceptions::class],
+            Arr::wrap(config('ave.middleware', ['web'])),
+            [$this->apiThrottleMiddleware()]
+        );
+    }
+
+    protected function loginThrottleMiddleware(): string
+    {
+        $limit = (string) config('ave.rate_limits.auth', '10,1');
+
+        return str_starts_with($limit, 'throttle:') ? $limit : 'throttle:' . $limit;
+    }
+
+    protected function apiThrottleMiddleware(): string
+    {
+        $limit = (string) config('ave.rate_limits.api', '60,1');
+
+        return str_starts_with($limit, 'throttle:') ? $limit : 'throttle:' . $limit;
+    }
+}

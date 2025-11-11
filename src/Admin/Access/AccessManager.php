@@ -5,6 +5,7 @@ namespace Monstrex\Ave\Admin\Access;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Monstrex\Ave\Models\Permission;
@@ -107,8 +108,8 @@ class AccessManager
             return true;
         }
 
-        if (! Schema::hasTable('ave_permissions')) {
-            return true;
+        if (! $this->tablesExist(['ave_permissions'])) {
+            return false;
         }
 
         $permission = Permission::query()
@@ -120,8 +121,8 @@ class AccessManager
             return false;
         }
 
-        if (! Schema::hasTable('ave_permission_role')) {
-            return true;
+        if (! $this->tablesExist(['ave_permission_role'])) {
+            return false;
         }
 
         $roleIds = $this->userRoleIds($user);
@@ -180,7 +181,7 @@ class AccessManager
      */
     protected function userRoleCache(Authenticatable $user): array
     {
-        if (! $this->enabled || ! Schema::hasTable('ave_role_user') || ! Schema::hasTable('ave_roles')) {
+        if (! $this->enabled || ! $this->tablesExist(['ave_role_user', 'ave_roles'])) {
             return ['ids' => [], 'slugs' => []];
         }
 
@@ -204,5 +205,36 @@ class AccessManager
                 'slugs' => $roles->pluck('slug')->all(),
             ];
         });
+    }
+
+    /**
+     * Ensure all required ACL tables exist before granting access.
+     *
+     * @param  array<int,string>  $tables
+     */
+    protected function tablesExist(array $tables): bool
+    {
+        foreach ($tables as $table) {
+            if (! Schema::hasTable($table)) {
+                $this->reportMissingTable($table);
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    protected function reportMissingTable(string $table): void
+    {
+        if ($this->shouldSuppressTableWarnings()) {
+            return;
+        }
+
+        Log::critical(sprintf('Ave ACL table [%s] is missing. Access is denied until migrations are run.', $table));
+    }
+
+    protected function shouldSuppressTableWarnings(): bool
+    {
+        return app()->runningInConsole() && ! app()->runningUnitTests();
     }
 }

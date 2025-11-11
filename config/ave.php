@@ -9,13 +9,21 @@ return [
     /*
      * Authentication guard that should be used for Ave routes.
      */
-    'auth_guard' => 'web',
+    'auth_guard' => env('AVE_AUTH_GUARD', 'web'),
 
     /*
      * Middleware stack applied to Ave routes (in addition to the auth guard).
      */
     'middleware' => [
         'web',
+    ],
+
+    /*
+     * Rate limiting configuration (attempts per minute, throttle signature).
+     */
+    'rate_limits' => [
+        'auth' => env('AVE_RATE_LIMIT_AUTH', '10,1'),
+        'api' => env('AVE_RATE_LIMIT_API', '60,1'),
     ],
 
     /*
