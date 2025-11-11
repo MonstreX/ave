@@ -330,6 +330,14 @@ class MediaController extends Controller
     }
 
     /**
+     * @deprecated Use cropImage(). Kept for backward compatibility with older routes.
+     */
+    public function crop(Request $request, int $id): JsonResponse
+    {
+        return $this->cropImage($request, $id);
+    }
+
+    /**
      * Upload simple file (for File field)
      */
     public function uploadFile(Request $request): JsonResponse
