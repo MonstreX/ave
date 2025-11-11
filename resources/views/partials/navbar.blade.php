@@ -8,7 +8,24 @@
                 $dashboardRoute = \Illuminate\Support\Facades\Route::has('ave.dashboard') ? route('ave.dashboard') : null;
                 $segments = [];
                 if ($dashboardRoute) {
-                    $segments = array_filter(explode('/', str_replace($dashboardRoute, '', request()->url())));
+                    $currentPath = trim(parse_url(request()->url(), PHP_URL_PATH), '/');
+                    $dashboardPath = trim(parse_url($dashboardRoute, PHP_URL_PATH), '/');
+                    if ($dashboardPath !== '' && str_starts_with($currentPath, $dashboardPath)) {
+                        $relative = trim(substr($currentPath, strlen($dashboardPath)), '/');
+                    } else {
+                        $relative = $currentPath;
+                    }
+                    $segments = $relative === '' ? [] : explode('/', $relative);
+                    $segments = array_values(array_filter($segments, fn ($segment) => $segment !== ''));
+                    if (!empty($segments) && $segments[0] === 'resource') {
+                        array_shift($segments);
+                    }
+                    if (!empty($segments)) {
+                        $last = end($segments);
+                        if (in_array($last, ['edit', 'create'], true)) {
+                            array_pop($segments);
+                        }
+                    }
                 }
             @endphp
             @section('breadcrumbs')
