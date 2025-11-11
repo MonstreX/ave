@@ -14,10 +14,11 @@
 @endsection
 
 @section('page_header')
-    @include('ave::partials.index.toolbar', [
-        'globalActions' => $globalActions ?? [],
-        'bulkActions' => $bulkActions ?? [],
-    ])
+    <div class="page-header">
+        <h1 class="page-title">
+            <i class="{{ $resource::getIcon() }}"></i> {{ $resource::getLabel() }}
+        </h1>
+    </div>
 @endsection
 
 @section('content')
@@ -25,20 +26,13 @@
 
         @include('ave::partials.index.metrics')
 
-        @include('ave::partials.index.filters', [
+        @include('ave::partials.index.table', [
             'table' => $table,
             'records' => $records,
-            'slug' => $slug,
-        ])
-
-        @include('ave::partials.index.criteria_badges', [
-            'criteriaBadges' => $criteriaBadges ?? [],
-            'slug' => $slug,
-        ])
-
-        @include('ave::partials.index.table', [
             'rowActions' => $rowActions ?? [],
             'bulkActions' => $bulkActions ?? [],
+            'globalActions' => $globalActions ?? [],
+            'criteriaBadges' => $criteriaBadges ?? [],
         ])
 
     </div>

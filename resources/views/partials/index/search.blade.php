@@ -1,21 +1,29 @@
 @php
-    $fieldId = $fieldId ?? 'ave-filter-search';
     $placeholder = $table->getSearchPlaceholder() ?? 'Search...';
 @endphp
 
-<div class="filters-field filters-field--search form-group">
-    <label class="control-label" for="{{ $fieldId }}">{{ $placeholder }}</label>
-    <div class="input-group">
-        <span class="input-group-addon">
-            <i class="voyager-search"></i>
-        </span>
-        <input
-            id="{{ $fieldId }}"
-            type="text"
-            name="q"
-            value="{{ request('q') }}"
-            class="form-control"
-            placeholder="{{ $placeholder }}"
-        >
+<form method="GET" class="resource-search-form">
+    @foreach(['sort', 'dir'] as $hidden)
+        @if(request()->filled($hidden))
+            <input type="hidden" name="{{ $hidden }}" value="{{ request($hidden) }}">
+        @endif
+    @endforeach
+    @if(request()->filled('q'))
+        <input type="hidden" name="_previous_q" value="{{ request('q') }}">
+    @endif
+
+    <div class="resource-search">
+        <div class="input-group">
+            <span class="input-group-addon">
+                <i class="voyager-search"></i>
+            </span>
+            <input
+                type="text"
+                name="q"
+                value="{{ request('q') }}"
+                class="form-control"
+                placeholder="{{ $placeholder }}"
+            >
+        </div>
     </div>
-</div>
+</form>
