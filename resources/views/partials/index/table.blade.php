@@ -10,13 +10,6 @@
     <div class="panel-body">
         <div class="resource-controls-row">
             <div class="resource-controls-left">
-                @include('ave::partials.index.actions-inline', [
-                    'resource' => $resource,
-                    'slug' => $slug,
-                    'globalActions' => $globalActions,
-                    'bulkActions' => $bulkActions,
-                ])
-
                 @include('ave::partials.index.filters', [
                     'table' => $table,
                     'records' => $records,

@@ -18,6 +18,14 @@
         <h1 class="page-title">
             <i class="{{ $resource::getIcon() }}"></i> {{ $resource::getLabel() }}
         </h1>
+        <div class="page-header-actions">
+            @include('ave::partials.index.actions-inline', [
+                'resource' => $resource,
+                'slug' => $slug,
+                'globalActions' => $globalActions ?? [],
+                'bulkActions' => $bulkActions ?? [],
+            ])
+        </div>
     </div>
 @endsection
 
@@ -31,7 +39,6 @@
             'records' => $records,
             'rowActions' => $rowActions ?? [],
             'bulkActions' => $bulkActions ?? [],
-            'globalActions' => $globalActions ?? [],
             'criteriaBadges' => $criteriaBadges ?? [],
         ])
 
