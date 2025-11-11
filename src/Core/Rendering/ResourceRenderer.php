@@ -12,10 +12,13 @@ class ResourceRenderer
         protected ViewResolver $views,
     ) {}
 
-    public function index(string $resourceClass, $table, LengthAwarePaginator $records, Request $request)
+    public function index(string $resourceClass, $table, LengthAwarePaginator $records, Request $request, array $criteriaBadges = [])
     {
         $slug = $resourceClass::getSlug();
         $view = $this->views->resolveResource($slug, 'index');
+        $rowActions = method_exists($resourceClass, 'rowActions') ? $resourceClass::rowActions() : [];
+        $bulkActions = method_exists($resourceClass, 'bulkActions') ? $resourceClass::bulkActions() : [];
+        $globalActions = method_exists($resourceClass, 'globalActions') ? $resourceClass::globalActions() : [];
 
         return view($view, [
             'resource' => $resourceClass,
@@ -23,6 +26,10 @@ class ResourceRenderer
             'table' => $table,
             'records' => $records,
             'request' => $request,
+            'criteriaBadges' => $criteriaBadges,
+            'rowActions' => $rowActions,
+            'bulkActions' => $bulkActions,
+            'globalActions' => $globalActions,
         ]);
     }
 
@@ -65,6 +72,7 @@ class ResourceRenderer
             'context' => $context,
             'mode' => $mode,
             'request' => $request,
+            'formActions' => method_exists($resourceClass, 'formActions') ? $resourceClass::formActions() : [],
         ]);
     }
 }

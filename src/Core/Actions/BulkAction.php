@@ -6,6 +6,9 @@ use Closure;
 use Illuminate\Http\Request;
 use ReflectionFunction;
 
+/**
+ * Legacy bulk action builder kept for compatibility with Table DSL.
+ */
 class BulkAction
 {
     protected string $key;
@@ -90,3 +93,4 @@ class BulkAction
         ];
     }
 }
+

@@ -6,6 +6,11 @@ use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Gate;
 use Monstrex\Ave\Admin\Access\AccessManager;
+use Monstrex\Ave\Core\Actions\Contracts\ActionInterface;
+use Monstrex\Ave\Core\Actions\Contracts\RowAction as RowActionContract;
+use Monstrex\Ave\Core\Actions\Contracts\BulkAction as BulkActionContract;
+use Monstrex\Ave\Core\Actions\Contracts\FormAction as FormActionContract;
+use Monstrex\Ave\Core\Actions\Contracts\GlobalAction as GlobalActionContract;
 use Monstrex\Ave\Contracts\Authorizable;
 
 /**
@@ -23,6 +28,9 @@ abstract class Resource implements Authorizable
     public static ?string $singularLabel = null;
     public static ?string $icon = null;
     public static ?string $slug = null;
+    public static array $searchable = [];
+    public static array $sortable = [];
+    public static array $relationMap = [];
 
     /** @var array<string> Relations to eager load on index */
     public static array $with = [];
@@ -56,6 +64,221 @@ abstract class Resource implements Authorizable
             return $f;
         }
         return Form::make();
+    }
+
+    /**
+     * Override to configure custom criteria.
+     *
+     * @return array<int,\Monstrex\Ave\Core\Criteria\Contracts\Criterion>
+     */
+    public static function getCriteria(): array
+    {
+        return [];
+    }
+
+    /**
+     * Define available custom actions for the resource.
+     *
+     * @return array<int,class-string<ActionInterface>|ActionInterface>
+     */
+    public static function actions(): array
+    {
+        return [];
+    }
+
+    /**
+     * @return array<int,ActionInterface>
+     */
+    public static function rowActions(): array
+    {
+        return static::collectActions(static::defaultRowActions(), RowActionContract::class);
+    }
+
+    /**
+     * @return array<int,ActionInterface>
+     */
+    public static function bulkActions(): array
+    {
+        return static::collectActions(static::defaultBulkActions(), BulkActionContract::class);
+    }
+
+    /**
+     * @return array<int,ActionInterface>
+     */
+    public static function globalActions(): array
+    {
+        return static::collectActions(static::defaultGlobalActions(), GlobalActionContract::class);
+    }
+
+    /**
+     * @return array<int,ActionInterface>
+     */
+    public static function formActions(): array
+    {
+        return static::collectActions(static::defaultFormActions(), FormActionContract::class);
+    }
+
+    public static function findAction(string $key, string $interface): ?ActionInterface
+    {
+        $actions = match ($interface) {
+            RowActionContract::class => static::rowActions(),
+            BulkActionContract::class => static::bulkActions(),
+            GlobalActionContract::class => static::globalActions(),
+            FormActionContract::class => static::formActions(),
+            default => [],
+        };
+
+        foreach ($actions as $action) {
+            if ($action->key() === $key) {
+                return $action;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Default row actions available for every resource.
+     *
+     * @return array<int,class-string<ActionInterface>>
+     */
+    protected static function defaultRowActions(): array
+    {
+        return [
+            \Monstrex\Ave\Core\Actions\EditAction::class,
+            \Monstrex\Ave\Core\Actions\DeleteAction::class,
+        ];
+    }
+
+    /**
+     * Default bulk actions.
+     *
+     * @return array<int,class-string<ActionInterface>>
+     */
+    protected static function defaultBulkActions(): array
+    {
+        return [
+            \Monstrex\Ave\Core\Actions\DeleteAction::class,
+        ];
+    }
+
+    /**
+     * Default global actions.
+     *
+     * @return array<int,class-string<ActionInterface>>
+     */
+    protected static function defaultGlobalActions(): array
+    {
+        return [];
+    }
+
+    /**
+     * Default form actions.
+     *
+     * @return array<int,class-string<ActionInterface>>
+     */
+    protected static function defaultFormActions(): array
+    {
+        return [];
+    }
+
+    /**
+     * Collect default + custom actions for the given interface.
+     *
+     * @param array<int,class-string<ActionInterface>> $defaults
+     * @param class-string $interface
+     * @return array<int,ActionInterface>
+     */
+    protected static function collectActions(array $defaults, string $interface): array
+    {
+        $instances = [];
+
+        foreach ($defaults as $class) {
+            $instance = static::instantiateAction($class);
+            if ($instance) {
+                $instances[] = $instance;
+            }
+        }
+
+        foreach (static::actions() as $action) {
+            $instance = static::instantiateAction($action);
+            if ($instance) {
+                $instances[] = $instance;
+            }
+        }
+
+        $filtered = [];
+
+        foreach ($instances as $instance) {
+            if (!($instance instanceof $interface)) {
+                continue;
+            }
+
+            $filtered[$instance->key()] = $instance;
+        }
+
+        return array_values($filtered);
+    }
+
+    protected static function instantiateAction(mixed $action): ?ActionInterface
+    {
+        if ($action instanceof ActionInterface) {
+            return $action;
+        }
+
+        if (is_string($action) && class_exists($action)) {
+            if (function_exists('app')) {
+                $resolved = app()->make($action);
+            } else {
+                $resolved = new $action();
+            }
+
+            return $resolved instanceof ActionInterface ? $resolved : null;
+        }
+
+        return null;
+    }
+
+    public static function searchableColumns(Table $table): array
+    {
+        if (!empty(static::$searchable)) {
+            return static::$searchable;
+        }
+
+        return array_values(array_map(
+            fn ($column) => $column->key(),
+            array_filter($table->getColumns(), fn ($column) => method_exists($column, 'isSearchable') && $column->isSearchable()),
+        ));
+    }
+
+    public static function sortableColumns(Table $table): array
+    {
+        if (!empty(static::$sortable)) {
+            return static::$sortable;
+        }
+
+        return array_values(array_map(
+            fn ($column) => $column->key(),
+            array_filter($table->getColumns(), fn ($column) => method_exists($column, 'isSortable') && $column->isSortable()),
+        ));
+    }
+
+    public static function relationMap(): array
+    {
+        return static::$relationMap;
+    }
+
+    public static function usesSoftDeletes(): bool
+    {
+        if (!static::$model) {
+            return false;
+        }
+
+        return in_array(
+            \Illuminate\Database\Eloquent\SoftDeletes::class,
+            class_uses_recursive(static::$model),
+            true
+        );
     }
 
     /**

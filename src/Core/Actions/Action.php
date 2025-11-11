@@ -4,6 +4,12 @@ namespace Monstrex\Ave\Core\Actions;
 
 use Closure;
 
+/**
+ * Legacy table action builder.
+ *
+ * New action system lives under Core\Actions\Contracts + BaseAction.
+ * This class remains for backward compatibility with Table DSL.
+ */
 class Action
 {
     protected string $key;
@@ -88,3 +94,4 @@ class Action
         ];
     }
 }
+

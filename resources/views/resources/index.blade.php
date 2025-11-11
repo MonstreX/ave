@@ -14,7 +14,9 @@
 @endsection
 
 @section('page_header')
-    @include('ave::partials.index.toolbar')
+    @include('ave::partials.index.toolbar', [
+        'globalActions' => $globalActions ?? [],
+    ])
 @endsection
 
 @section('content')
@@ -22,11 +24,25 @@
 
         @include('ave::partials.index.metrics')
 
-        @include('ave::partials.index.filters')
+        @include('ave::partials.index.filters', [
+            'table' => $table,
+            'records' => $records,
+            'slug' => $slug,
+        ])
 
-        @include('ave::partials.index.bulk_actions')
+        @include('ave::partials.index.criteria_badges', [
+            'criteriaBadges' => $criteriaBadges ?? [],
+            'slug' => $slug,
+        ])
 
-        @include('ave::partials.index.table')
+        @include('ave::partials.index.bulk_actions', [
+            'bulkActions' => $bulkActions ?? [],
+        ])
+
+        @include('ave::partials.index.table', [
+            'rowActions' => $rowActions ?? [],
+            'bulkActions' => $bulkActions ?? [],
+        ])
 
     </div>
 @endsection

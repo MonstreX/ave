@@ -11,11 +11,15 @@
 @endphp
 
 @section('page_header')
-    @include('ave::partials.form.toolbar')
+    @include('ave::partials.form.toolbar', [
+        'formActions' => $formActions ?? [],
+    ])
 @endsection
 
 @section('content')
     <div class="page-content">
-        @include('ave::partials.form.body')
+        @include('ave::partials.form.body', [
+            'formActions' => $formActions ?? [],
+        ])
     </div>
 @endsection

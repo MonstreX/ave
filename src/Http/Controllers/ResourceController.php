@@ -10,9 +10,15 @@ use Monstrex\Ave\Core\ResourceManager;
 use Monstrex\Ave\Core\Validation\FormValidator;
 use Monstrex\Ave\Core\Persistence\ResourcePersistence;
 use Monstrex\Ave\Core\Rendering\ResourceRenderer;
-use Monstrex\Ave\Core\Query\TableQueryBuilder;
+use Monstrex\Ave\Core\Criteria\CriteriaPipeline;
 use Monstrex\Ave\Core\FormContext;
 use Monstrex\Ave\Exceptions\ResourceException;
+use Monstrex\Ave\Core\Actions\Contracts\ActionInterface;
+use Monstrex\Ave\Core\Actions\Contracts\RowAction as RowActionContract;
+use Monstrex\Ave\Core\Actions\Contracts\BulkAction as BulkActionContract;
+use Monstrex\Ave\Core\Actions\Contracts\FormAction as FormActionContract;
+use Monstrex\Ave\Core\Actions\Contracts\GlobalAction as GlobalActionContract;
+use Monstrex\Ave\Core\Actions\Support\ActionContext;
 
 /**
  * Controller for managing resources (CRUD operations)
@@ -49,6 +55,123 @@ class ResourceController extends Controller
         }
 
         return [$resourceClass, $resource];
+    }
+
+    public function runRowAction(Request $request, string $slug, string $id, string $action)
+    {
+        [$resourceClass, $resource] = $this->resolveAndAuthorize($slug, 'view', $request);
+
+        $actionInstance = $resourceClass::findAction($action, RowActionContract::class);
+        if (!$actionInstance) {
+            return $this->actionNotFoundResponse($request, $action);
+        }
+
+        $model = $this->findModelOrFail($resourceClass, $slug, $id);
+        $ability = $actionInstance->ability() ?? 'update';
+
+        if (!$resource->can($ability, $request->user(), $model)) {
+            throw ResourceException::unauthorized($slug, $ability);
+        }
+
+        $context = ActionContext::row($resourceClass, $request->user(), $model);
+        $this->authorizeAction($actionInstance, $context, $slug);
+        $this->validateActionRequest($request, $actionInstance);
+
+        $result = $actionInstance->handle($context, $request);
+
+        return $this->actionSuccessResponse($request, $actionInstance, $result);
+    }
+
+    public function runBulkAction(Request $request, string $slug, string $action)
+    {
+        [$resourceClass, $resource] = $this->resolveAndAuthorize($slug, 'viewAny', $request);
+
+        $actionInstance = $resourceClass::findAction($action, BulkActionContract::class);
+        if (!$actionInstance) {
+            return $this->actionNotFoundResponse($request, $action);
+        }
+
+        $validated = $request->validate([
+            'ids' => 'required|array|min:1',
+            'ids.*' => 'string',
+        ]);
+
+        $modelClass = $resourceClass::$model;
+
+        if (!$modelClass) {
+            throw ResourceException::invalidModel($resourceClass);
+        }
+
+        $models = $modelClass::whereIn($modelClass::make()->getKeyName(), $validated['ids'])->get();
+
+        if ($models->isEmpty()) {
+            throw ResourceException::modelNotFound($slug, implode(',', $validated['ids']));
+        }
+
+        $ability = $actionInstance->ability() ?? 'update';
+
+        foreach ($models as $model) {
+            if (!$resource->can($ability, $request->user(), $model)) {
+                throw ResourceException::unauthorized($slug, $ability);
+            }
+        }
+
+        $context = ActionContext::bulk($resourceClass, $request->user(), $models, $validated['ids']);
+        $this->authorizeAction($actionInstance, $context, $slug);
+        $this->validateActionRequest($request, $actionInstance);
+        $result = $actionInstance->handle($context, $request);
+
+        return $this->actionSuccessResponse($request, $actionInstance, $result);
+    }
+
+    public function runGlobalAction(Request $request, string $slug, string $action)
+    {
+        [$resourceClass, $resource] = $this->resolveAndAuthorize($slug, 'viewAny', $request);
+
+        $actionInstance = $resourceClass::findAction($action, GlobalActionContract::class);
+        if (!$actionInstance) {
+            return $this->actionNotFoundResponse($request, $action);
+        }
+
+        $ability = $actionInstance->ability() ?? 'viewAny';
+        if (!$resource->can($ability, $request->user())) {
+            throw ResourceException::unauthorized($slug, $ability);
+        }
+
+        $context = ActionContext::global($resourceClass, $request->user());
+        $this->authorizeAction($actionInstance, $context, $slug);
+        $this->validateActionRequest($request, $actionInstance);
+        $result = $actionInstance->handle($context, $request);
+
+        return $this->actionSuccessResponse($request, $actionInstance, $result);
+    }
+
+    public function runFormAction(Request $request, string $slug, string $action, ?string $id = null)
+    {
+        [$resourceClass, $resource] = $this->resolveAndAuthorize($slug, $id ? 'update' : 'create', $request);
+
+        $actionInstance = $resourceClass::findAction($action, FormActionContract::class);
+        if (!$actionInstance) {
+            return $this->actionNotFoundResponse($request, $action);
+        }
+
+        $model = $id
+            ? $this->findModelOrFail($resourceClass, $slug, $id)
+            : (new ($resourceClass::$model)());
+
+        $ability = $actionInstance->ability() ?? ($id ? 'update' : 'create');
+
+        if (!$resource->can($ability, $request->user(), $id ? $model : null)) {
+            throw ResourceException::unauthorized($slug, $ability);
+        }
+
+        $context = ActionContext::form($resourceClass, $request->user(), $model);
+        $this->authorizeAction($actionInstance, $context, $slug);
+        $this->validateActionRequest($request, $actionInstance);
+
+        $result = $actionInstance->handle($context, $request);
+
+        return $this->actionSuccessResponse($request, $actionInstance, $result);
     }
 
     /**
@@ -103,17 +226,22 @@ class ResourceController extends Controller
 
         $query = $modelClass::query();
 
+        $request->attributes->set('ave.resource.class', $resourceClass);
+        $request->attributes->set('ave.resource.instance', $resource);
+        $request->attributes->set('ave.resource.model', $modelClass);
+
         // Apply eager loading
         $resourceClass::applyEagerLoading($query);
 
-        // Apply table query builder (search, filters, sort)
-        $query = TableQueryBuilder::apply($query, $table, $request);
+        $criteriaPipeline = CriteriaPipeline::make($resourceClass, $table, $request);
+        $query = $criteriaPipeline->apply($query);
+        $criteriaBadges = $criteriaPipeline->badges();
 
         // Paginate
-        $perPage = TableQueryBuilder::getPerPage($table);
+        $perPage = $table->getPerPage();
         $records = $query->paginate($perPage)->appends($request->query());
 
-        return $this->renderer->index($resourceClass, $table, $records, $request);
+        return $this->renderer->index($resourceClass, $table, $records, $request, $criteriaBadges);
     }
 
     /**
@@ -417,4 +545,76 @@ class ResourceController extends Controller
         ]);
     }
 
+    private function findModelOrFail(string $resourceClass, string $slug, string $id)
+    {
+        $modelClass = $resourceClass::$model;
+
+        if (!$modelClass) {
+            throw ResourceException::invalidModel($resourceClass);
+        }
+
+        try {
+            return $modelClass::findOrFail($id);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            throw ResourceException::modelNotFound($slug, $id);
+        }
+    }
+
+    private function validateActionRequest(Request $request, ActionInterface $action): array
+    {
+        $rules = $action->rules();
+
+        return empty($rules) ? [] : $request->validate($rules);
+    }
+
+    private function authorizeAction(ActionInterface $action, ActionContext $context, string $slug): void
+    {
+        if (!$action->authorize($context)) {
+            throw ResourceException::unauthorized($slug, 'action:' . $action->key());
+        }
+    }
+
+    private function actionSuccessResponse(Request $request, ActionInterface $action, mixed $result)
+    {
+        $payload = [
+            'status' => 'success',
+            'action' => $action->key(),
+            'message' => $action->label() . ' completed',
+            'result' => $result,
+        ];
+
+        if (is_array($result)) {
+            if (isset($result['message'])) {
+                $payload['message'] = $result['message'];
+            }
+            if (array_key_exists('redirect', $result)) {
+                $payload['redirect'] = $result['redirect'];
+            }
+            if (array_key_exists('reload', $result)) {
+                $payload['reload'] = (bool) $result['reload'];
+            }
+        }
+
+        if ($request->expectsJson()) {
+            return response()->json($payload);
+        }
+
+        return redirect()
+            ->back()
+            ->with('status', $payload['message']);
+    }
+
+    private function actionNotFoundResponse(Request $request, string $action)
+    {
+        $payload = [
+            'status' => 'error',
+            'message' => "Action '{$action}' not found",
+        ];
+
+        if ($request->expectsJson()) {
+            return response()->json($payload, 404);
+        }
+
+        abort(404, $payload['message']);
+    }
 }

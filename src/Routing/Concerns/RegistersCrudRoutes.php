@@ -34,6 +34,18 @@ trait RegistersCrudRoutes
         $router->get('/resource/{slug}/form.json', [ResourceController::class, 'formJson'])
             ->name('ave.resource.form.json');
 
+        $router->post('/resource/{slug}/{id}/actions/{action}', [ResourceController::class, 'runRowAction'])
+            ->name('ave.resource.action.row');
+
+        $router->post('/resource/{slug}/actions/{action}/bulk', [ResourceController::class, 'runBulkAction'])
+            ->name('ave.resource.action.bulk');
+
+        $router->post('/resource/{slug}/actions/{action}/global', [ResourceController::class, 'runGlobalAction'])
+            ->name('ave.resource.action.global');
+
+        $router->post('/resource/{slug}/{id?}/actions/{action}/form', [ResourceController::class, 'runFormAction'])
+            ->name('ave.resource.action.form');
+
         $router->get('/page/{slug}', [PageController::class, 'show'])
             ->name('ave.page.show');
     }

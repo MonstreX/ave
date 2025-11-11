@@ -38,6 +38,10 @@
     margin-bottom: 0;
 }
 
+.resource-table .resource-row.is-selected {
+    background-color: rgba(18, 102, 241, 0.08);
+}
+
 .resource-table .table-actions {
     display: inline-flex;
     align-items: center;
