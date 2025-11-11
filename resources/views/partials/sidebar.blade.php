@@ -24,9 +24,9 @@
             }
 
             if (!$isActive && isset($item['url'])) {
-                $itemUrl = rtrim($item['url'], '/');
-                $currUrl = rtrim($currentUrl, '/');
-                if ($itemUrl !== '' && str_starts_with($currUrl, $itemUrl)) {
+                $itemUrl = rtrim($item['url'], '/') ?: '/';
+                $currUrl = rtrim($currentUrl, '/') ?: '/';
+                if ($itemUrl !== '' && $currUrl === $itemUrl) {
                     $isActive = true;
                 }
             }
