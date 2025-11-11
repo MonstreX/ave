@@ -1,9 +1,10 @@
 @php
     $filters = isset($table) && method_exists($table, 'getFilters') ? $table->getFilters() : [];
+    $hasFilters = !empty($filters);
 @endphp
 
-@if(!empty($filters))
-    <form method="GET" class="filters-inline-form">
+<form method="GET" class="filters-inline-form">
+    @if($hasFilters)
         <div class="filters-inline-grid">
             @foreach($filters as $filter)
                 @php
@@ -80,18 +81,18 @@
                 </div>
             @endforeach
         </div>
+    @endif
 
-        <div class="filters-inline-actions">
-            <input type="hidden" name="q" value="{{ request('q') }}">
-            <input type="hidden" name="sort" value="{{ request('sort') }}">
-            <input type="hidden" name="dir" value="{{ request('dir') }}">
+    <div class="filters-inline-actions">
+        <input type="hidden" name="q" value="{{ request('q') }}">
+        <input type="hidden" name="sort" value="{{ request('sort') }}">
+        <input type="hidden" name="dir" value="{{ request('dir') }}">
 
-            <button type="submit" class="btn btn-primary btn-sm">
-                <i class="voyager-filter"></i> <span>Apply</span>
-            </button>
-            <a href="{{ route('ave.resource.index', ['slug' => $slug]) }}" class="btn btn-default btn-sm">
-                <i class="voyager-refresh"></i> <span>Reset</span>
-            </a>
-        </div>
-    </form>
-@endif
+        <button type="submit" class="btn btn-primary btn-sm">
+            <i class="voyager-filter"></i> <span>Apply</span>
+        </button>
+        <a href="{{ route('ave.resource.index', ['slug' => $slug]) }}" class="btn btn-default btn-sm">
+            <i class="voyager-refresh"></i> <span>Reset</span>
+        </a>
+    </div>
+</form>
