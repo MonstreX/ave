@@ -28,6 +28,9 @@ trait RegistersCrudRoutes
         $router->delete('/resource/{slug}/{id}', [ResourceController::class, 'destroy'])
             ->name('ave.resource.destroy');
 
+        $router->patch('/resource/{slug}/{id}/inline', [ResourceController::class, 'inlineUpdate'])
+            ->name('ave.resource.inline-update');
+
         $router->get('/resource/{slug}/table.json', [ResourceController::class, 'tableJson'])
             ->name('ave.resource.table.json');
 

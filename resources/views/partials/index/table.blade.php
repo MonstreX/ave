@@ -50,7 +50,24 @@
                         </th>
                     @endif
                     @foreach($table->getColumns() as $column)
-                        <th>
+                        @php
+                            $headerClasses = trim('text-' . $column->getAlign() . ' ' . $column->getHeaderClass());
+                            $headerStyles = [];
+                            $width = $column->getWidth();
+                            $minWidth = $column->getMinWidth();
+                            $maxWidth = $column->getMaxWidth();
+
+                            if ($width !== null) {
+                                $headerStyles[] = 'width: ' . (is_numeric($width) ? $width . 'px' : $width);
+                            }
+                            if ($minWidth) {
+                                $headerStyles[] = 'min-width: ' . $minWidth;
+                            }
+                            if ($maxWidth) {
+                                $headerStyles[] = 'max-width: ' . $maxWidth;
+                            }
+                        @endphp
+                        <th class="{{ $headerClasses }}" @if(!empty($headerStyles)) style="{{ implode('; ', $headerStyles) }}" @endif>
                             @if($column->isSortable())
                                 @php
                                     $direction = request('dir', 'asc') === 'asc' ? 'desc' : 'asc';
@@ -89,9 +106,18 @@
                             </td>
                         @endif
                         @foreach($table->getColumns() as $column)
-                            <td>
-                                {{ $column->formatValue($item->{$column->key()}, $item) }}
-                            </td>
+                            @php
+                                $rawValue = $column->resolveRecordValue($item);
+                                $formattedValue = $column->formatValue($rawValue, $item);
+                                $columnView = $column->resolveView();
+                            @endphp
+                            @include($columnView, [
+                                'column' => $column,
+                                'record' => $item,
+                                'value' => $rawValue,
+                                'formattedValue' => $formattedValue,
+                                'slug' => $slug,
+                            ])
                         @endforeach
                         <td class="text-right">
                             <div class="table-actions">

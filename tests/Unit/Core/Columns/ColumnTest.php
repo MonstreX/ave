@@ -401,6 +401,26 @@ class ColumnTest extends TestCase
         }
     }
 
+    public function test_column_resolves_dot_notation_values(): void
+    {
+        $column = Column::make('author.name');
+        $record = (object) [
+            'author' => (object) ['name' => 'Ave'],
+        ];
+
+        $this->assertEquals('Ave', $column->resolveRecordValue($record));
+    }
+
+    public function test_column_inline_configuration(): void
+    {
+        $column = Column::make('status')->inline('toggle')->inlineRules('boolean');
+
+        $this->assertTrue($column->supportsInline());
+        $this->assertEquals('status', $column->inlineField());
+        $this->assertEquals('toggle', $column->inlineMode());
+        $this->assertEquals('boolean', $column->inlineValidationRules());
+    }
+
     /**
      * Test column align with different values
      */

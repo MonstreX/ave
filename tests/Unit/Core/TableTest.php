@@ -2,6 +2,7 @@
 
 namespace Monstrex\Ave\Tests\Unit\Core;
 
+use Monstrex\Ave\Core\Columns\Column;
 use Monstrex\Ave\Core\Table;
 use PHPUnit\Framework\TestCase;
 
@@ -80,6 +81,15 @@ class TableTest extends TestCase
         $this->assertSame(15, $payload['perPage']);
         $this->assertTrue($payload['searchable']);
         $this->assertSame('Search term', $payload['searchPlaceholder']);
+    }
+
+    public function test_find_inline_column_returns_column(): void
+    {
+        $inlineColumn = Column::make('status')->inline('toggle');
+        $table = Table::make()->columns([$inlineColumn]);
+
+        $this->assertSame($inlineColumn, $table->findInlineColumn('status'));
+        $this->assertNull($table->findInlineColumn('missing'));
     }
 }
 

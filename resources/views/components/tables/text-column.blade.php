@@ -1,8 +1,40 @@
 {{-- resources/views/components/tables/text-column.blade.php --}}
-<td class="table-cell text-column @if($column->getWidth()) w-{{ $column->getWidth() }} @endif {{ $column->getCellClass() }}">
-    {{ $formattedValue }}
-    
+@php
+    $classes = array_filter([
+        'table-cell',
+        'text-column',
+        'text-' . $column->getAlign(),
+        $column->shouldWrap() ? 'text-wrap' : 'text-nowrap',
+        $column->getCellClass(),
+    ]);
+
+    $styles = [];
+    $width = $column->getWidth();
+    $minWidth = $column->getMinWidth();
+    $maxWidth = $column->getMaxWidth();
+
+    if ($width !== null) {
+        $styles[] = 'width: ' . (is_numeric($width) ? $width . 'px' : $width);
+    }
+    if ($minWidth) {
+        $styles[] = 'min-width: ' . $minWidth;
+    }
+    if ($maxWidth) {
+        $styles[] = 'max-width: ' . $maxWidth;
+    }
+
+    $displayValue = $formattedValue === null || $formattedValue === '' ? '—' : $formattedValue;
+@endphp
+<td class="{{ implode(' ', $classes) }}" @if(!empty($styles)) style="{{ implode('; ', $styles) }}" @endif>
+    <div class="table-cell__value" @if($column->getTooltip()) title="{{ $column->getTooltip() }}" @endif>
+        @if($column->shouldEscape())
+            {{ $displayValue }}
+        @else
+            {!! $displayValue !!}
+        @endif
+    </div>
+
     @if($column->getHelpText())
-        <div class="help-text">{{ $column->getHelpText() }}</div>
+        <div class="table-cell__hint">{{ $column->getHelpText() }}</div>
     @endif
 </td>

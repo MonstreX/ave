@@ -8,6 +8,7 @@ import initUI from './modules/ui';
 import initLoginPage from './modules/pages/login';
 import { setupFormReinitSubscriptions } from './modules/forms/formReinit.js';
 import initResourceActions from './modules/resources/actions.js';
+import initInlineEditing from './modules/resources/inlineEditing.js';
 import initFormValidation from './modules/forms/formValidation.js';
 
 // Expose global event bus
@@ -30,6 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initForms();
     initLoginPage();
     initResourceActions();
+    initInlineEditing();
 
     // Notify all listeners that DOM is ready and initialized
     // This allows dynamic content loaders to trigger reinitialization

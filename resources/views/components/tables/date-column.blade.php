@@ -1,12 +1,26 @@
 {{-- resources/views/components/tables/date-column.blade.php --}}
-<td class="table-cell date-column @if($column->getWidth()) w-{{ $column->getWidth() }} @endif {{ $column->getCellClass() }}">
-    @if($formattedValue !== '')
+@php
+    $classes = array_filter([
+        'table-cell',
+        'date-column',
+        'text-' . $column->getAlign(),
+        $column->getCellClass(),
+    ]);
+
+    $styles = [];
+    $width = $column->getWidth();
+    if ($width !== null) {
+        $styles[] = 'width: ' . (is_numeric($width) ? $width . 'px' : $width);
+    }
+@endphp
+<td class="{{ implode(' ', $classes) }}" @if(!empty($styles)) style="{{ implode('; ', $styles) }}" @endif>
+    @if($formattedValue !== '' && $formattedValue !== null)
         {{ $formattedValue }}
     @else
-        <span class="empty">-</span>
+        <span class="empty">—</span>
     @endif
-    
+
     @if($column->getHelpText())
-        <div class="help-text">{{ $column->getHelpText() }}</div>
+        <div class="table-cell__hint">{{ $column->getHelpText() }}</div>
     @endif
 </td>

@@ -2,6 +2,8 @@
 
 namespace Monstrex\Ave\Core;
 
+use Monstrex\Ave\Core\Columns\Column;
+
 class Table
 {
     /** @var array */
@@ -107,5 +109,18 @@ class Table
     public function getPerPage(): int
     {
         return $this->perPage;
+    }
+
+    public function findInlineColumn(string $field): ?Column
+    {
+        foreach ($this->columns as $column) {
+            if ($column instanceof Column
+                && $column->supportsInline()
+                && $column->inlineField() === $field) {
+                return $column;
+            }
+        }
+
+        return null;
     }
 }

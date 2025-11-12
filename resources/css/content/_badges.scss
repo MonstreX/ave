@@ -3,34 +3,66 @@
 // ============================================
 
 .badge {
-    display: inline-block;
-    padding: 2px 6px;
-    font-size: 11px;
-    font-weight: 500;
-    color: #fff;
-    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 5px 10px;
+    font-size: 10px;
+    font-weight: 400;
+    line-height: 1;
     text-transform: uppercase;
-    letter-spacing: 0.3px;
+    letter-spacing: 0.35px;
+    border-radius: 999px;
+    background: #e5e7eb;
+    color: #111827;
+
+    i {
+        font-size: 12px;
+    }
+
+    &.badge-pill {
+        border-radius: 999px;
+    }
+
+    &.badge-soft {
+        background: rgba(17, 24, 39, 0.08);
+        color: #111827;
+    }
+
+    &.badge-outline {
+        background: transparent;
+        border: 1px solid rgba(17, 24, 39, 0.2);
+        color: #111827;
+    }
 }
 
-.badge-primary {
-    background: var(--ave-color-primary);
-}
+$badge-palette: (
+    primary: var(--ave-color-primary, #2563eb),
+    success: #22c55e,
+    warning: #f59e0b,
+    danger: #ef4444,
+    info: #0ea5e9,
+    secondary: #6b7280,
+    muted: #94a3b8,
+    dark: #111827,
+);
 
-.badge-success {
-    background: #27ae60;
-}
+@each $name, $color in $badge-palette {
+    .badge-#{$name} {
+        background: $color;
+        color: #fff;
+    }
 
-.badge-warning {
-    background: #f39c12;
-}
+    .badge-#{$name}.badge-outline {
+        background: transparent;
+        border-color: rgba($color, 0.6);
+        color: $color;
+    }
 
-.badge-danger {
-    background: #e74c3c;
-}
-
-.badge-muted {
-    background: #95a5a6;
+    .badge-#{$name}.badge-soft {
+        background: rgba($color, 0.16);
+        color: $color;
+    }
 }
 
 .tag {
