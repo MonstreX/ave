@@ -72,7 +72,17 @@ class Table
     public function get(): array
     {
         return [
-            'columns' => array_map(fn($c) => $c->toArray(), $this->columns),
+            'columns' => array_map(function ($column) {
+                if (method_exists($column, 'toDefinition')) {
+                    return $column->toDefinition()->toArray();
+                }
+
+                if (method_exists($column, 'toArray')) {
+                    return $column->toArray();
+                }
+
+                return (array) $column;
+            }, $this->columns),
             'filters' => array_map(fn($f) => $f->toArray(), $this->filters),
             'defaultSort' => $this->defaultSort,
             'perPage' => $this->perPage,

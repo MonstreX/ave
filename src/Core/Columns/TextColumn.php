@@ -34,6 +34,12 @@ class TextColumn extends Column
         return $this;
     }
 
+    public function linkToEdit(array $params = []): static
+    {
+        parent::linkToEdit($params);
+        return $this;
+    }
+
     public function formatValue(mixed $value, mixed $record): mixed
     {
         $value = parent::formatValue($value, $record);
@@ -60,4 +66,3 @@ class TextColumn extends Column
         ]);
     }
 }
-

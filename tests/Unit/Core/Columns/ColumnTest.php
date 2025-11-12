@@ -497,4 +497,12 @@ class ColumnTest extends TestCase
         $this->assertEquals('Column', $reflection->getShortName());
     }
 
+    public function test_link_to_edit_marks_definition(): void
+    {
+        $column = Column::make('title')->linkToEdit();
+        $definition = $column->toDefinition()->toArray();
+
+        $this->assertEquals('action', $definition['link']['type']);
+        $this->assertEquals('edit', $definition['link']['action']);
+    }
 }

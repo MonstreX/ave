@@ -3,6 +3,9 @@
 namespace Monstrex\Ave\Core\Columns;
 
 use Closure;
+use Illuminate\Contracts\Auth\Authenticatable;
+use Monstrex\Ave\Core\Table\ColumnDefinition;
+use Monstrex\Ave\Core\Table\ColumnViewRegistry;
 
 class Column
 {
@@ -149,14 +152,20 @@ class Column
         return $this;
     }
 
-    public function linkAction(string $action, array $params = []): static
+    public function linkAction(string $action, array $params = [], ?string $ability = null): static
     {
         $this->linkAction = [
             'action' => $action,
             'params' => $params,
+            'ability' => $ability ?? $this->guessAbilityForAction($action),
         ];
 
         return $this;
+    }
+
+    public function linkToEdit(array $params = []): static
+    {
+        return $this->linkAction('edit', $params, 'update');
     }
 
     /**
@@ -239,8 +248,12 @@ class Column
         return $this->linkAction !== null || $this->linkUrl !== null;
     }
 
-    public function resolveLink(mixed $record, string $resourceClass): ?string
+    public function resolveLink(mixed $record, string $resourceClass, ?Authenticatable $user = null): ?string
     {
+        if (!$this->hasLink()) {
+            return null;
+        }
+
         if ($this->linkUrl instanceof Closure) {
             return call_user_func($this->linkUrl, $record, $resourceClass);
         }
@@ -249,16 +262,32 @@ class Column
             return $this->linkUrl;
         }
 
-        if ($this->linkAction) {
-            $action = $this->linkAction['action'];
-            $params = $this->linkAction['params'];
-            $slug = $params['slug'] ?? $resourceClass::getSlug();
+        $resourceInstance = new $resourceClass();
 
-            return match ($action) {
-                'edit' => route('ave.resource.edit', ['slug' => $slug, 'id' => $record->getKey()]),
-                'view', 'show' => route('ave.resource.edit', ['slug' => $slug, 'id' => $record->getKey()]),
-                default => route("ave.resource.$action", array_merge(['slug' => $slug, 'id' => $record->getKey()], $params)),
-            };
+        if ($this->linkAction) {
+            $ability = $this->linkAction['ability'] ?? 'view';
+            if ($user && method_exists($resourceInstance, 'can')) {
+                if (!$resourceInstance->can($ability, $user, $record)) {
+                    return null;
+                }
+            }
+
+            $params = $this->linkAction['params'] ?? [];
+            $slug = $params['slug'] ?? $resourceClass::getSlug();
+            unset($params['slug']);
+
+            $routeName = $params['route'] ?? $this->defaultRouteForAction($this->linkAction['action']);
+            unset($params['route']);
+
+            if (str_starts_with($routeName, 'ave.resource.') && !array_key_exists('slug', $params)) {
+                $params['slug'] = $slug;
+            }
+
+            if (!array_key_exists('id', $params) && in_array($routeName, ['ave.resource.edit', 'ave.resource.update', 'ave.resource.destroy'])) {
+                $params['id'] = $record->getKey();
+            }
+
+            return route($routeName, $params);
         }
 
         return null;
@@ -326,7 +355,11 @@ class Column
 
     public function resolveView(): string
     {
-        return $this->view ?? static::defaultViewFor($this->type);
+        if ($this->view) {
+            return $this->view;
+        }
+
+        return ColumnViewRegistry::resolve($this->type);
     }
 
     public function resolveTemplateData(mixed $record): array
@@ -334,15 +367,23 @@ class Column
         return [];
     }
 
-    protected static function defaultViewFor(string $type): string
+    protected function defaultRouteForAction(string $action): string
     {
-        return match ($type) {
-            'boolean' => 'ave::components.tables.boolean-column',
-            'badge' => 'ave::components.tables.badge-column',
-            'image' => 'ave::components.tables.image-column',
-            'template' => 'ave::components.tables.template-column',
-            'date' => 'ave::components.tables.date-column',
-            default => 'ave::components.tables.text-column',
+        return match ($action) {
+            'edit', 'update' => 'ave.resource.edit',
+            'create' => 'ave.resource.create',
+            'index' => 'ave.resource.index',
+            default => $action,
+        };
+    }
+
+    protected function guessAbilityForAction(string $action): string
+    {
+        return match ($action) {
+            'edit', 'update' => 'update',
+            'create' => 'create',
+            'destroy', 'delete' => 'delete',
+            default => 'view',
         };
     }
 
@@ -355,26 +396,44 @@ class Column
         return $value;
     }
 
+    public function toDefinition(): ColumnDefinition
+    {
+        $linkMeta = null;
+        if ($this->linkAction) {
+            $linkMeta = [
+                'type' => 'action',
+                'action' => $this->linkAction['action'],
+                'ability' => $this->linkAction['ability'] ?? null,
+            ];
+        } elseif (is_string($this->linkUrl)) {
+            $linkMeta = [
+                'type' => 'url',
+                'url' => $this->linkUrl,
+            ];
+        }
+
+        return new ColumnDefinition(
+            key: $this->key,
+            label: $this->getLabel(),
+            type: $this->type,
+            sortable: $this->sortable,
+            searchable: $this->searchable,
+            hidden: $this->hidden,
+            align: $this->getAlign(),
+            width: $this->width,
+            minWidth: $this->minWidth,
+            maxWidth: $this->maxWidth,
+            wrap: $this->wrap,
+            meta: $this->meta,
+            helpText: $this->helpText,
+            tooltip: $this->tooltip,
+            inline: $this->inline,
+            link: $linkMeta,
+        );
+    }
+
     public function toArray(): array
     {
-        return [
-            'key'        => $this->key,
-            'label'      => $this->getLabel(),
-            'sortable'   => $this->sortable,
-            'searchable' => $this->searchable,
-            'hidden'     => $this->hidden,
-            'align'      => $this->getAlign(),
-            'width'      => $this->width,
-            'minWidth'   => $this->minWidth,
-            'maxWidth'   => $this->maxWidth,
-            'wrap'       => $this->wrap,
-            'view'       => $this->resolveView(),
-            'type'       => $this->type,
-            'meta'       => $this->meta,
-            'helpText'   => $this->helpText,
-            'tooltip'    => $this->tooltip,
-            'inline'     => $this->inline,
-            'linkAction' => $this->linkAction,
-        ];
+        return $this->toDefinition()->toArray();
     }
 }

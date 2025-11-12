@@ -2,9 +2,24 @@ import { showToast } from '../ui/toast.js';
 
 const csrfMeta = document.querySelector('meta[name="csrf-token"]');
 const CSRF_TOKEN = csrfMeta ? csrfMeta.content : '';
+let handlersBound = false;
 
 export default function initInlineEditing() {
-    document.addEventListener('click', handleToggleClick);
+    bindInlineHandlers();
+
+    if (window.Ave?.events && !window.Ave.inlineEditingBound) {
+        window.Ave.events.on('dom:updated', bindInlineHandlers);
+        window.Ave.inlineEditingBound = true;
+    }
+}
+
+function bindInlineHandlers() {
+    if (handlersBound) {
+        return;
+    }
+
+    document.addEventListener('click', handleToggleClick, true);
+    handlersBound = true;
 }
 
 function handleToggleClick(event) {
