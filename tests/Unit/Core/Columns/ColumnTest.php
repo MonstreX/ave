@@ -496,4 +496,5 @@ class ColumnTest extends TestCase
         $reflection = new \ReflectionClass($this->column);
         $this->assertEquals('Column', $reflection->getShortName());
     }
+
 }
