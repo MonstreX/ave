@@ -10,12 +10,6 @@ class Table
     /** @var array */
     protected array $filters = [];
 
-    /** @var array */
-    protected array $actions = [];
-
-    /** @var array */
-    protected array $bulkActions = [];
-
     protected ?array $defaultSort = null;
     protected int $perPage = 25;
     protected bool $searchable = true;
@@ -49,18 +43,6 @@ class Table
         return $this;
     }
 
-    public function actions(array $actions): static
-    {
-        $this->actions = $actions;
-        return $this;
-    }
-
-    public function bulkActions(array $actions): static
-    {
-        $this->bulkActions = $actions;
-        return $this;
-    }
-
     public function defaultSort(string $column, string $direction = 'desc'): static
     {
         $this->defaultSort = [$column, $direction];
@@ -90,8 +72,6 @@ class Table
         return [
             'columns' => array_map(fn($c) => $c->toArray(), $this->columns),
             'filters' => array_map(fn($f) => $f->toArray(), $this->filters),
-            'actions' => array_map(fn($a) => $a->toArray(), $this->actions),
-            'bulkActions' => array_map(fn($a) => $a->toArray(), $this->bulkActions),
             'defaultSort' => $this->defaultSort,
             'perPage' => $this->perPage,
             'searchable' => $this->searchable,
@@ -109,24 +89,9 @@ class Table
         return $this->filters;
     }
 
-    public function getActions(): array
-    {
-        return $this->actions;
-    }
-
-    public function getBulkActions(): array
-    {
-        return $this->bulkActions;
-    }
-
     public function getDefaultSort(): ?array
     {
         return $this->defaultSort;
-    }
-
-    public function hasBulkActions(): bool
-    {
-        return !empty($this->bulkActions);
     }
 
     public function isSearchable(): bool
