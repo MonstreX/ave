@@ -79,14 +79,13 @@
 }
 
 .table-link {
-    color: var(--ave-color-primary, #2563eb);
+    color: var(--ave-color-primary-darker);
     text-decoration: underline;
     cursor: pointer;
     font-weight: 500;
 
     &:hover {
-        color: var(--ave-color-primary, #2563eb);
-        filter: brightness(0.9);
+        color: var(--ave-color-primary-darker);
         text-decoration-thickness: 2px;
     }
 }
