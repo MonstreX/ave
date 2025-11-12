@@ -78,12 +78,16 @@ class ResourcePersistence implements Persistable
 
             if ($field instanceof HandlesPersistence) {
                 $result = $field->prepareForSave($value, $request, $context);
-                $payload[$key] = $result->value();
 
                 foreach ($result->deferredActions() as $action) {
                     $context->registerDeferredAction($action);
                 }
 
+                if (!$result->shouldPersist()) {
+                    continue;
+                }
+
+                $payload[$key] = $result->value();
                 continue;
             }
 

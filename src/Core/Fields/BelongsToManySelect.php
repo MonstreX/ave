@@ -247,8 +247,8 @@ class BelongsToManySelect extends AbstractField implements HandlesPersistence
             },
         ];
 
-        // Return null for payload (don't add to fillable data) + deferred action
-        return FieldPersistenceResult::make(null, $deferred);
+        // Skip payload write; relation handled via deferred action
+        return FieldPersistenceResult::skip($deferred);
     }
 
     /**

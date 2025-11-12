@@ -84,12 +84,28 @@
                                 </div>
                             </li>
                             <li class="dropdown-divider" role="separator"></li>
-                            <li>
-                                <a href="#" class="dropdown-item">
-                                    <i class="voyager-person"></i>
-                                    <span>{{ __('Profile') }}</span>
-                                </a>
-                            </li>
+                            @php
+                                $profileUrl = null;
+                                $resourceManager = app(\Monstrex\Ave\Core\ResourceManager::class);
+                                $userResourceClass = $resourceManager->resource('users');
+                                if ($userResourceClass && \Illuminate\Support\Facades\Route::has('ave.resource.edit')) {
+                                    $resourceInstance = app($userResourceClass);
+                                    if ($resourceInstance->can('update', $user, $user)) {
+                                        $profileUrl = route('ave.resource.edit', [
+                                            'slug' => $userResourceClass::getSlug(),
+                                            'id' => $user->getKey(),
+                                        ]);
+                                    }
+                                }
+                            @endphp
+                            @if($profileUrl)
+                                <li>
+                                    <a href="{{ $profileUrl }}" class="dropdown-item">
+                                        <i class="voyager-person"></i>
+                                        <span>{{ __('Profile') }}</span>
+                                    </a>
+                                </li>
+                            @endif
                             <li>
                                 <a href="/" target="_blank" rel="noopener" class="dropdown-item">
                                     <i class="voyager-home"></i>

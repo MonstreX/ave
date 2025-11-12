@@ -6,6 +6,7 @@ use Monstrex\Ave\Models\User as UserModel;
 use Monstrex\Ave\Core\Columns\Column;
 use Monstrex\Ave\Core\Components\Div;
 use Monstrex\Ave\Core\Fields\BelongsToManySelect;
+use Monstrex\Ave\Core\Fields\PasswordInput;
 use Monstrex\Ave\Core\Fields\TextInput;
 use Monstrex\Ave\Core\Form;
 use Monstrex\Ave\Core\Resource as BaseResource;
@@ -46,17 +47,25 @@ class Resource extends BaseResource
                 Div::make('col-12 col-md-6')->schema([
                     TextInput::make('name')
                         ->label('Name')
-                        ->disabled()
-                        ->placeholder('Managed via application'),
+                        ->required()
+                        ->rules(['required', 'string', 'max:255']),
                 ]),
                 Div::make('col-12 col-md-6')->schema([
                     TextInput::make('email')
                         ->label('Email')
-                        ->disabled()
-                        ->placeholder('Managed via application'),
+                        ->email()
+                        ->required()
+                        ->rules(['required', 'email', 'max:255']),
                 ]),
             ]),
             Div::make('row')->schema([
+                Div::make('col-12 col-md-6')->schema([
+                    PasswordInput::make('password')
+                        ->label('New Password')
+                        ->minLength(8)
+                        ->rules(['nullable', 'string', 'min:8'])
+                        ->help('Leave blank to keep current password.'),
+                ]),
                 Div::make('col-12')->schema([
                     BelongsToManySelect::make('roles')
                         ->label('Roles')
