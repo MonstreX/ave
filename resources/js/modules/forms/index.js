@@ -34,10 +34,8 @@ export default function initForms(container = document) {
 
     // Add form submit handler to update all media hidden inputs before submission
     container.querySelectorAll('form').forEach((form) => {
-        form.addEventListener('submit', (e) => {
-            // Update all media field hidden inputs before form submission
+        form.addEventListener('submit', () => {
             updateAllMediaHiddenInputs();
-
         });
     });
 }

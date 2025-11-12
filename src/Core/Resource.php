@@ -12,6 +12,9 @@ use Monstrex\Ave\Core\Actions\Contracts\BulkAction as BulkActionContract;
 use Monstrex\Ave\Core\Actions\Contracts\FormAction as FormActionContract;
 use Monstrex\Ave\Core\Actions\Contracts\GlobalAction as GlobalActionContract;
 use Monstrex\Ave\Contracts\Authorizable;
+use Monstrex\Ave\Core\Actions\Form\CancelFormAction;
+use Monstrex\Ave\Core\Actions\Form\SaveAndContinueFormAction;
+use Monstrex\Ave\Core\Actions\Form\SaveFormAction;
 
 /**
  * Base Resource class for Ave v2
@@ -172,6 +175,14 @@ abstract class Resource implements Authorizable
         return [];
     }
 
+    protected static array $defaultFormActionClasses = [
+        SaveFormAction::class,
+        SaveAndContinueFormAction::class,
+        CancelFormAction::class,
+    ];
+
+    protected static array $disabledDefaultFormActionClasses = [];
+
     /**
      * Default form actions.
      *
@@ -179,7 +190,10 @@ abstract class Resource implements Authorizable
      */
     protected static function defaultFormActions(): array
     {
-        return [];
+        return array_values(array_filter(
+            static::$defaultFormActionClasses,
+            fn ($class) => !in_array($class, static::$disabledDefaultFormActionClasses, true)
+        ));
     }
 
     /**

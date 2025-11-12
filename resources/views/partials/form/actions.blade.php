@@ -1,14 +1,32 @@
+@php
+    $formButtonActions = $formButtonActions ?? [];
+    $ajaxFormActions = $ajaxFormActions ?? [];
+@endphp
+
 <div class="form-actions">
-    <a href="{{ $cancelUrl }}" class="btn btn-secondary">
-        {{ __('Cancel') }}
-    </a>
-    <button type="submit" class="btn btn-primary">
-        {{ $submitLabel }}
-    </button>
-    @php
-        $formActions = $formActions ?? [];
-    @endphp
-    @foreach($formActions as $action)
+    @foreach($formButtonActions as $action)
+        @if(($action['type'] ?? 'submit') === 'submit')
+            <button type="submit"
+                    class="btn btn-{{ $action['variant'] ?? 'primary' }}"
+                    name="_ave_form_action"
+                    value="{{ $action['intent'] ?? 'save' }}">
+                @if(!empty($action['icon']))
+                    <i class="{{ $action['icon'] }}"></i>
+                @endif
+                <span>{{ $action['label'] }}</span>
+            </button>
+        @elseif(($action['type'] ?? '') === 'link' && !empty($action['url']))
+            <a href="{{ $action['url'] }}"
+               class="btn btn-{{ $action['variant'] ?? 'secondary' }}">
+                @if(!empty($action['icon']))
+                    <i class="{{ $action['icon'] }}"></i>
+                @endif
+                <span>{{ $action['label'] }}</span>
+            </a>
+        @endif
+    @endforeach
+
+    @foreach($ajaxFormActions as $action)
         @php
             $actionLabel = $action->label();
             $actionIcon = $action->icon();

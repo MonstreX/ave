@@ -315,10 +315,7 @@ class ResourceController extends Controller
 
         $model = $this->persistence->create($resourceClass, $form, $data, $request, $context);
 
-        return redirect()
-            ->route('ave.resource.index', ['slug' => $slug])
-            ->with('status', 'Created successfully')
-            ->with('model_id', $model->getKey());
+        return $this->redirectAfterSave($request, $slug, $model, 'create');
     }
 
     /**
@@ -405,11 +402,9 @@ class ResourceController extends Controller
             throw $exception;
         }
 
-        $this->persistence->update($resourceClass, $form, $model, $data, $request, $context);
+        $model = $this->persistence->update($resourceClass, $form, $model, $data, $request, $context);
 
-        return redirect()
-            ->route('ave.resource.index', ['slug' => $slug])
-            ->with('status', 'Updated successfully');
+        return $this->redirectAfterSave($request, $slug, $model, 'edit');
     }
 
     /**
@@ -535,6 +530,23 @@ class ResourceController extends Controller
         return redirect()
             ->back()
             ->with('status', $payload['message']);
+    }
+
+    private function redirectAfterSave(Request $request, string $slug, $model, string $mode)
+    {
+        $intent = (string) $request->input('_ave_form_action', 'save');
+        $statusMessage = $mode === 'edit' ? __('Updated successfully') : __('Created successfully');
+
+        if ($intent === 'save-continue') {
+            return redirect()
+                ->route('ave.resource.edit', ['slug' => $slug, 'id' => $model->getKey()])
+                ->with('status', $statusMessage);
+        }
+
+        return redirect()
+            ->route('ave.resource.index', ['slug' => $slug])
+            ->with('status', $statusMessage)
+            ->with('model_id', $model->getKey());
     }
 
     private function actionNotFoundResponse(Request $request, string $action)

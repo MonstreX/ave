@@ -4,7 +4,9 @@ namespace Monstrex\Ave\Core\Rendering;
 
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Monstrex\Ave\Core\Actions\Contracts\FormButtonAction;
 use Monstrex\Ave\Core\FormContext;
+use Monstrex\Ave\Core\Form;
 
 class ResourceRenderer
 {
@@ -65,6 +67,9 @@ class ResourceRenderer
             }
         }
 
+        $formActionsRaw = method_exists($resourceClass, 'formActions') ? $resourceClass::formActions() : [];
+        [$buttonActions, $ajaxActions] = $this->prepareFormActions($formActionsRaw, $form, $model, $slug, $mode === 'edit');
+
         return view($view, [
             'resource' => $resourceClass,
             'resourceInstance' => new $resourceClass(),
@@ -75,7 +80,43 @@ class ResourceRenderer
             'context' => $context,
             'mode' => $mode,
             'request' => $request,
-            'formActions' => method_exists($resourceClass, 'formActions') ? $resourceClass::formActions() : [],
+            'formButtonActions' => $buttonActions,
+            'ajaxFormActions' => $ajaxActions,
         ]);
+    }
+
+    /**
+     * @param array<int,\Monstrex\Ave\Core\Actions\Contracts\ActionInterface> $actions
+     * @return array{0:array<int,array<string,mixed>>,1:array<int,\Monstrex\Ave\Core\Actions\Contracts\ActionInterface>}
+     */
+    protected function prepareFormActions(array $actions, Form $form, mixed $model, string $slug, bool $isEdit): array
+    {
+        $buttonActions = [];
+        $ajaxActions = [];
+
+        foreach ($actions as $action) {
+            if ($action instanceof FormButtonAction) {
+                $label = $action->labelForMode($isEdit ? 'edit' : 'create');
+                if ($action->key() === 'save' && method_exists($form, 'getSubmitLabel')) {
+                    $label = $form->getSubmitLabel();
+                }
+
+                $buttonActions[] = [
+                    'key' => $action->key(),
+                    'type' => $action->buttonType(),
+                    'intent' => $action->intent(),
+                    'variant' => $action->color(),
+                    'label' => $label,
+                    'icon' => $action->icon(),
+                    'url' => $action->resolveUrl($slug, $form, $model, $isEdit),
+                    'confirm' => $action->confirm(),
+                ];
+                continue;
+            }
+
+            $ajaxActions[] = $action;
+        }
+
+        return [$buttonActions, $ajaxActions];
     }
 }

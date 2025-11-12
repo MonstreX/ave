@@ -29,7 +29,8 @@
             @endforeach
 
             @include('ave::partials.form.actions', [
-                'formActions' => $formActions ?? [],
+                'formButtonActions' => $formButtonActions ?? [],
+                'ajaxFormActions' => $ajaxFormActions ?? [],
             ])
         </form>
     </div>

@@ -43,8 +43,9 @@ class ResourceActionsTest extends TestCase
     public function test_form_and_global_actions_resolved(): void
     {
         $formActions = SampleResource::formActions();
-        $this->assertCount(1, $formActions);
-        $this->assertInstanceOf(SampleFormAction::class, $formActions[0]);
+        $this->assertGreaterThanOrEqual(3, count($formActions));
+        $keys = array_map(fn ($action) => $action->key(), $formActions);
+        $this->assertContains('sample-form', $keys);
 
         $globalActions = SampleResource::globalActions();
         $this->assertCount(1, $globalActions);
