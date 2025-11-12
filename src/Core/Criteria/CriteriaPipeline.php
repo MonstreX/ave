@@ -5,6 +5,7 @@ namespace Monstrex\Ave\Core\Criteria;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Monstrex\Ave\Core\Criteria\Contracts\Criterion;
+use Monstrex\Ave\Core\Filters\Filter;
 use Monstrex\Ave\Core\Resource;
 use Monstrex\Ave\Core\Table;
 
@@ -43,6 +44,12 @@ class CriteriaPipeline
             $instance = self::resolveCriterion($criterion);
             if ($instance) {
                 $criteria[] = $instance;
+            }
+        }
+
+        foreach ($table->getFilters() as $filter) {
+            if ($filter instanceof Filter) {
+                $criteria[] = new TableFilterCriterion($filter);
             }
         }
 

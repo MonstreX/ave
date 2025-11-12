@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Monstrex\Ave\Core\Columns\Column;
 use Monstrex\Ave\Core\Criteria\CriteriaPipeline;
 use Monstrex\Ave\Core\Criteria\FieldEqualsFilter;
+use Monstrex\Ave\Core\Filters\SelectFilter;
 use Monstrex\Ave\Core\Resource;
 use Monstrex\Ave\Core\Table;
 use PHPUnit\Framework\TestCase;
@@ -36,13 +37,47 @@ class CriteriaPipelineTest extends TestCase
         $builder->method('where')->willReturnSelf();
         $builder->method('orderBy')->willReturnSelf();
 
-        $pipeline = CriteriaPipeline::make(TestResource::class, $table, $request);
+        $pipeline = CriteriaPipeline::make(FilterOnlyResource::class, $table, $request);
         $result = $pipeline->apply($builder);
 
         $this->assertSame($builder, $result);
         $badges = $pipeline->badges();
         $this->assertNotEmpty($badges);
         $this->assertGreaterThanOrEqual(2, count($badges));
+    }
+
+    public function test_pipeline_applies_table_filters(): void
+    {
+        $table = Table::make()->filters([
+            SelectFilter::make('status')
+                ->label('Status')
+                ->options([
+                    'published' => 'Published',
+                ]),
+        ]);
+
+        $request = Request::create('/admin', 'GET', [
+            'status' => 'published',
+        ]);
+
+        $builder = $this->getMockBuilder(Builder::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['where'])
+            ->getMock();
+
+        $builder->expects($this->atLeastOnce())
+            ->method('where')
+            ->with('status', '=', 'published')
+            ->willReturnSelf();
+
+        $pipeline = CriteriaPipeline::make(TestResource::class, $table, $request);
+        $pipeline->apply($builder);
+
+        $badges = $pipeline->badges();
+        $this->assertNotEmpty($badges);
+        $label = $badges[array_key_first($badges)]['label'];
+        $this->assertStringStartsWith('Status:', $label);
+        $this->assertEquals('published', strtolower(trim(str_replace('Status:', '', $label))));
     }
 }
 
@@ -65,4 +100,9 @@ class TestResource extends Resource
             new FieldEqualsFilter('status', 'status', '=', 'Status'),
         ];
     }
+}
+
+class FilterOnlyResource extends Resource
+{
+    public static ?string $model = TestCriteriaModel::class;
 }

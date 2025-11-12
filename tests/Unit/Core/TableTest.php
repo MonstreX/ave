@@ -4,7 +4,6 @@ namespace Monstrex\Ave\Tests\Unit\Core;
 
 use PHPUnit\Framework\TestCase;
 use Monstrex\Ave\Core\Table;
-use Illuminate\Database\Eloquent\Builder;
 
 /**
  * TableTest - Unit tests for Table class.
@@ -413,45 +412,6 @@ class TableTest extends TestCase
     }
 
     /**
-     * Test table apply search with empty term
-     */
-    public function test_table_apply_search_with_empty_term(): void
-    {
-        $table = Table::make();
-        $builder = $this->createMock(Builder::class);
-
-        $result = $table->applySearch($builder, '');
-
-        $this->assertSame($builder, $result);
-    }
-
-    /**
-     * Test table apply search when searchable is false
-     */
-    public function test_table_apply_search_when_not_searchable(): void
-    {
-        $table = Table::make()->searchable(false);
-        $builder = $this->createMock(Builder::class);
-
-        $result = $table->applySearch($builder, 'test');
-
-        $this->assertSame($builder, $result);
-    }
-
-    /**
-     * Test table apply filters empty
-     */
-    public function test_table_apply_filters_empty(): void
-    {
-        $table = new Table();
-        $builder = $this->createMock(Builder::class);
-
-        $result = $table->applyFilters($builder, []);
-
-        $this->assertSame($builder, $result);
-    }
-
-    /**
      * Test multiple table instances independence
      */
     public function test_multiple_table_instances(): void
@@ -518,9 +478,7 @@ class TableTest extends TestCase
             'getPerPage',
             'getSearchPlaceholder',
             'isSearchable',
-            'hasBulkActions',
-            'applyFilters',
-            'applySearch'
+            'hasBulkActions'
         ];
 
         foreach ($publicMethods as $method) {

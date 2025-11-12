@@ -48,4 +48,26 @@ class DateFilter extends Filter
             'format'   => $this->format,
         ]);
     }
+
+    public function formatBadgeValue(mixed $value): string
+    {
+        if (is_array($value)) {
+            $from = $value['from'] ?? null;
+            $to = $value['to'] ?? null;
+
+            if ($from && $to) {
+                return "{$from} → {$to}";
+            }
+
+            if ($from) {
+                return "from {$from}";
+            }
+
+            if ($to) {
+                return "to {$to}";
+            }
+        }
+
+        return (string) $value;
+    }
 }

@@ -2,8 +2,6 @@
 
 namespace Monstrex\Ave\Core;
 
-use Illuminate\Database\Eloquent\Builder;
-
 class Table
 {
     /** @var array */
@@ -104,36 +102,6 @@ class Table
     public function getColumns(): array
     {
         return $this->columns;
-    }
-
-    public function applyFilters(Builder $query, array $filterValues): Builder
-    {
-        foreach ($this->filters as $filter) {
-            if (isset($filterValues[$filter->key()])) {
-                $filter->apply($query, $filterValues[$filter->key()]);
-            }
-        }
-
-        return $query;
-    }
-
-    public function applySearch(Builder $query, string $searchTerm): Builder
-    {
-        if (!$this->searchable || trim($searchTerm) === '') {
-            return $query;
-        }
-
-        $searchableColumns = array_filter($this->columns, fn($c) => $c->isSearchable());
-
-        if (empty($searchableColumns)) {
-            return $query;
-        }
-
-        return $query->where(function ($q) use ($searchableColumns, $searchTerm) {
-            foreach ($searchableColumns as $column) {
-                $q->orWhere($column->key(), 'LIKE', "%{$searchTerm}%");
-            }
-        });
     }
 
     public function getFilters(): array

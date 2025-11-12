@@ -4,17 +4,28 @@
     $globalActions = $globalActions ?? [];
     $criteriaBadges = $criteriaBadges ?? [];
     $hasBulkSelection = !empty($bulkActions);
+    $tableFilters = method_exists($table, 'getFilters') ? $table->getFilters() : [];
+    $hasFilters = !empty($tableFilters);
+    $recordsTotal = $records->total();
+    $resourceInstance = $resourceInstance ?? new $resource();
+    $currentUser = auth()->user();
 @endphp
 
 <div class="panel panel-bordered">
     <div class="panel-body">
         <div class="resource-controls-row">
             <div class="resource-controls-left">
-                @include('ave::partials.index.filters', [
-                    'table' => $table,
-                    'records' => $records,
-                    'slug' => $slug,
-                ])
+                @if($hasFilters)
+                    @include('ave::partials.index.filters', [
+                        'table' => $table,
+                        'records' => $records,
+                        'slug' => $slug,
+                    ])
+                @else
+                    <div class="resource-note">
+                        Showing {{ $recordsTotal }} record{{ $recordsTotal === 1 ? '' : 's' }}
+                    </div>
+                @endif
             </div>
             <div class="resource-controls-right">
                 @include('ave::partials.index.search', ['table' => $table])
@@ -88,6 +99,16 @@
                                     <div class="table-action-buttons">
                                         @foreach($rowActions as $action)
                                             @php
+                                                $actionAbility = $action->ability() ?? 'update';
+                                                $canRun = $resourceInstance->can($actionAbility, $currentUser, $item);
+                                                $actionContext = ($currentUser && $canRun)
+                                                    ? \Monstrex\Ave\Core\Actions\Support\ActionContext::row($resource, $currentUser, $item)
+                                                    : null;
+                                            @endphp
+                                            @if(!$canRun || ($actionContext && !$action->authorize($actionContext)))
+                                                @continue
+                                            @endif
+                                            @php
                                                 $actionLabel = $action->label();
                                                 $actionIcon = $action->icon();
                                                 $variant = $action->color();
@@ -140,7 +161,7 @@
 
         <div class="resource-table-footer">
             <div class="resource-note">
-                Showing {{ $records->total() }} record{{ $records->total() === 1 ? '' : 's' }}
+                Showing {{ $recordsTotal }} record{{ $recordsTotal === 1 ? '' : 's' }}
             </div>
         </div>
 

@@ -21,6 +21,7 @@
         <div class="page-header-actions">
             @include('ave::partials.index.actions-inline', [
                 'resource' => $resource,
+                'resourceInstance' => $resourceInstance ?? null,
                 'slug' => $slug,
                 'globalActions' => $globalActions ?? [],
                 'bulkActions' => $bulkActions ?? [],
@@ -40,6 +41,8 @@
             'rowActions' => $rowActions ?? [],
             'bulkActions' => $bulkActions ?? [],
             'criteriaBadges' => $criteriaBadges ?? [],
+            'resource' => $resource,
+            'resourceInstance' => $resourceInstance ?? null,
         ])
 
     </div>

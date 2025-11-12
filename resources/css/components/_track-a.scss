@@ -42,15 +42,15 @@
     margin: 0;
 }
 
-// Query Tags (Quick filters)
-.query-tags {
+// Criteria badges
+.criteria-badges {
     display: flex;
     gap: 0.5rem;
     margin-bottom: 1.5rem;
     flex-wrap: wrap;
 }
 
-.query-tag-btn {
+.criteria-badge {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
@@ -71,44 +71,48 @@
         color: #333;
     }
 
-    &.is-active {
+    &.btn-primary,
+    &.btn-info {
         background: var(--primary-color, #22a7f0);
-        color: #fff;
         border-color: var(--primary-color, #22a7f0);
+        color: #fff;
 
         &:hover {
             background: color.adjust(#22a7f0, $lightness: -10%);
             border-color: color.adjust(#22a7f0, $lightness: -10%);
         }
+    }
 
-        &.btn-success {
-            background: #27ae60;
-            border-color: #27ae60;
+    &.btn-success {
+        background: #27ae60;
+        border-color: #27ae60;
+        color: #fff;
 
-            &:hover {
-                background: color.adjust(#27ae60, $lightness: -10%);
-                border-color: color.adjust(#27ae60, $lightness: -10%);
-            }
+        &:hover {
+            background: color.adjust(#27ae60, $lightness: -10%);
+            border-color: color.adjust(#27ae60, $lightness: -10%);
         }
+    }
 
-        &.btn-danger {
-            background: #e74c3c;
-            border-color: #e74c3c;
+    &.btn-warning {
+        background: #f39c12;
+        border-color: #f39c12;
+        color: #fff;
 
-            &:hover {
-                background: color.adjust(#e74c3c, $lightness: -10%);
-                border-color: color.adjust(#e74c3c, $lightness: -10%);
-            }
+        &:hover {
+            background: color.adjust(#f39c12, $lightness: -10%);
+            border-color: color.adjust(#f39c12, $lightness: -10%);
         }
+    }
 
-        &.btn-warning {
-            background: #f39c12;
-            border-color: #f39c12;
+    &.btn-danger {
+        background: #e74c3c;
+        border-color: #e74c3c;
+        color: #fff;
 
-            &:hover {
-                background: color.adjust(#f39c12, $lightness: -10%);
-                border-color: color.adjust(#f39c12, $lightness: -10%);
-            }
+        &:hover {
+            background: color.adjust(#e74c3c, $lightness: -10%);
+            border-color: color.adjust(#e74c3c, $lightness: -10%);
         }
     }
 }

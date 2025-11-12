@@ -1,5 +1,7 @@
 @php
     $bulkActions = $bulkActions ?? [];
+    $resourceInstance = $resourceInstance ?? new $resource();
+    $currentUser = auth()->user();
 @endphp
 
 @if(!empty($bulkActions))
@@ -8,6 +10,25 @@
             <span id="selected-count">0</span> {{ __('Selected') }}
         </span>
         @foreach($bulkActions as $action)
+            @php
+                $actionAbility = $action->ability() ?? 'update';
+            @endphp
+            @if(!$resourceInstance->can($actionAbility, $currentUser))
+                @continue
+            @endif
+            @php
+                $bulkContext = ($currentUser)
+                    ? \Monstrex\Ave\Core\Actions\Support\ActionContext::bulk(
+                        $resource,
+                        $currentUser,
+                        new \Illuminate\Database\Eloquent\Collection(),
+                        []
+                    )
+                    : null;
+            @endphp
+            @if($bulkContext && !$action->authorize($bulkContext))
+                @continue
+            @endif
             @php
                 $actionLabel = $action->label();
                 $actionIcon = $action->icon();

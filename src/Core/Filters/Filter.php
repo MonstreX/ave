@@ -42,6 +42,32 @@ abstract class Filter
         return $this->label ?? ucfirst(str_replace('_', ' ', $this->key));
     }
 
+    public function getDefault(): mixed
+    {
+        return $this->default;
+    }
+
+    /**
+     * Convert value to display string for badges.
+     */
+    public function formatBadgeValue(mixed $value): string
+    {
+        if (is_array($value)) {
+            $clean = array_map(
+                fn ($item) => is_scalar($item) ? (string) $item : json_encode($item),
+                $value
+            );
+
+            return implode(', ', $clean);
+        }
+
+        if ($value instanceof \DateTimeInterface) {
+            return $value->format('Y-m-d');
+        }
+
+        return (string) $value;
+    }
+
     /**
      * Apply filter to query
      */

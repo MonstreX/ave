@@ -16,12 +16,14 @@ class ResourceRenderer
     {
         $slug = $resourceClass::getSlug();
         $view = $this->views->resolveResource($slug, 'index');
+        $resourceInstance = new $resourceClass();
         $rowActions = method_exists($resourceClass, 'rowActions') ? $resourceClass::rowActions() : [];
         $bulkActions = method_exists($resourceClass, 'bulkActions') ? $resourceClass::bulkActions() : [];
         $globalActions = method_exists($resourceClass, 'globalActions') ? $resourceClass::globalActions() : [];
 
         return view($view, [
             'resource' => $resourceClass,
+            'resourceInstance' => $resourceInstance,
             'slug' => $slug,
             'table' => $table,
             'records' => $records,
@@ -65,6 +67,7 @@ class ResourceRenderer
 
         return view($view, [
             'resource' => $resourceClass,
+            'resourceInstance' => new $resourceClass(),
             'slug' => $slug,
             'form' => $form,
             'formLayout' => $form->layout(),

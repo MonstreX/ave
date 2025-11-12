@@ -1,16 +1,32 @@
 @php
     $globalActions = $globalActions ?? [];
     $bulkActions = $bulkActions ?? [];
+    $resourceInstance = $resourceInstance ?? new $resource();
+    $currentUser = auth()->user();
 @endphp
 
 <div class="resource-actions-inline">
-    @if((new $resource())->can('create', auth()->user()))
+    @if($resourceInstance->can('create', $currentUser))
         <a href="{{ route('ave.resource.create', ['slug' => $slug]) }}" class="btn btn-success">
             <i class="voyager-plus"></i> <span>Create {{ $resource::getSingularLabel() }}</span>
         </a>
     @endif
 
     @foreach($globalActions as $action)
+        @php
+            $actionAbility = $action->ability() ?? 'viewAny';
+        @endphp
+        @if(!$resourceInstance->can($actionAbility, $currentUser))
+            @continue
+        @endif
+        @php
+            $actionContext = $currentUser
+                ? \Monstrex\Ave\Core\Actions\Support\ActionContext::global($resource, $currentUser)
+                : null;
+        @endphp
+        @if($actionContext && !$action->authorize($actionContext))
+            @continue
+        @endif
         @php
             $actionLabel = $action->label();
             $actionIcon = $action->icon();
@@ -45,5 +61,7 @@
     @include('ave::partials.index.bulk_actions', [
         'bulkActions' => $bulkActions,
         'slug' => $slug,
+        'resource' => $resource,
+        'resourceInstance' => $resourceInstance,
     ])
 </div>

@@ -45,4 +45,17 @@ class SelectFilter extends Filter
             'multiple' => $this->multiple,
         ]);
     }
+
+    public function formatBadgeValue(mixed $value): string
+    {
+        $format = function ($single) {
+            return $this->options[$single] ?? (string) $single;
+        };
+
+        if (is_array($value)) {
+            return implode(', ', array_map($format, $value));
+        }
+
+        return $format($value);
+    }
 }
