@@ -78,6 +78,18 @@
     color: #e74c3c;
 }
 
+.table-link {
+    color: var(--ave-color-primary);
+    text-decoration: underline;
+    cursor: pointer;
+    font-weight: 500;
+
+    &:hover {
+        color: darken(var(--ave-color-primary), 5%);
+        text-decoration-thickness: 2px;
+    }
+}
+
 .boolean-column {
     .ave-inline-toggle--dot {
         border: none;

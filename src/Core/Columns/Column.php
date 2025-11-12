@@ -28,6 +28,8 @@ class Column
     protected array $meta = [];
     protected ?array $inline = null;
     protected array|string|null $inlineRules = null;
+    protected ?array $linkAction = null;
+    protected mixed $linkUrl = null;
 
     public function __construct(string $key)
     {
@@ -147,6 +149,25 @@ class Column
         return $this;
     }
 
+    public function linkAction(string $action, array $params = []): static
+    {
+        $this->linkAction = [
+            'action' => $action,
+            'params' => $params,
+        ];
+
+        return $this;
+    }
+
+    /**
+     * @param string|Closure $url
+     */
+    public function linkUrl(string|Closure $url): static
+    {
+        $this->linkUrl = $url;
+        return $this;
+    }
+
     public function inline(string $mode, array $options = []): static
     {
         $this->inline = array_merge([
@@ -211,6 +232,36 @@ class Column
     public function inlineValidationRules(): array|string|null
     {
         return $this->inlineRules;
+    }
+
+    public function hasLink(): bool
+    {
+        return $this->linkAction !== null || $this->linkUrl !== null;
+    }
+
+    public function resolveLink(mixed $record, string $resourceClass): ?string
+    {
+        if ($this->linkUrl instanceof Closure) {
+            return call_user_func($this->linkUrl, $record, $resourceClass);
+        }
+
+        if (is_string($this->linkUrl)) {
+            return $this->linkUrl;
+        }
+
+        if ($this->linkAction) {
+            $action = $this->linkAction['action'];
+            $params = $this->linkAction['params'];
+            $slug = $params['slug'] ?? $resourceClass::getSlug();
+
+            return match ($action) {
+                'edit' => route('ave.resource.edit', ['slug' => $slug, 'id' => $record->getKey()]),
+                'view', 'show' => route('ave.resource.edit', ['slug' => $slug, 'id' => $record->getKey()]),
+                default => route("ave.resource.$action", array_merge(['slug' => $slug, 'id' => $record->getKey()], $params)),
+            };
+        }
+
+        return null;
     }
 
     public function shouldEscape(): bool
@@ -323,6 +374,7 @@ class Column
             'helpText'   => $this->helpText,
             'tooltip'    => $this->tooltip,
             'inline'     => $this->inline,
+            'linkAction' => $this->linkAction,
         ];
     }
 }

@@ -27,10 +27,20 @@
 @endphp
 <td class="{{ implode(' ', $classes) }}" @if(!empty($styles)) style="{{ implode('; ', $styles) }}" @endif>
     <div class="table-cell__value" @if($column->getTooltip()) title="{{ $column->getTooltip() }}" @endif>
-        @if($column->shouldEscape())
-            {{ $displayValue }}
+        @if(!empty($link))
+            <a href="{{ $link }}" class="table-link">
+                @if($column->shouldEscape())
+                    {{ $displayValue }}
+                @else
+                    {!! $displayValue !!}
+                @endif
+            </a>
         @else
-            {!! $displayValue !!}
+            @if($column->shouldEscape())
+                {{ $displayValue }}
+            @else
+                {!! $displayValue !!}
+            @endif
         @endif
     </div>
 

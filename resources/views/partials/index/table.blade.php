@@ -111,12 +111,19 @@
                                 $formattedValue = $column->formatValue($rawValue, $item);
                                 $columnView = $column->resolveView();
                             @endphp
+                            @php
+                                $link = $column->hasLink()
+                                    ? $column->resolveLink($item, $resource)
+                                    : null;
+                            @endphp
                             @include($columnView, [
                                 'column' => $column,
                                 'record' => $item,
                                 'value' => $rawValue,
                                 'formattedValue' => $formattedValue,
                                 'slug' => $slug,
+                                'link' => $link,
+                                'resourceClass' => $resource,
                             ])
                         @endforeach
                         <td class="text-right">
