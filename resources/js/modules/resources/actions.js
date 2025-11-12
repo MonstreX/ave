@@ -6,7 +6,29 @@ import { createModal, destroyModal } from '../ui/modals.js';
 import { showToast } from '../ui/toast.js';
 
 const ACTION_SELECTOR = '[data-ave-action]';
-const CSRF_TOKEN = document.querySelector('meta[name="csrf-token"]')?.content || '';
+const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+const CSRF_TOKEN = csrfMeta ? csrfMeta.content : '';
+const FALLBACK_VALIDATION_MESSAGE = 'Проверьте введённые данные и попробуйте снова.';
+
+function disableTrigger(trigger) {
+    trigger.dataset.actionLoading = 'true';
+    trigger.classList.add('is-loading');
+    trigger.setAttribute('aria-busy', 'true');
+
+    if (trigger.tagName === 'BUTTON' || trigger.tagName === 'INPUT') {
+        trigger.disabled = true;
+    }
+}
+
+function releaseTrigger(trigger) {
+    trigger.dataset.actionLoading = 'false';
+    trigger.classList.remove('is-loading');
+    trigger.removeAttribute('aria-busy');
+
+    if (trigger.tagName === 'BUTTON' || trigger.tagName === 'INPUT') {
+        trigger.disabled = false;
+    }
+}
 
 export default function initResourceActions() {
     setupBulkSelection();
@@ -41,14 +63,12 @@ function handleActionClick(event) {
     const config = parseConfig(trigger.dataset.actionConfig);
     const confirmMessage = trigger.dataset.actionConfirmMessage;
 
-    const run = async (extraPayload = {}) => {
+    const run = async (extraPayload = {}, meta = {}) => {
+        disableTrigger(trigger);
         try {
-            trigger.dataset.actionLoading = 'true';
-            trigger.classList.add('is-loading');
-            await executeAction(trigger, endpoint, extraPayload);
+            await executeAction(trigger, endpoint, extraPayload, meta);
         } finally {
-            trigger.dataset.actionLoading = 'false';
-            trigger.classList.remove('is-loading');
+            releaseTrigger(trigger);
         }
     };
 
@@ -72,7 +92,7 @@ function handleActionClick(event) {
     run();
 }
 
-async function executeAction(trigger, endpoint, extraPayload = {}) {
+async function executeAction(trigger, endpoint, extraPayload = {}, meta = {}) {
     const actionType = trigger.dataset.aveAction;
     const payload = new FormData();
     const method = trigger.dataset.actionMethod || 'POST';
@@ -110,9 +130,18 @@ async function executeAction(trigger, endpoint, extraPayload = {}) {
     const data = await parseResponse(response);
 
     if (!response.ok) {
-        const message = data.message || 'Ошибка при выполнении действия.';
+        const message = extractErrorMessage(response, data);
+
+        if (meta && meta.modal) {
+            showModalErrors(meta.modal, data?.errors ?? {}, message);
+        }
+
         showToast('danger', message);
         throw new Error(message);
+    }
+
+    if (meta && meta.modal) {
+        clearModalErrors(meta.modal);
     }
 
     const message = data.message || 'Действие выполнено.';
@@ -203,6 +232,116 @@ async function parseResponse(response) {
     };
 }
 
+function extractErrorMessage(response, payload) {
+    if (response.status === 422 && payload?.errors) {
+        return formatValidationErrors(payload.errors);
+    }
+
+    if (payload && typeof payload.message === 'string' && payload.message.trim() !== '') {
+        return payload.message;
+    }
+
+    return response.statusText || FALLBACK_VALIDATION_MESSAGE;
+}
+
+function formatValidationErrors(errors) {
+    if (!errors || typeof errors !== 'object') {
+        return FALLBACK_VALIDATION_MESSAGE;
+    }
+
+    const messages = Object.values(errors)
+        .flatMap((entry) => (Array.isArray(entry) ? entry : [entry]))
+        .map((message) => (message ?? '').toString().trim())
+        .filter((message) => message.length > 0);
+
+    if (messages.length === 0) {
+        return FALLBACK_VALIDATION_MESSAGE;
+    }
+
+    const limited = messages.slice(0, 3);
+    if (messages.length > limited.length) {
+        limited.push(`… +${messages.length - limited.length} ещё`);
+    }
+
+    return limited.join('\n');
+}
+
+function clearModalErrors(modal) {
+    const form = modal.querySelector('[data-ave-action-form]');
+    if (!form) {
+        return;
+    }
+
+    form.querySelectorAll('.form-error').forEach((node) => node.remove());
+    form.querySelectorAll('.form-group.has-error').forEach((group) => {
+        group.classList.remove('has-error');
+    });
+}
+
+function showModalErrors(modal, errors = {}, fallbackMessage = '') {
+    const form = modal.querySelector('[data-ave-action-form]');
+    if (!form) {
+        return;
+    }
+
+    clearModalErrors(modal);
+
+    const entries = Object.entries(errors);
+    if (entries.length === 0) {
+        if (fallbackMessage) {
+            const generalError = document.createElement('div');
+            generalError.className = 'form-error text-danger small';
+            generalError.textContent = fallbackMessage;
+            form.prepend(generalError);
+        }
+        return;
+    }
+
+    entries.forEach(([field, fieldErrors]) => {
+        const selector = `[name=\"${escapeSelector(field)}\"]`;
+        const inputs = form.querySelectorAll(selector);
+
+        if (inputs.length === 0) {
+            return;
+        }
+
+        const messages = Array.isArray(fieldErrors) ? fieldErrors : [fieldErrors];
+        const messageText = messages
+            .map((item) => (item ?? '').toString().trim())
+            .filter(Boolean)
+            .join(' ') || FALLBACK_VALIDATION_MESSAGE;
+
+        inputs.forEach((input) => {
+            const group = input.closest('.form-group') || input.parentElement;
+            if (!group) {
+                return;
+            }
+
+            group.classList.add('has-error');
+
+            const errorEl = document.createElement('div');
+            errorEl.className = 'form-error text-danger small';
+            errorEl.textContent = messageText;
+            group.appendChild(errorEl);
+        });
+    });
+
+    const firstErrorInput = form.querySelector(
+        '.form-group.has-error input, .form-group.has-error select, .form-group.has-error textarea'
+    );
+    if (firstErrorInput) {
+        firstErrorInput.focus();
+    }
+}
+
+function escapeSelector(value) {
+    if (window.CSS && typeof window.CSS.escape === 'function') {
+        return window.CSS.escape(value);
+    }
+
+    return value.replace(/([ !"#$%&'()*+,./:;<=>?@[\\\]^`{|}~])/g, '\\\\$1');
+}
+
 function setupBulkSelection() {
     const bulkToolbar = document.getElementById('bulk-actions-toolbar');
     const selectAllCheckbox = document.getElementById('select-all');
@@ -277,8 +416,12 @@ function openFormModal(trigger, config, runCallback) {
             const modalForm = modal.querySelector('[data-ave-action-form]');
             const modalData = collectModalFormData(modalForm);
 
-            await runCallback(modalData);
-            destroyModal(modal);
+            try {
+                await runCallback(modalData, { modal });
+                destroyModal(modal);
+            } catch (error) {
+                console.warn('Ave action failed', error);
+            }
         },
         onCancel: () => destroyModal(modal),
     });

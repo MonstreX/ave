@@ -12,6 +12,7 @@ use Monstrex\Ave\Core\Persistence\ResourcePersistence;
 use Monstrex\Ave\Core\Rendering\ResourceRenderer;
 use Monstrex\Ave\Core\Criteria\CriteriaPipeline;
 use Monstrex\Ave\Core\FormContext;
+use Monstrex\Ave\Core\Table;
 use Monstrex\Ave\Exceptions\ResourceException;
 use Monstrex\Ave\Core\Actions\Contracts\ActionInterface;
 use Monstrex\Ave\Core\Actions\Contracts\RowAction as RowActionContract;
@@ -102,21 +103,37 @@ class ResourceController extends Controller
             throw ResourceException::invalidModel($resourceClass);
         }
 
-        $models = $modelClass::whereIn($modelClass::make()->getKeyName(), $validated['ids'])->get();
+        $requestedIds = collect($validated['ids'])
+            ->filter(fn ($id) => $id !== null && $id !== '')
+            ->unique()
+            ->values();
+
+        $keyName = $modelClass::make()->getKeyName();
+        $models = $modelClass::whereIn($keyName, $requestedIds->all())->get();
 
         if ($models->isEmpty()) {
-            throw ResourceException::modelNotFound($slug, implode(',', $validated['ids']));
+            throw ResourceException::modelNotFound($slug, implode(',', $requestedIds->all()));
+        }
+
+        $requestedStringIds = $requestedIds->map(fn ($id) => (string) $id);
+        $foundStringIds = $models->pluck($keyName)->map(fn ($id) => (string) $id);
+        $missing = $requestedStringIds->diff($foundStringIds);
+
+        if ($missing->isNotEmpty()) {
+            throw ResourceException::modelNotFound($slug, implode(',', $missing->all()));
         }
 
         $ability = $actionInstance->ability() ?? 'update';
 
-        foreach ($models as $model) {
-            if (!$resource->can($ability, $request->user(), $model)) {
-                throw ResourceException::unauthorized($slug, $ability);
-            }
+        $unauthorizedModels = $models->filter(
+            fn ($model) => !$resource->can($ability, $request->user(), $model)
+        );
+
+        if ($unauthorizedModels->isNotEmpty()) {
+            throw ResourceException::unauthorized($slug, $ability);
         }
 
-        $context = ActionContext::bulk($resourceClass, $request->user(), $models, $validated['ids']);
+        $context = ActionContext::bulk($resourceClass, $request->user(), $models, $requestedIds->all());
         $this->authorizeAction($actionInstance, $context, $slug);
         $this->validateActionRequest($request, $actionInstance);
         $result = $actionInstance->handle($context, $request);
