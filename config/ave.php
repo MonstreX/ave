@@ -64,6 +64,16 @@ return [
         'default_slug' => env('AVE_MENU_DEFAULT', 'main'),
     ],
 
+    /*
+     * Pagination configuration for resource tables.
+     */
+    'pagination' => [
+        'default_per_page' => (int) env('AVE_PAGINATION_DEFAULT_PER_PAGE', 25),
+        'per_page_options' => [10, 25, 50, 100],
+        'show_per_page_selector' => (bool) env('AVE_PAGINATION_SHOW_SELECTOR', true),
+        'max_load_all' => (int) env('AVE_PAGINATION_MAX_LOAD_ALL', 1000),
+    ],
+
     'user_model' => env('AVE_USER_MODEL', config('auth.providers.users.model')),
     'user_table' => env('AVE_USER_TABLE', 'users'),
     'login_route' => 'login',

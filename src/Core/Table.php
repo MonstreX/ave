@@ -14,6 +14,10 @@ class Table
 
     protected ?array $defaultSort = null;
     protected int $perPage = 25;
+    protected array $perPageOptions = [10, 25, 50, 100];
+    protected bool $showPerPageSelector = true;
+    protected bool $loadAll = false;
+    protected ?int $maxLoadAll = null;
     protected bool $searchable = true;
     protected ?string $searchPlaceholder = null;
 
@@ -57,6 +61,33 @@ class Table
         return $this;
     }
 
+    public function perPageOptions(array $options): static
+    {
+        $this->perPageOptions = $options;
+        return $this;
+    }
+
+    public function showPerPageSelector(bool $show = true): static
+    {
+        $this->showPerPageSelector = $show;
+        return $this;
+    }
+
+    public function loadAll(bool $loadAll = true, ?int $maxRecords = null): static
+    {
+        $this->loadAll = $loadAll;
+        if ($maxRecords !== null) {
+            $this->maxLoadAll = $maxRecords;
+        }
+        return $this;
+    }
+
+    public function maxLoadAll(?int $max): static
+    {
+        $this->maxLoadAll = $max;
+        return $this;
+    }
+
     public function searchable(bool $on = true): static
     {
         $this->searchable = $on;
@@ -86,6 +117,8 @@ class Table
             'filters' => array_map(fn($f) => $f->toArray(), $this->filters),
             'defaultSort' => $this->defaultSort,
             'perPage' => $this->perPage,
+            'perPageOptions' => $this->perPageOptions,
+            'showPerPageSelector' => $this->showPerPageSelector,
             'searchable' => $this->searchable,
             'searchPlaceholder' => $this->searchPlaceholder ?? 'Search...'
         ];
@@ -119,6 +152,26 @@ class Table
     public function getPerPage(): int
     {
         return $this->perPage;
+    }
+
+    public function getPerPageOptions(): array
+    {
+        return $this->perPageOptions;
+    }
+
+    public function shouldShowPerPageSelector(): bool
+    {
+        return $this->showPerPageSelector;
+    }
+
+    public function shouldLoadAll(): bool
+    {
+        return $this->loadAll;
+    }
+
+    public function getMaxLoadAll(): ?int
+    {
+        return $this->maxLoadAll;
     }
 
     public function findInlineColumn(string $field): ?Column

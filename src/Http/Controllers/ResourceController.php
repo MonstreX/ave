@@ -256,8 +256,30 @@ class ResourceController extends Controller
         $criteriaBadges = $criteriaPipeline->badges();
 
         // Paginate
-        $perPage = $table->getPerPage();
-        $records = $query->paginate($perPage)->appends($request->query());
+        $perPage = $this->resolvePerPage($request, $table, $slug);
+
+        // Check if loadAll mode is enabled and within limits
+        if ($table->shouldLoadAll()) {
+            $maxLoadAll = $table->getMaxLoadAll() ?? config('ave.pagination.max_load_all', 1000);
+            $totalCount = $query->count();
+
+            if ($totalCount <= $maxLoadAll) {
+                // Load all records and create manual paginator
+                $allRecords = $query->get();
+                $records = new \Illuminate\Pagination\LengthAwarePaginator(
+                    $allRecords,
+                    $totalCount,
+                    $totalCount,
+                    1,
+                    ['path' => $request->url(), 'query' => $request->query()]
+                );
+            } else {
+                // Fallback to regular pagination if exceeds limit
+                $records = $query->paginate($perPage)->appends($request->query());
+            }
+        } else {
+            $records = $query->paginate($perPage)->appends($request->query());
+        }
 
         return $this->renderer->index($resourceClass, $table, $records, $request, $criteriaBadges);
     }
@@ -664,5 +686,69 @@ class ResourceController extends Controller
         }
 
         abort(404, $payload['message']);
+    }
+
+    /**
+     * Resolve per-page value from session, query parameter, or table default
+     */
+    protected function resolvePerPage(Request $request, Table $table, string $slug): int
+    {
+        // Priority 1: Query parameter ?per_page=X
+        $requestedPerPage = (int) $request->query('per_page', 0);
+
+        // Priority 2: Session value (only if session exists)
+        if ($requestedPerPage === 0 && $request->hasSession()) {
+            $requestedPerPage = (int) $request->session()->get("ave.per_page.{$slug}", 0);
+        }
+
+        // Validate against allowed options
+        $allowedOptions = $table->getPerPageOptions();
+
+        if ($requestedPerPage > 0 && in_array($requestedPerPage, $allowedOptions, true)) {
+            // Save to session if it came from query parameter
+            if ($request->has('per_page') && $request->hasSession()) {
+                $this->savePerPagePreference($request, $slug, $requestedPerPage);
+            }
+            return $requestedPerPage;
+        }
+
+        // Priority 3: Table default
+        return $table->getPerPage();
+    }
+
+    /**
+     * Save per-page preference to session
+     */
+    protected function savePerPagePreference(Request $request, string $slug, int $perPage): void
+    {
+        $request->session()->put("ave.per_page.{$slug}", $perPage);
+    }
+
+    /**
+     * AJAX endpoint to set per-page preference
+     *
+     * POST /admin/{slug}/set-per-page
+     */
+    public function setPerPage(Request $request, string $slug)
+    {
+        [$resourceClass] = $this->resolveAndAuthorize($slug, 'viewAny', $request);
+
+        $perPage = (int) $request->input('per_page');
+        $table = $resourceClass::table($request);
+        $allowedOptions = $table->getPerPageOptions();
+
+        if (!in_array($perPage, $allowedOptions, true)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Invalid per-page value',
+            ], 400);
+        }
+
+        $this->savePerPagePreference($request, $slug, $perPage);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Per-page preference saved',
+        ]);
     }
 }

@@ -2,6 +2,102 @@
 // PAGINATION
 // ============================================
 
+// Per-page selector
+.per-page-selector {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: 16px;
+    font-size: 13px;
+    color: #687585;
+}
+
+.per-page-label {
+    margin: 0;
+    font-weight: 500;
+}
+
+.per-page-select {
+    padding: 4px 8px;
+    border: 1px solid #dfe4ea;
+    border-radius: 4px;
+    background: #fff;
+    color: #3a4655;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: border-color 0.2s ease;
+
+    &:hover {
+        border-color: #c4cbd4;
+    }
+
+    &:focus {
+        outline: none;
+        border-color: var(--ave-color-primary);
+    }
+}
+
+.per-page-suffix {
+    font-weight: 400;
+}
+
+// Pagination wrapper
+.ave-pagination-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.pagination-results-info {
+    font-size: 13px;
+    color: #687585;
+    text-align: center;
+
+    strong {
+        color: #3a4655;
+        font-weight: 600;
+    }
+}
+
+.pagination-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+// Pagination buttons (First, Prev, Next, Last)
+.pagination-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 4px;
+    background: #f0f3f6;
+    color: #687585;
+    font-size: 16px;
+    transition: background 0.2s ease, color 0.2s ease;
+
+    &:hover:not(.disabled) {
+        background: #dfe4ea;
+        color: #3a4655;
+    }
+
+    &.disabled {
+        background: #eef1f4;
+        color: #b0b8c2;
+        cursor: not-allowed;
+    }
+
+    i {
+        font-size: 14px;
+    }
+}
+
+// Page numbers
 .pagination {
     display: inline-flex;
     align-items: center;
@@ -42,6 +138,54 @@
     background: #eef1f4;
     color: #b0b8c2;
     cursor: not-allowed;
+}
+
+// Jump to page
+.pagination-jump {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: 8px;
+    padding-left: 8px;
+    border-left: 1px solid #dfe4ea;
+}
+
+.pagination-jump-label {
+    margin: 0;
+    font-size: 13px;
+    color: #687585;
+    font-weight: 500;
+}
+
+.pagination-jump-input {
+    width: 60px;
+    padding: 6px 8px;
+    border: 1px solid #dfe4ea;
+    border-radius: 4px;
+    background: #fff;
+    color: #3a4655;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: center;
+    transition: border-color 0.2s ease;
+
+    &:hover {
+        border-color: #c4cbd4;
+    }
+
+    &:focus {
+        outline: none;
+        border-color: var(--ave-color-primary);
+    }
+
+    // Remove number input spinner arrows
+    &::-webkit-inner-spin-button,
+    &::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+    -moz-appearance: textfield;
 }
 
 

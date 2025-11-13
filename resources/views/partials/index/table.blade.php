@@ -26,6 +26,12 @@
                         Showing {{ $recordsTotal }} record{{ $recordsTotal === 1 ? '' : 's' }}
                     </div>
                 @endif
+
+                @include('ave::partials.index.per-page-selector', [
+                    'table' => $table,
+                    'records' => $records,
+                    'slug' => $slug,
+                ])
             </div>
             <div class="resource-controls-right">
                 @include('ave::partials.index.search', ['table' => $table])
@@ -196,7 +202,7 @@
         </div>
 
         <div class="resource-pagination">
-            {{ $records->links() }}
+            {{ $records->links('ave::vendor.pagination.ave') }}
         </div>
     </div>
 </div>
