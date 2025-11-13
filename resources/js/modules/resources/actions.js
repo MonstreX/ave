@@ -116,6 +116,15 @@ async function executeAction(trigger, endpoint, extraPayload = {}, meta = {}) {
         );
     }
 
+    // For global actions, pass current URL query params to action
+    // This allows actions to access context like menu_id, parent_id, etc.
+    if (actionType === 'global') {
+        const urlParams = new URLSearchParams(window.location.search);
+        urlParams.forEach((value, key) => {
+            payload.append(key, value);
+        });
+    }
+
     appendExtraPayload(payload, extraPayload);
 
     const response = await fetch(endpoint, {

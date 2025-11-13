@@ -22,15 +22,16 @@ class CreateInModalAction extends BaseAction implements GlobalAction
         $resourceClass = $context->resourceClass();
         $slug = $resourceClass::getSlug();
 
-        // Get query params to pass to modal form (e.g., menu_id, parent_id)
-        $queryParams = $request->query();
+        // Get context params from request (passed from frontend via executeAction)
+        // These are current page URL query params like menu_id, parent_id, etc.
+        $contextParams = $request->except(['_token', '_action']);
 
         // Return special response that tells frontend to open modal
         return [
             'modal_form' => true,
             'fetch_url' => route('ave.resource.modal-form-create', [
                 'slug' => $slug,
-            ]) . '?' . http_build_query($queryParams),
+            ]) . '?' . http_build_query($contextParams),
             'save_url' => route('ave.resource.store', [
                 'slug' => $slug,
             ]),
