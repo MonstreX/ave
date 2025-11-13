@@ -77,8 +77,10 @@ class Resource extends BaseResource
 
         return Form::make()->schema([
             // Hidden field for menu_id from URL query parameter
-            Hidden::make('menu_id')
-                ->default($request?->query('menu_id')),
+            Div::make('')->schema([
+                Hidden::make('menu_id')
+                    ->default($request?->query('menu_id')),
+            ]),
 
             Div::make('row')->schema([
                 Div::make('col-12 col-lg-6')->schema([
