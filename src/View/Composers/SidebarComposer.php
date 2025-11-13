@@ -13,6 +13,14 @@ use Monstrex\Ave\Core\ResourceManager;
 
 class SidebarComposer
 {
+    /**
+     * Preloaded bulk permissions for menu items.
+     * Keyed by 'resource.ability' => bool
+     *
+     * @var array<string,bool>
+     */
+    protected array $bulkPermissions = [];
+
     public function __construct(
         private ResourceManager $resourceManager,
         private AccessManager $accessManager,
@@ -58,9 +66,56 @@ class SidebarComposer
             return [];
         }
 
+        // Preload all permissions for menu items in bulk (optimization)
+        $checks = $this->collectPermissionChecks($items);
+        $this->bulkPermissions = $this->accessManager->bulkAllows($user, $checks);
+
         $grouped = $items->groupBy(fn (MenuItem $item) => $item->parent_id ?? 0);
 
         return $this->buildTree($grouped, 0, $user);
+    }
+
+    /**
+     * Collect all permission checks needed for menu items.
+     *
+     * @param  Collection<int,MenuItem>  $items
+     * @return array<int,array{resource:string,ability:string}>
+     */
+    protected function collectPermissionChecks(Collection $items): array
+    {
+        $checks = [];
+        $seen = [];
+
+        foreach ($items as $item) {
+            if ($item->is_divider) {
+                continue; // Dividers don't need permission checks
+            }
+
+            $key = null;
+
+            if ($item->resource_slug && $item->ability) {
+                $key = $item->resource_slug.'.'.$item->ability;
+                if (! isset($seen[$key])) {
+                    $checks[] = [
+                        'resource' => $item->resource_slug,
+                        'ability' => $item->ability,
+                    ];
+                    $seen[$key] = true;
+                }
+            } elseif ($item->permission_key) {
+                [$resource, $ability] = array_pad(explode('.', $item->permission_key), 2, 'viewAny');
+                $key = $resource.'.'.($ability ?? 'viewAny');
+                if (! isset($seen[$key])) {
+                    $checks[] = [
+                        'resource' => $resource,
+                        'ability' => $ability ?? 'viewAny',
+                    ];
+                    $seen[$key] = true;
+                }
+            }
+        }
+
+        return $checks;
     }
 
     /**
@@ -105,6 +160,11 @@ class SidebarComposer
 
     protected function canSee(?Authenticatable $user, MenuItem $item): bool
     {
+        // Dividers are always visible (no permission check needed)
+        if ($item->is_divider) {
+            return true;
+        }
+
         if (! $this->accessManager->isEnabled()) {
             return true;
         }
@@ -113,17 +173,18 @@ class SidebarComposer
             return true;
         }
 
+        // Build lookup key for preloaded permissions
+        $key = null;
+
         if ($item->resource_slug && $item->ability) {
-            return $this->accessManager->allows($user, $item->resource_slug, $item->ability);
-        }
-
-        if ($item->permission_key) {
+            $key = $item->resource_slug.'.'.$item->ability;
+        } elseif ($item->permission_key) {
             [$resource, $ability] = array_pad(explode('.', $item->permission_key), 2, 'viewAny');
-
-            return $this->accessManager->allows($user, $resource, $ability ?? 'viewAny');
+            $key = $resource.'.'.($ability ?? 'viewAny');
         }
 
-        return true;
+        // Check in preloaded bulk permissions (optimized)
+        return $key && ($this->bulkPermissions[$key] ?? false);
     }
 
     protected function resolveUrl(MenuItem $item): string

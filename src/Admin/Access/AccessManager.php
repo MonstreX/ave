@@ -21,6 +21,7 @@ class AccessManager
     protected bool $enabled;
     protected ?string $superRoleSlug;
     protected int $cacheTtl;
+    protected bool $fallbackToDefaultRoles;
 
     protected array $defaultRoleIds = [];
 
@@ -33,6 +34,7 @@ class AccessManager
         );
         $this->superRoleSlug = $config['super_role'] ?? null;
         $this->cacheTtl = (int) ($config['cache_ttl'] ?? 300);
+        $this->fallbackToDefaultRoles = (bool) ($config['fallback_to_default_roles'] ?? true);
 
         $this->defaultRoleIds = Schema::hasTable('ave_roles')
             ? Role::query()->where('is_default', true)->pluck('id')->all()
@@ -138,6 +140,109 @@ class AccessManager
     }
 
     /**
+     * Bulk check permissions for multiple resource-ability pairs.
+     * Optimized for checking many permissions at once (e.g., for menu rendering).
+     *
+     * @param  Authenticatable|null  $user
+     * @param  array<int,array{resource:string,ability:string}>  $checks  Array of ['resource' => 'slug', 'ability' => 'name'] pairs
+     * @return array<string,bool>  Keyed by 'resource.ability' => bool
+     */
+    public function bulkAllows(?Authenticatable $user, array $checks): array
+    {
+        $result = [];
+
+        // Early returns for common cases
+        if (! $this->enabled) {
+            foreach ($checks as $check) {
+                $key = $check['resource'].'.'.$check['ability'];
+                $result[$key] = true;
+            }
+
+            return $result;
+        }
+
+        if (! $user) {
+            foreach ($checks as $check) {
+                $key = $check['resource'].'.'.$check['ability'];
+                $result[$key] = false;
+            }
+
+            return $result;
+        }
+
+        // Super role bypass
+        if ($this->superRoleSlug && $this->userHasRole($user, $this->superRoleSlug)) {
+            foreach ($checks as $check) {
+                $key = $check['resource'].'.'.$check['ability'];
+                $result[$key] = true;
+            }
+
+            return $result;
+        }
+
+        if (! $this->tablesExist(['ave_permissions', 'ave_permission_role'])) {
+            foreach ($checks as $check) {
+                $key = $check['resource'].'.'.$check['ability'];
+                $result[$key] = false;
+            }
+
+            return $result;
+        }
+
+        // Get user's role IDs
+        $roleIds = $this->userRoleIds($user);
+
+        if (empty($roleIds)) {
+            foreach ($checks as $check) {
+                $key = $check['resource'].'.'.$check['ability'];
+                $result[$key] = false;
+            }
+
+            return $result;
+        }
+
+        // Load all permissions matching the checks in one query
+        $permissions = Permission::query()
+            ->where(function ($query) use ($checks) {
+                foreach ($checks as $check) {
+                    $query->orWhere(function ($q) use ($check) {
+                        $q->where('resource_slug', $check['resource'])
+                            ->where('ability', $check['ability']);
+                    });
+                }
+            })
+            ->get(['id', 'resource_slug', 'ability']);
+
+        // Build lookup map: 'resource.ability' => permission_id
+        $permissionMap = [];
+        foreach ($permissions as $permission) {
+            $key = $permission->resource_slug.'.'.$permission->ability;
+            $permissionMap[$key] = $permission->id;
+        }
+
+        // Get all permission-role links for user's roles in one query
+        $permissionIds = array_values($permissionMap);
+        $allowedPermissionIds = [];
+
+        if (! empty($permissionIds)) {
+            $allowedPermissionIds = DB::table('ave_permission_role')
+                ->whereIn('permission_id', $permissionIds)
+                ->whereIn('role_id', $roleIds)
+                ->pluck('permission_id')
+                ->all();
+        }
+
+        // Build result array
+        foreach ($checks as $check) {
+            $key = $check['resource'].'.'.$check['ability'];
+            $permissionId = $permissionMap[$key] ?? null;
+            $result[$key] = $permissionId && in_array($permissionId, $allowedPermissionIds, true);
+        }
+
+        return $result;
+    }
+
+    /**
      * @param array<int|string,string|array<string,mixed>> $definitions
      * @return array<string,array<string,mixed>>
      */
@@ -194,7 +299,8 @@ class AccessManager
                 ->select('ave_roles.id', 'ave_roles.slug')
                 ->get();
 
-            if ($roles->isEmpty()) {
+            // Fallback to default roles only if configured
+            if ($roles->isEmpty() && $this->fallbackToDefaultRoles) {
                 $roles = DB::table('ave_roles')
                     ->where('is_default', true)
                     ->get(['id', 'slug']);

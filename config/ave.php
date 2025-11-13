@@ -58,6 +58,9 @@ return [
         ],
         'super_role' => env('AVE_ACL_SUPER_ROLE', 'admin'),
         'cache_ttl' => env('AVE_ACL_CACHE_TTL', 300),
+        // When true, users without assigned roles will inherit permissions from roles marked as is_default=true
+        // Set to false for stricter security (users must have explicit role assignments)
+        'fallback_to_default_roles' => (bool) env('AVE_ACL_FALLBACK_DEFAULT_ROLES', true),
     ],
 
     'menu' => [
