@@ -55,7 +55,7 @@ class Table
         return $this;
     }
 
-    public function perPage(int $perPage): static
+    public function perPage(int $perPage): staticчто
     {
         $this->perPage = $perPage;
         return $this;

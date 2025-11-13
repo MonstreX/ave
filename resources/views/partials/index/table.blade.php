@@ -22,16 +22,16 @@
                         'slug' => $slug,
                     ])
                 @else
+                    @php
+                        $from = ($records->currentPage() - 1) * $records->perPage() + 1;
+                        $to = min($from + $records->perPage() - 1, $records->total());
+                        $total = $records->total();
+                    @endphp
                     <div class="resource-note">
-                        Showing {{ $recordsTotal }} record{{ $recordsTotal === 1 ? '' : 's' }}
+                        Showing {{ $from }} to {{ $to }} of {{ $total }} results
                     </div>
                 @endif
 
-                @include('ave::partials.index.per-page-selector', [
-                    'table' => $table,
-                    'records' => $records,
-                    'slug' => $slug,
-                ])
             </div>
             <div class="resource-controls-right">
                 @include('ave::partials.index.search', ['table' => $table])
@@ -196,12 +196,23 @@
         </div>
 
         <div class="resource-table-footer">
+            @php
+                $from = ($records->currentPage() - 1) * $records->perPage() + 1;
+                $to = min($from + $records->perPage() - 1, $records->total());
+                $total = $records->total();
+            @endphp
             <div class="resource-note">
-                Showing {{ $recordsTotal }} record{{ $recordsTotal === 1 ? '' : 's' }}
+                Showing {{ $from }} to {{ $to }} of {{ $total }} results
             </div>
         </div>
 
         <div class="resource-pagination">
+            @include('ave::partials.index.per-page-selector', [
+                'table' => $table,
+                'records' => $records,
+                'slug' => $slug,
+            ])
+
             {{ $records->links('ave::vendor.pagination.ave') }}
         </div>
     </div>
