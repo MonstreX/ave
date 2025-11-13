@@ -6,12 +6,12 @@ use Monstrex\Ave\Models\MenuItem as MenuItemModel;
 use Monstrex\Ave\Models\Menu as MenuModel;
 use Monstrex\Ave\Core\Columns\Column;
 use Monstrex\Ave\Core\Components\Div;
+use Monstrex\Ave\Core\Criteria\FieldEqualsFilter;
 use Monstrex\Ave\Core\Fields\BelongsToSelect;
 use Monstrex\Ave\Core\Fields\Number;
 use Monstrex\Ave\Core\Fields\Select;
 use Monstrex\Ave\Core\Fields\TextInput;
 use Monstrex\Ave\Core\Fields\Toggle;
-use Monstrex\Ave\Core\Filters\SelectFilter;
 use Monstrex\Ave\Core\Form;
 use Monstrex\Ave\Core\Resource as BaseResource;
 use Monstrex\Ave\Core\Table;
@@ -25,6 +25,13 @@ class Resource extends BaseResource
     public static ?string $slug = 'menu-items';
     public static ?string $group = 'System';
 
+    public static function getCriteria(): array
+    {
+        return [
+            new FieldEqualsFilter('menu_id', 'menu_id', '=', 'Menu'),
+        ];
+    }
+
     public static function table($context): Table
     {
         return Table::make()
@@ -35,21 +42,12 @@ class Resource extends BaseResource
                 maxDepth: 5
             )
             ->columns([
-                Column::make('icon')
-                    ->label('Icon')
-                    ->format(fn ($value) => $value ? "<i class='{$value}'></i>" : ''),
                 Column::make('resource_slug')
                     ->label('Resource'),
                 Column::make('route')
                     ->label('Route'),
                 Column::make('url')
                     ->label('URL'),
-            ])
-            ->filters([
-                SelectFilter::make('menu_id')
-                    ->label('Menu')
-                    ->options(MenuModel::pluck('name', 'id')->toArray())
-                    ->default(MenuModel::where('slug', 'main')->value('id')),
             ])
             ->searchable(false); // Disable search in tree mode
     }

@@ -28,12 +28,6 @@
             </div>
         </div>
 
-        {{-- Criteria Badges --}}
-        @include('ave::partials.index.criteria_badges', [
-            'criteriaBadges' => $criteriaBadges ?? [],
-            'slug' => $slug,
-        ])
-
         {{-- Tree Container --}}
         <div class="tree-container dd"
              id="tree-container-{{ $slug }}"

@@ -10,9 +10,19 @@
 <li class="tree-item dd-item" data-id="{{ $item->getKey() }}">
     <div class="dd-handle">
         {{-- Drag handle --}}
-        <button type="button" class="tree-drag-handle" aria-label="Drag to reorder">
-            <i class="voyager-move"></i>
-        </button>
+        <button type="button" class="tree-drag-handle" aria-label="Drag to reorder"></button>
+
+        {{-- Expand/Collapse buttons --}}
+        @if($hasChildren)
+            <div class="dd-item-btns">
+                <button type="button" data-action="expand" class="hidden" aria-label="Expand">
+                    <i class="voyager-angle-down"></i>
+                </button>
+                <button type="button" data-action="collapse" aria-label="Collapse">
+                    <i class="voyager-angle-up"></i>
+                </button>
+            </div>
+        @endif
 
         {{-- Content --}}
         <div class="dd-content dd-nodrag">
@@ -34,18 +44,6 @@
                     @endif
                 @endforeach
             </div>
-
-            {{-- Expand/Collapse buttons --}}
-            @if($hasChildren)
-                <div class="dd-item-btns">
-                    <button type="button" data-action="expand" class="hidden" aria-label="Expand">
-                        <i class="voyager-angle-down"></i>
-                    </button>
-                    <button type="button" data-action="collapse" aria-label="Collapse">
-                        <i class="voyager-angle-up"></i>
-                    </button>
-                </div>
-            @endif
         </div>
 
         {{-- Actions --}}

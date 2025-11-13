@@ -44,7 +44,6 @@
 
 .tree-drag-handle {
     cursor: grab;
-    color: #9ca3af;
     padding: 0.25rem;
     border: none;
     background: transparent;
@@ -52,17 +51,49 @@
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-
-    &:hover {
-        color: #3490dc;
-    }
+    width: 20px;
+    height: 20px;
+    position: relative;
 
     &:active {
         cursor: grabbing;
     }
 
-    i {
-        font-size: 14px;
+    // 6-dot grid (2x3)
+    &::before,
+    &::after {
+        content: '';
+        position: absolute;
+        width: 3px;
+        height: 3px;
+        background: #9ca3af;
+        border-radius: 50%;
+    }
+
+    &::before {
+        left: 5px;
+        top: 4px;
+        box-shadow:
+            0 6px 0 0 #9ca3af,
+            0 12px 0 0 #9ca3af;
+    }
+
+    &::after {
+        right: 5px;
+        top: 4px;
+        box-shadow:
+            0 6px 0 0 #9ca3af,
+            0 12px 0 0 #9ca3af;
+    }
+
+    &:hover {
+        &::before,
+        &::after {
+            background: #3490dc;
+            box-shadow:
+                0 6px 0 0 #3490dc,
+                0 12px 0 0 #3490dc;
+        }
     }
 }
 

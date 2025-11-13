@@ -20,6 +20,13 @@ class Resource extends BaseResource
     public static ?string $slug = 'menus';
     public static ?string $group = 'System';
 
+    public static function actions(): array
+    {
+        return [
+            MenuBuilderAction::class,
+        ];
+    }
+
     public static function table($context): Table
     {
         return Table::make()->columns([
