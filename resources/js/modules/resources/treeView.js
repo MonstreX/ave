@@ -105,9 +105,9 @@ function initSortableNested(container, maxDepth, slug, parentColumn, orderColumn
             easing: ANIMATION_EASING.SORTABLE,
             handle: '.tree-drag-handle',
             fallbackOnBody: true,
-            swapThreshold: 0.65,
-            invertSwap: true,
-            emptyInsertThreshold: 30, // Allow dropping into empty lists
+            swapThreshold: 5, // Higher threshold = less aggressive swapping
+            direction: 'vertical',
+            emptyInsertThreshold: 1, // Smaller threshold = less accidental nesting
             ghostClass: 'sortable-ghost',
             dragClass: 'sortable-drag',
 
