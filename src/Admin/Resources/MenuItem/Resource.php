@@ -32,6 +32,22 @@ class Resource extends BaseResource
         ];
     }
 
+    public static function beforeCreate(array $data, \Illuminate\Http\Request $request): array
+    {
+        // Auto-fill menu_id from URL query parameter
+        if ($request->has('menu_id') && !isset($data['menu_id'])) {
+            $data['menu_id'] = $request->get('menu_id');
+        }
+
+        return $data;
+    }
+
+    public static function getIndexRedirectParams(\Illuminate\Database\Eloquent\Model $model, \Illuminate\Http\Request $request, string $mode): array
+    {
+        // Redirect back to tree view with menu_id filter
+        return isset($model->menu_id) ? ['menu_id' => $model->menu_id] : [];
+    }
+
     public static function table($context): Table
     {
         return Table::make()

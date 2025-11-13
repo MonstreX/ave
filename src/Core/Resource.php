@@ -80,6 +80,47 @@ abstract class Resource implements Authorizable
     }
 
     /**
+     * Hook: Modify data before creating a new record.
+     * Override this method to auto-fill fields, apply transformations, etc.
+     *
+     * @param array $data Validated form data
+     * @param \Illuminate\Http\Request $request Current request
+     * @return array Modified data
+     */
+    public static function beforeCreate(array $data, \Illuminate\Http\Request $request): array
+    {
+        return $data;
+    }
+
+    /**
+     * Hook: Modify data before updating an existing record.
+     * Override this method to apply transformations, auto-fill fields, etc.
+     *
+     * @param Model $model Model being updated
+     * @param array $data Validated form data
+     * @param \Illuminate\Http\Request $request Current request
+     * @return array Modified data
+     */
+    public static function beforeUpdate(Model $model, array $data, \Illuminate\Http\Request $request): array
+    {
+        return $data;
+    }
+
+    /**
+     * Hook: Provide custom query parameters for index redirect after save.
+     * Override this method to add filters, context params, etc. to redirect URL.
+     *
+     * @param Model $model Saved model
+     * @param \Illuminate\Http\Request $request Current request
+     * @param string $mode 'create' or 'edit'
+     * @return array Query parameters to add to redirect
+     */
+    public static function getIndexRedirectParams(Model $model, \Illuminate\Http\Request $request, string $mode): array
+    {
+        return [];
+    }
+
+    /**
      * Define available custom actions for the resource.
      *
      * @return array<int,class-string<ActionInterface>|ActionInterface>

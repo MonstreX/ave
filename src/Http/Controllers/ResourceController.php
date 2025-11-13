@@ -375,10 +375,8 @@ class ResourceController extends Controller
             throw $exception;
         }
 
-        // Auto-fill menu_id from URL if present and not in data
-        if ($slug === 'menu-items' && $request->has('menu_id') && !isset($data['menu_id'])) {
-            $data['menu_id'] = $request->get('menu_id');
-        }
+        // Hook: Allow resource to modify data before create
+        $data = $resourceClass::beforeCreate($data, $request);
 
         $model = $this->persistence->create($resourceClass, $form, $data, $request, $context);
 
@@ -695,11 +693,10 @@ class ResourceController extends Controller
                 ->with('status', $statusMessage);
         }
 
-        // For menu-items, redirect back with menu_id filter
-        $routeParams = ['slug' => $slug];
-        if ($slug === 'menu-items' && isset($model->menu_id)) {
-            $routeParams['menu_id'] = $model->menu_id;
-        }
+        // Build route params with resource-specific additions
+        $resourceClass = $this->resources->resource($slug);
+        $customParams = $resourceClass ? $resourceClass::getIndexRedirectParams($model, $request, $mode) : [];
+        $routeParams = array_merge(['slug' => $slug], $customParams);
 
         return redirect()
             ->route('ave.resource.index', $routeParams)
