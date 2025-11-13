@@ -13,7 +13,7 @@ class CreateInModalAction extends BaseAction implements GlobalAction
 {
     protected string $key = 'create-modal';
     protected string $label = 'Create';
-    protected string $icon = 'voyager-plus';
+    protected ?string $icon = 'voyager-plus';
     protected string $color = 'success';
     protected ?string $ability = 'create';
 

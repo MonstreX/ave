@@ -13,7 +13,7 @@ class EditInModalAction extends BaseAction implements RowAction
 {
     protected string $key = 'edit-modal';
     protected string $label = 'Edit';
-    protected string $icon = 'voyager-edit';
+    protected ?string $icon = 'voyager-edit';
     protected string $color = 'primary';
     protected ?string $ability = 'update';
 
