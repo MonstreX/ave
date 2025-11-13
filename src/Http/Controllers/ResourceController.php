@@ -1019,8 +1019,19 @@ class ResourceController extends Controller
         }
 
         $model = new $modelClass();
+
+        // Pre-fill model with query parameters for default values
+        foreach ($request->query() as $key => $value) {
+            $model->$key = $value;
+        }
+
         $form = $resourceClass::form($request);
         $context = FormContext::forCreate([], $request, $model);
+
+        // Fill fields from pre-filled model
+        foreach ($form->getAllFields() as $field) {
+            $field->fillFromModel($model);
+        }
 
         $formLayout = $form->layout();
 

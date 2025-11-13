@@ -38,12 +38,6 @@ class Resource extends BaseResource
 
     public static function beforeCreate(array $data, \Illuminate\Http\Request $request): array
     {
-        // Auto-fill menu_id from URL query parameter
-        $menuId = $request->input('menu_id') ?? $request->query('menu_id');
-        if ($menuId && !isset($data['menu_id'])) {
-            $data['menu_id'] = $menuId;
-        }
-
         return $data;
     }
 
@@ -90,14 +84,9 @@ class Resource extends BaseResource
 
     public static function form($context): Form
     {
-        // $context is actually the Request object
-        $request = $context;
-
         return Form::make()->schema([
-            // Hidden field for menu_id from URL query parameter
             Div::make('')->schema([
-                Hidden::make('menu_id')
-                    ->default($request?->query('menu_id')),
+                Hidden::make('menu_id'),
             ]),
 
             Div::make('row')->schema([
