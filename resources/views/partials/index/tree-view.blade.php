@@ -9,15 +9,15 @@
     <div class="panel-body">
         {{-- Toolbar --}}
         <div class="resource-controls-row">
-            <div class="resource-controls-left">
-                <button type="button" class="btn btn-secondary tree-expand-all">
+            <div class="resource-controls-left v-center">
+                <button type="button" class="btn tree-expand-all">
                     <i class="voyager-angle-down"></i> Expand All
                 </button>
-                <button type="button" class="btn btn-secondary tree-collapse-all">
+                <button type="button" class="btn tree-collapse-all">
                     <i class="voyager-angle-up"></i> Collapse All
                 </button>
 
-                <span class="resource-note ml-3">
+                <span class="resource-note">
                     Total: {{ $records->count() }} items
                 </span>
             </div>

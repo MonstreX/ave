@@ -711,6 +711,22 @@ class ResourceController extends Controller
             if (array_key_exists('reload', $result)) {
                 $payload['reload'] = (bool) $result['reload'];
             }
+            // Copy modal form data to payload root for easier frontend access
+            if (isset($result['modal_form'])) {
+                $payload['modal_form'] = $result['modal_form'];
+                if (isset($result['fetch_url'])) {
+                    $payload['fetch_url'] = $result['fetch_url'];
+                }
+                if (isset($result['save_url'])) {
+                    $payload['save_url'] = $result['save_url'];
+                }
+                if (isset($result['title'])) {
+                    $payload['title'] = $result['title'];
+                }
+                if (isset($result['size'])) {
+                    $payload['size'] = $result['size'];
+                }
+            }
         }
 
         if ($request->expectsJson()) {
