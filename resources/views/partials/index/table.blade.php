@@ -195,7 +195,7 @@
             </table>
         </div>
 
-        <div class="resource-table-footer">
+        <div class="resource-pagination">
             @php
                 $from = ($records->currentPage() - 1) * $records->perPage() + 1;
                 $to = min($from + $records->perPage() - 1, $records->total());
@@ -204,16 +204,13 @@
             <div class="resource-note">
                 Showing {{ $from }} to {{ $to }} of {{ $total }} results
             </div>
-        </div>
 
-        <div class="resource-pagination">
+            {{ $records->links('ave::vendor.pagination.ave') }}
             @include('ave::partials.index.per-page-selector', [
                 'table' => $table,
                 'records' => $records,
                 'slug' => $slug,
             ])
-
-            {{ $records->links('ave::vendor.pagination.ave') }}
         </div>
     </div>
 </div>

@@ -8,11 +8,6 @@
     @endphp
 
     <nav class="ave-pagination-wrapper" role="navigation" aria-label="Pagination Navigation">
-        {{-- Results info --}}
-        <div class="pagination-results-info">
-            Showing <strong>{{ $from }}</strong> to <strong>{{ $to }}</strong> of <strong>{{ $total }}</strong> results
-        </div>
-
         <div class="pagination-controls">
             {{-- First Page Button --}}
             @if ($paginator->onFirstPage())

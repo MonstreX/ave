@@ -7,23 +7,24 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    font-size: 13px;
-    color: #687585;
 }
 
-.per-page-label {
+.per-page-label,
+.per-page-suffix {
     margin: 0;
-    font-weight: 500;
+    font-size: 13px;
+    font-weight: 400;
 }
 
 .per-page-select {
     padding: 4px 8px;
+    height: 30px;
     border: 1px solid #dfe4ea;
     border-radius: 4px;
     background: #fff;
     color: #3a4655;
-    font-size: 13px;
-    font-weight: 600;
+    font-size: 14px;
+    font-weight: 400;
     cursor: pointer;
     transition: border-color 0.2s ease;
 
@@ -35,10 +36,6 @@
         outline: none;
         border-color: var(--ave-color-primary);
     }
-}
-
-.per-page-suffix {
-    font-weight: 400;
 }
 
 // Pagination wrapper
@@ -72,12 +69,12 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 34px;
-    height: 34px;
+    width: 30px;
+    height: 30px;
     border-radius: 4px;
     background: #f0f3f6;
-    color: #687585;
-    font-size: 16px;
+    color: #484545;
+    font-size: 14px;
     transition: background 0.2s ease, color 0.2s ease;
 
     &:hover:not(.disabled) {
@@ -114,13 +111,14 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 34px;
-    height: 34px;
+    width: 30px;
+    height: 30px;
     border-radius: 4px;
     background: #f0f3f6;
-    color: #687585;
-    font-weight: 600;
-    transition: background 0.2s ease, color 0.2s ease;
+    color: #484545;
+    font-weight: 400;
+    font-size: 14px;
+    transition: background .2s ease,color .2s ease;
 }
 
 .pagination .page-link:hover {
@@ -157,14 +155,15 @@
 }
 
 .pagination-jump-input {
-    width: 60px;
-    padding: 6px 8px;
+    width: 40px;
+    padding: 3px 8px;
+    height: 30px;
     border: 1px solid #dfe4ea;
     border-radius: 4px;
     background: #fff;
     color: #3a4655;
-    font-size: 13px;
-    font-weight: 600;
+    font-size: 14px;
+    font-weight: 400;
     text-align: center;
     transition: border-color 0.2s ease;
 
