@@ -4,6 +4,7 @@
 
 import { createModal, destroyModal } from '../ui/modals.js';
 import { showToast } from '../ui/toast.js';
+import { openPopupForm } from '../forms/popupForm.js';
 
 const ACTION_SELECTOR = '[data-ave-action]';
 const csrfMeta = document.querySelector('meta[name="csrf-token"]');
@@ -142,6 +143,24 @@ async function executeAction(trigger, endpoint, extraPayload = {}, meta = {}) {
 
     if (meta && meta.modal) {
         clearModalErrors(meta.modal);
+    }
+
+    // Check if action wants to open a modal form
+    if (data.modal_form === true) {
+        openPopupForm({
+            title: data.title || 'Form',
+            fetchUrl: data.fetch_url,
+            saveUrl: data.save_url,
+            size: data.size || 'large',
+            onSuccess: (responseData) => {
+                if (responseData.reload) {
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 500);
+                }
+            }
+        });
+        return;
     }
 
     const message = data.message || 'Действие выполнено.';

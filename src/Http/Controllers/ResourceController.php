@@ -365,8 +365,18 @@ class ResourceController extends Controller
                 'rules' => $rules,
             ]);
 
-            // Add toast notification for validation errors
             $errorMessages = $this->formatValidationErrors($exception->errors());
+
+            // Return JSON for AJAX requests (modal forms)
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $errorMessages,
+                    'errors' => $exception->errors(),
+                ], 422);
+            }
+
+            // Add toast notification for validation errors
             $request->session()->flash('toast', [
                 'type' => 'danger',
                 'message' => $errorMessages,
@@ -379,6 +389,16 @@ class ResourceController extends Controller
         $data = $resourceClass::beforeCreate($data, $request);
 
         $model = $this->persistence->create($resourceClass, $form, $data, $request, $context);
+
+        // Return JSON for AJAX requests (modal forms)
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => __('Created successfully'),
+                'reload' => true,
+                'data' => $model->fresh()->toArray(),
+            ]);
+        }
 
         return $this->redirectAfterSave($request, $slug, $model, 'create');
     }
@@ -457,8 +477,18 @@ class ResourceController extends Controller
                 'rules' => $rules,
             ]);
 
-            // Add toast notification for validation errors
             $errorMessages = $this->formatValidationErrors($exception->errors());
+
+            // Return JSON for AJAX requests (modal forms)
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $errorMessages,
+                    'errors' => $exception->errors(),
+                ], 422);
+            }
+
+            // Add toast notification for validation errors
             $request->session()->flash('toast', [
                 'type' => 'danger',
                 'message' => $errorMessages,
@@ -468,6 +498,16 @@ class ResourceController extends Controller
         }
 
         $model = $this->persistence->update($resourceClass, $form, $model, $data, $request, $context);
+
+        // Return JSON for AJAX requests (modal forms)
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => __('Updated successfully'),
+                'reload' => true,
+                'data' => $model->fresh()->toArray(),
+            ]);
+        }
 
         return $this->redirectAfterSave($request, $slug, $model, 'edit');
     }
@@ -900,5 +940,87 @@ class ResourceController extends Controller
                 );
             }
         }
+    }
+
+    /**
+     * Get modal form HTML for editing a record
+     *
+     * GET /admin/resource/{slug}/{id}/modal-form
+     */
+    public function getModalForm(Request $request, string $slug, string $id)
+    {
+        [$resourceClass, $resource] = $this->resolveAndAuthorize($slug, 'update', $request);
+
+        $modelClass = $resourceClass::$model;
+        if (!$modelClass) {
+            throw ResourceException::invalidModel($resourceClass);
+        }
+
+        try {
+            $model = $modelClass::findOrFail($id);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            throw ResourceException::modelNotFound($slug, $id);
+        }
+
+        $form = $resourceClass::form($request);
+        $context = FormContext::forEdit($model, [], $request);
+
+        // Fill fields from model
+        foreach ($form->getAllFields() as $field) {
+            $field->fillFromDataSource($context->dataSource());
+        }
+
+        $formLayout = $form->layout();
+
+        $html = view('ave::partials.modals.form-modal', [
+            'form' => $form,
+            'formLayout' => $formLayout,
+            'model' => $model,
+            'context' => $context,
+            'slug' => $slug,
+            'mode' => 'edit',
+        ])->render();
+
+        return response()->json([
+            'success' => true,
+            'formHtml' => $html,
+            'currentData' => $model->toArray(),
+        ]);
+    }
+
+    /**
+     * Get modal form HTML for creating a new record
+     *
+     * GET /admin/resource/{slug}/modal-form-create
+     */
+    public function getModalFormCreate(Request $request, string $slug)
+    {
+        [$resourceClass, $resource] = $this->resolveAndAuthorize($slug, 'create', $request);
+
+        $modelClass = $resourceClass::$model;
+        if (!$modelClass) {
+            throw ResourceException::invalidModel($resourceClass);
+        }
+
+        $model = new $modelClass();
+        $form = $resourceClass::form($request);
+        $context = FormContext::forCreate([], $request, $model);
+
+        $formLayout = $form->layout();
+
+        $html = view('ave::partials.modals.form-modal', [
+            'form' => $form,
+            'formLayout' => $formLayout,
+            'model' => $model,
+            'context' => $context,
+            'slug' => $slug,
+            'mode' => 'create',
+        ])->render();
+
+        return response()->json([
+            'success' => true,
+            'formHtml' => $html,
+            'currentData' => [],
+        ]);
     }
 }

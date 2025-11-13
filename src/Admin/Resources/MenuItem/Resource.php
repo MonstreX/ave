@@ -16,6 +16,9 @@ use Monstrex\Ave\Core\Fields\Toggle;
 use Monstrex\Ave\Core\Form;
 use Monstrex\Ave\Core\Resource as BaseResource;
 use Monstrex\Ave\Core\Table;
+use Monstrex\Ave\Core\Actions\CreateInModalAction;
+use Monstrex\Ave\Core\Actions\DeleteAction;
+use Monstrex\Ave\Core\Actions\EditInModalAction;
 
 class Resource extends BaseResource
 {
@@ -68,6 +71,21 @@ class Resource extends BaseResource
                     ->label('URL'),
             ])
             ->searchable(false); // Disable search in tree mode
+    }
+
+    public static function rowActions(): array
+    {
+        return [
+            new EditInModalAction(), // Edit in modal popup
+            new DeleteAction(),
+        ];
+    }
+
+    public static function globalActions(): array
+    {
+        return [
+            new CreateInModalAction(), // Create in modal popup
+        ];
     }
 
     public static function form($context): Form

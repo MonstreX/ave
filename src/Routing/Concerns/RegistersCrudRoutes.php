@@ -46,6 +46,12 @@ trait RegistersCrudRoutes
         $router->post('/resource/{slug}/update-tree', [ResourceController::class, 'updateTree'])
             ->name('ave.resource.update-tree');
 
+        $router->get('/resource/{slug}/{id}/modal-form', [ResourceController::class, 'getModalForm'])
+            ->name('ave.resource.modal-form');
+
+        $router->get('/resource/{slug}/modal-form-create', [ResourceController::class, 'getModalFormCreate'])
+            ->name('ave.resource.modal-form-create');
+
         $router->post('/resource/{slug}/{id}/actions/{action}', [ResourceController::class, 'runRowAction'])
             ->name('ave.resource.action.row');
 
