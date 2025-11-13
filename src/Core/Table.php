@@ -21,6 +21,13 @@ class Table
     protected bool $searchable = true;
     protected ?string $searchPlaceholder = null;
 
+    // Display modes
+    protected string $displayMode = 'table';
+    protected ?string $orderColumn = null;
+    protected ?string $parentColumn = null;
+    protected ?string $treeLabelColumn = null;
+    protected int $treeMaxDepth = 5;
+
     public static function make(): static
     {
         return new static();
@@ -97,6 +104,42 @@ class Table
     public function searchPlaceholder(string $text): static
     {
         $this->searchPlaceholder = $text;
+        return $this;
+    }
+
+    /**
+     * Set display mode for the table.
+     */
+    public function displayMode(string $mode): static
+    {
+        $this->displayMode = $mode;
+        return $this;
+    }
+
+    /**
+     * Configure sortable list mode.
+     */
+    public function sortable(string $orderColumn = 'order'): static
+    {
+        $this->displayMode = 'sortable';
+        $this->orderColumn = $orderColumn;
+        return $this;
+    }
+
+    /**
+     * Configure tree view mode.
+     */
+    public function tree(
+        string $parentColumn = 'parent_id',
+        string $orderColumn = 'order',
+        ?string $labelColumn = null,
+        int $maxDepth = 5
+    ): static {
+        $this->displayMode = 'tree';
+        $this->parentColumn = $parentColumn;
+        $this->orderColumn = $orderColumn;
+        $this->treeLabelColumn = $labelColumn;
+        $this->treeMaxDepth = $maxDepth;
         return $this;
     }
 
@@ -185,5 +228,45 @@ class Table
         }
 
         return null;
+    }
+
+    /**
+     * Get display mode.
+     */
+    public function getDisplayMode(): string
+    {
+        return $this->displayMode;
+    }
+
+    /**
+     * Get order column name.
+     */
+    public function getOrderColumn(): ?string
+    {
+        return $this->orderColumn;
+    }
+
+    /**
+     * Get parent column name.
+     */
+    public function getParentColumn(): ?string
+    {
+        return $this->parentColumn;
+    }
+
+    /**
+     * Get tree label column name.
+     */
+    public function getTreeLabelColumn(): ?string
+    {
+        return $this->treeLabelColumn;
+    }
+
+    /**
+     * Get tree max depth.
+     */
+    public function getTreeMaxDepth(): int
+    {
+        return $this->treeMaxDepth;
     }
 }

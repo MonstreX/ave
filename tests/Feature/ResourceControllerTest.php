@@ -112,6 +112,8 @@ class ResourceControllerTest extends TestCase
             $table->string('title');
             $table->boolean('is_published')->default(false);
             $table->unsignedInteger('tenant_id')->default(1);
+            $table->unsignedInteger('order')->default(0);
+            $table->unsignedInteger('parent_id')->nullable();
             $table->timestamps();
         });
 
@@ -523,6 +525,130 @@ class ResourceControllerTest extends TestCase
         $payload = $response->getData(true);
 
         $this->assertIsArray($payload);
+    }
+
+    public function test_reorder_updates_order_for_items(): void
+    {
+        TestRecord::insert([
+            ['id' => 1, 'title' => 'Item 1', 'order' => 0, 'tenant_id' => 1],
+            ['id' => 2, 'title' => 'Item 2', 'order' => 1, 'tenant_id' => 1],
+            ['id' => 3, 'title' => 'Item 3', 'order' => 2, 'tenant_id' => 1],
+        ]);
+
+        TestResource::setTableFactory(function () {
+            return Table::make()->sortable('order');
+        });
+
+        $controller = $this->makeController();
+        $request = Request::create('/admin/resource/test-items/reorder', 'POST', [
+            'items' => [
+                ['id' => 3, 'order' => 0],
+                ['id' => 1, 'order' => 1],
+                ['id' => 2, 'order' => 2],
+            ],
+        ]);
+        $request->setUserResolver(fn () => new FakeUser(10, 1));
+
+        $response = $controller->reorder($request, 'test-items');
+
+        $this->assertInstanceOf(JsonResponse::class, $response);
+        $this->assertSame(200, $response->getStatusCode());
+
+        $data = $response->getData(true);
+        $this->assertTrue($data['success']);
+
+        // Verify order was updated
+        $this->assertSame(0, TestRecord::find(3)->order);
+        $this->assertSame(1, TestRecord::find(1)->order);
+        $this->assertSame(2, TestRecord::find(2)->order);
+    }
+
+    public function test_update_tree_updates_hierarchy_and_order(): void
+    {
+        TestRecord::insert([
+            ['id' => 1, 'title' => 'Parent 1', 'parent_id' => null, 'order' => 0, 'tenant_id' => 1],
+            ['id' => 2, 'title' => 'Child 1', 'parent_id' => null, 'order' => 1, 'tenant_id' => 1],
+            ['id' => 3, 'title' => 'Child 2', 'parent_id' => null, 'order' => 2, 'tenant_id' => 1],
+        ]);
+
+        TestResource::setTableFactory(function () {
+            return Table::make()->tree('parent_id', 'order', 'title');
+        });
+
+        $controller = $this->makeController();
+        $request = Request::create('/admin/resource/test-items/update-tree', 'POST', [
+            'tree' => [
+                [
+                    'id' => 1,
+                    'children' => [
+                        ['id' => 2],
+                        ['id' => 3],
+                    ],
+                ],
+            ],
+            'parent_column' => 'parent_id',
+            'order_column' => 'order',
+        ]);
+        $request->setUserResolver(fn () => new FakeUser(10, 1));
+
+        $response = $controller->updateTree($request, 'test-items');
+
+        $this->assertInstanceOf(JsonResponse::class, $response);
+        $this->assertSame(200, $response->getStatusCode());
+
+        $data = $response->getData(true);
+        $this->assertTrue($data['success']);
+
+        // Verify hierarchy was updated
+        $item1 = TestRecord::find(1);
+        $item2 = TestRecord::find(2);
+        $item3 = TestRecord::find(3);
+
+        $this->assertNull($item1->parent_id);
+        $this->assertSame(0, $item1->order);
+
+        $this->assertSame(1, $item2->parent_id);
+        $this->assertSame(0, $item2->order);
+
+        $this->assertSame(1, $item3->parent_id);
+        $this->assertSame(1, $item3->order);
+    }
+
+    public function test_index_loads_all_records_for_tree_mode(): void
+    {
+        TestRecord::insert([
+            ['id' => 1, 'title' => 'Item 1', 'parent_id' => null, 'order' => 0, 'tenant_id' => 1],
+            ['id' => 2, 'title' => 'Item 2', 'parent_id' => 1, 'order' => 0, 'tenant_id' => 1],
+            ['id' => 3, 'title' => 'Item 3', 'parent_id' => null, 'order' => 1, 'tenant_id' => 1],
+        ]);
+
+        TestResource::setTableFactory(function () {
+            return Table::make()
+                ->tree('parent_id', 'order', 'title')
+                ->columns([Column::make('title')])
+                ->perPage(2); // Pagination should be ignored
+        });
+
+        $capturedPaginator = null;
+        $renderer = $this->createMock(ResourceRenderer::class);
+        $renderer->expects($this->once())
+            ->method('index')
+            ->willReturnCallback(function ($resourceClass, $table, $records, $request, $badges) use (&$capturedPaginator) {
+                $capturedPaginator = $records;
+                return 'rendered';
+            });
+
+        $controller = $this->makeController($renderer);
+        $request = Request::create('/admin/resource/test-items', 'GET');
+        $request->setUserResolver(fn () => new FakeUser(10, 1));
+
+        $response = $controller->index($request, 'test-items');
+
+        $this->assertSame('rendered', $response);
+        $this->assertInstanceOf(LengthAwarePaginator::class, $capturedPaginator);
+        // All 3 records should be loaded, not just 2 (perPage)
+        $this->assertSame(3, $capturedPaginator->total());
+        $this->assertSame(3, $capturedPaginator->count());
     }
 
     private function makeController(?ResourceRenderer $renderer = null): ResourceController

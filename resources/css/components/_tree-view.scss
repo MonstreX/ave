@@ -1,0 +1,210 @@
+// ============================================
+// TREE VIEW
+// ============================================
+
+.tree-container {
+    position: relative;
+    margin-top: 1rem;
+}
+
+.tree-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+
+    // Nested lists get left padding
+    .tree-list {
+        padding-left: 2rem;
+        margin-top: 0.5rem;
+    }
+}
+
+.tree-item {
+    display: block;
+    position: relative;
+    margin-bottom: 0.5rem;
+}
+
+.dd-handle {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    transition: all 0.2s ease;
+    min-height: 3rem;
+
+    &:hover {
+        border-color: #3490dc;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+}
+
+.tree-drag-handle {
+    cursor: grab;
+    color: #9ca3af;
+    padding: 0.25rem;
+    border: none;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    &:hover {
+        color: #3490dc;
+    }
+
+    &:active {
+        cursor: grabbing;
+    }
+
+    i {
+        font-size: 14px;
+    }
+}
+
+.dd-content {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    min-width: 0;
+}
+
+.dd-nodrag {
+    pointer-events: auto;
+}
+
+.tree-item-info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex: 1;
+    min-width: 0;
+}
+
+.tree-item-label {
+    font-weight: 500;
+    color: #3a4655;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.tree-meta {
+    color: #6b7280;
+    font-size: 0.875rem;
+    white-space: nowrap;
+
+    &:not(:last-child)::after {
+        content: '•';
+        margin: 0 0.5rem;
+        color: #d1d5db;
+    }
+}
+
+.dd-item-btns {
+    display: flex;
+    gap: 0.25rem;
+    flex-shrink: 0;
+
+    button {
+        padding: 0.25rem 0.5rem;
+        border: none;
+        background: transparent;
+        color: #6b7280;
+        cursor: pointer;
+        border-radius: 0.25rem;
+        transition: all 0.15s;
+
+        &:hover {
+            color: #3490dc;
+            background: #f3f4f6;
+        }
+
+        &.hidden {
+            display: none;
+        }
+
+        i {
+            font-size: 12px;
+        }
+    }
+}
+
+.tree-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-left: auto;
+    flex-shrink: 0;
+}
+
+.tree-action-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.tree-action-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 0.25rem;
+    color: #6b7280;
+    transition: all 0.15s;
+
+    &:hover {
+        background: #f3f4f6;
+        color: #3490dc;
+    }
+
+    &.delete:hover {
+        background: #fee2e2;
+        color: #dc2626;
+    }
+
+    i {
+        font-size: 14px;
+    }
+}
+
+// Sortable states
+.sortable-ghost {
+    opacity: 0.4;
+    background: #f3f4f6;
+
+    .dd-handle {
+        border-color: #3490dc;
+    }
+}
+
+.sortable-drag {
+    opacity: 0.8;
+
+    .dd-handle {
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        cursor: grabbing;
+    }
+}
+
+// Placeholder
+.dd-placeholder {
+    min-height: 3rem;
+    margin: 0.5rem 0;
+    background: #f9fafb;
+    border: 2px dashed #d1d5db;
+    border-radius: 0.5rem;
+}
+
+// Toolbar buttons
+.tree-expand-all,
+.tree-collapse-all {
+    i {
+        margin-right: 0.25rem;
+    }
+}

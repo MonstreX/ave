@@ -40,6 +40,12 @@ trait RegistersCrudRoutes
         $router->post('/resource/{slug}/set-per-page', [ResourceController::class, 'setPerPage'])
             ->name('ave.resource.set-per-page');
 
+        $router->post('/resource/{slug}/reorder', [ResourceController::class, 'reorder'])
+            ->name('ave.resource.reorder');
+
+        $router->post('/resource/{slug}/update-tree', [ResourceController::class, 'updateTree'])
+            ->name('ave.resource.update-tree');
+
         $router->post('/resource/{slug}/{id}/actions/{action}', [ResourceController::class, 'runRowAction'])
             ->name('ave.resource.action.row');
 

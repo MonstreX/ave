@@ -255,7 +255,27 @@ class ResourceController extends Controller
         $query = $criteriaPipeline->apply($query);
         $criteriaBadges = $criteriaPipeline->badges();
 
-        // Paginate
+        // Check display mode
+        $displayMode = $table->getDisplayMode();
+
+        // For tree view - load all records without pagination
+        if ($displayMode === 'tree' || $displayMode === 'sortable') {
+            $orderColumn = $table->getOrderColumn() ?? 'order';
+            $allRecords = $query->orderBy($orderColumn)->get();
+
+            // Create fake paginator for compatibility
+            $records = new \Illuminate\Pagination\LengthAwarePaginator(
+                $allRecords,
+                $allRecords->count(),
+                $allRecords->count(),
+                1,
+                ['path' => $request->url(), 'query' => $request->query()]
+            );
+
+            return $this->renderer->index($resourceClass, $table, $records, $request, $criteriaBadges);
+        }
+
+        // Paginate for table mode
         $perPage = $this->resolvePerPage($request, $table, $slug);
 
         // Check if loadAll mode is enabled and within limits
@@ -750,5 +770,125 @@ class ResourceController extends Controller
             'status' => 'success',
             'message' => 'Per-page preference saved',
         ]);
+    }
+
+    /**
+     * Update order for sortable list
+     *
+     * POST /admin/resource/{slug}/reorder
+     */
+    public function reorder(Request $request, string $slug)
+    {
+        [$resourceClass, $resource] = $this->resolveAndAuthorize($slug, 'update', $request);
+
+        $modelClass = $resourceClass::$model;
+        $table = $resourceClass::table(null);
+        $orderColumn = $table->getOrderColumn() ?? 'order';
+
+        $validated = $request->validate([
+            'items' => 'required|array',
+            'items.*.id' => 'required|integer',
+            "items.*.{$orderColumn}" => 'required|integer',
+        ]);
+
+        // Check authorization for each item
+        foreach ($validated['items'] as $itemData) {
+            $model = $modelClass::findOrFail($itemData['id']);
+            if (!$resource->can('update', $request->user(), $model)) {
+                throw ResourceException::unauthorized($slug, 'update');
+            }
+        }
+
+        // Update order for all items
+        foreach ($validated['items'] as $itemData) {
+            $modelClass::where('id', $itemData['id'])
+                ->update([$orderColumn => $itemData[$orderColumn]]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Order updated successfully',
+        ]);
+    }
+
+    /**
+     * Update tree structure (parent_id and order)
+     *
+     * POST /admin/resource/{slug}/update-tree
+     */
+    public function updateTree(Request $request, string $slug)
+    {
+        [$resourceClass, $resource] = $this->resolveAndAuthorize($slug, 'update', $request);
+
+        $validated = $request->validate([
+            'tree' => 'required|array',
+            'parent_column' => 'required|string',
+            'order_column' => 'required|string',
+        ]);
+
+        $modelClass = $resourceClass::$model;
+        $parentCol = $validated['parent_column'];
+        $orderCol = $validated['order_column'];
+
+        // Process tree recursively
+        $this->processTreeItems(
+            $modelClass,
+            $validated['tree'],
+            null,
+            0,
+            $parentCol,
+            $orderCol,
+            $resource,
+            $request->user()
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Tree structure updated successfully',
+        ]);
+    }
+
+    /**
+     * Recursively process tree items
+     */
+    protected function processTreeItems(
+        string $modelClass,
+        array $items,
+        $parentId,
+        int $order,
+        string $parentCol,
+        string $orderCol,
+        $resource,
+        $user
+    ): void {
+        foreach ($items as $index => $item) {
+            $model = $modelClass::findOrFail($item['id']);
+
+            // Check authorization
+            if (!$resource->can('update', $user, $model)) {
+                throw ResourceException::unauthorized('resource', 'update');
+            }
+
+            // Update parent_id and order
+            $modelClass::where('id', $item['id'])
+                ->update([
+                    $parentCol => $parentId,
+                    $orderCol => $order + $index,
+                ]);
+
+            // Process children recursively
+            if (isset($item['children']) && is_array($item['children'])) {
+                $this->processTreeItems(
+                    $modelClass,
+                    $item['children'],
+                    $item['id'],
+                    0,
+                    $parentCol,
+                    $orderCol,
+                    $resource,
+                    $user
+                );
+            }
+        }
     }
 }

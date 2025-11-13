@@ -17,6 +17,7 @@ class ResourceRenderer
     public function index(string $resourceClass, $table, LengthAwarePaginator $records, Request $request, array $criteriaBadges = [])
     {
         $slug = $resourceClass::getSlug();
+        $displayMode = $table?->getDisplayMode() ?? 'table';
         $view = $this->views->resolveResource($slug, 'index');
         $resourceInstance = new $resourceClass();
         $rowActions = method_exists($resourceClass, 'rowActions') ? $resourceClass::rowActions() : [];
@@ -34,6 +35,7 @@ class ResourceRenderer
             'rowActions' => $rowActions,
             'bulkActions' => $bulkActions,
             'globalActions' => $globalActions,
+            'displayMode' => $displayMode,
         ]);
     }
 

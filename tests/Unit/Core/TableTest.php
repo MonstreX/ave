@@ -91,6 +91,53 @@ class TableTest extends TestCase
         $this->assertSame($inlineColumn, $table->findInlineColumn('status'));
         $this->assertNull($table->findInlineColumn('missing'));
     }
+
+    public function test_sortable_mode_configuration(): void
+    {
+        $table = Table::make()->sortable('position');
+
+        $this->assertSame('sortable', $table->getDisplayMode());
+        $this->assertSame('position', $table->getOrderColumn());
+    }
+
+    public function test_sortable_mode_with_default_order_column(): void
+    {
+        $table = Table::make()->sortable();
+
+        $this->assertSame('sortable', $table->getDisplayMode());
+        $this->assertSame('order', $table->getOrderColumn());
+    }
+
+    public function test_tree_mode_configuration(): void
+    {
+        $table = Table::make()->tree('parent_id', 'order', 'title', 10);
+
+        $this->assertSame('tree', $table->getDisplayMode());
+        $this->assertSame('parent_id', $table->getParentColumn());
+        $this->assertSame('order', $table->getOrderColumn());
+        $this->assertSame('title', $table->getTreeLabelColumn());
+        $this->assertSame(10, $table->getTreeMaxDepth());
+    }
+
+    public function test_tree_mode_with_defaults(): void
+    {
+        $table = Table::make()->tree();
+
+        $this->assertSame('tree', $table->getDisplayMode());
+        $this->assertSame('parent_id', $table->getParentColumn());
+        $this->assertSame('order', $table->getOrderColumn());
+        $this->assertNull($table->getTreeLabelColumn());
+        $this->assertSame(5, $table->getTreeMaxDepth());
+    }
+
+    public function test_default_display_mode_is_table(): void
+    {
+        $table = Table::make();
+
+        $this->assertSame('table', $table->getDisplayMode());
+        $this->assertNull($table->getOrderColumn());
+        $this->assertNull($table->getParentColumn());
+    }
 }
 
 /**

@@ -35,15 +35,38 @@
 
         @include('ave::partials.index.metrics')
 
-        @include('ave::partials.index.table', [
-            'table' => $table,
-            'records' => $records,
-            'rowActions' => $rowActions ?? [],
-            'bulkActions' => $bulkActions ?? [],
-            'criteriaBadges' => $criteriaBadges ?? [],
-            'resource' => $resource,
-            'resourceInstance' => $resourceInstance ?? null,
-        ])
+        @if(($displayMode ?? 'table') === 'tree')
+            @include('ave::partials.index.tree-view', [
+                'table' => $table,
+                'records' => $records,
+                'rowActions' => $rowActions ?? [],
+                'criteriaBadges' => $criteriaBadges ?? [],
+                'resource' => $resource,
+                'resourceInstance' => $resourceInstance ?? null,
+                'slug' => $slug,
+            ])
+        @elseif(($displayMode ?? 'table') === 'sortable')
+            @include('ave::partials.index.sortable-list', [
+                'table' => $table,
+                'records' => $records,
+                'rowActions' => $rowActions ?? [],
+                'bulkActions' => $bulkActions ?? [],
+                'criteriaBadges' => $criteriaBadges ?? [],
+                'resource' => $resource,
+                'resourceInstance' => $resourceInstance ?? null,
+                'slug' => $slug,
+            ])
+        @else
+            @include('ave::partials.index.table', [
+                'table' => $table,
+                'records' => $records,
+                'rowActions' => $rowActions ?? [],
+                'bulkActions' => $bulkActions ?? [],
+                'criteriaBadges' => $criteriaBadges ?? [],
+                'resource' => $resource,
+                'resourceInstance' => $resourceInstance ?? null,
+            ])
+        @endif
 
     </div>
 @endsection
