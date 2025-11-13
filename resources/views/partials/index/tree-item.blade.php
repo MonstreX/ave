@@ -101,25 +101,23 @@
         </div>
     </div>
 
-    {{-- Recursive children --}}
-    @if($hasChildren)
-        <ol class="tree-list dd-list">
-            @foreach($children as $child)
-                @include('ave::partials.index.tree-item', [
-                    'item' => $child,
-                    'allRecords' => $allRecords,
-                    'table' => $table,
-                    'slug' => $slug,
-                    'resource' => $resource,
-                    'resourceInstance' => $resourceInstance,
-                    'currentUser' => $currentUser,
-                    'rowActions' => $rowActions,
-                    'parentCol' => $parentCol,
-                    'orderCol' => $orderCol,
-                    'labelCol' => $labelCol,
-                    'level' => $level + 1
-                ])
-            @endforeach
-        </ol>
-    @endif
+    {{-- Recursive children (always render list, even if empty, for SortableJS nesting) --}}
+    <ol class="tree-list dd-list @if(!$hasChildren) tree-list-empty @endif">
+        @foreach($children as $child)
+            @include('ave::partials.index.tree-item', [
+                'item' => $child,
+                'allRecords' => $allRecords,
+                'table' => $table,
+                'slug' => $slug,
+                'resource' => $resource,
+                'resourceInstance' => $resourceInstance,
+                'currentUser' => $currentUser,
+                'rowActions' => $rowActions,
+                'parentCol' => $parentCol,
+                'orderCol' => $orderCol,
+                'labelCol' => $labelCol,
+                'level' => $level + 1
+            ])
+        @endforeach
+    </ol>
 </li>

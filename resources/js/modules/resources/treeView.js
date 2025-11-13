@@ -84,17 +84,30 @@ function initExpandCollapse(container) {
     });
 }
 
+let sortableInstances = new Map();
+
 function initSortableNested(container, maxDepth, slug, parentColumn, orderColumn, updateEndpoint) {
     const lists = container.querySelectorAll('.tree-list');
 
     lists.forEach((list) => {
-        Sortable.create(list, {
-            group: 'tree-nested',
+        // Skip if already initialized
+        if (sortableInstances.has(list)) {
+            return;
+        }
+
+        const instance = Sortable.create(list, {
+            group: {
+                name: 'tree-nested',
+                pull: true,
+                put: true
+            },
             animation: ANIMATION_DURATIONS.SORTABLE,
             easing: ANIMATION_EASING.SORTABLE,
             handle: '.tree-drag-handle',
             fallbackOnBody: true,
             swapThreshold: 0.65,
+            invertSwap: true,
+            emptyInsertThreshold: 30, // Allow dropping into empty lists
             ghostClass: 'sortable-ghost',
             dragClass: 'sortable-drag',
 
@@ -113,9 +126,84 @@ function initSortableNested(container, maxDepth, slug, parentColumn, orderColumn
             },
 
             onEnd: (evt) => {
+                // Update expand/collapse buttons visibility
+                updateExpandCollapseButtons(container);
+
+                // Initialize any new nested lists that may have been revealed
+                setTimeout(() => {
+                    initSortableNested(container, maxDepth, slug, parentColumn, orderColumn, updateEndpoint);
+                }, 50);
+
+                // Save structure
                 saveTreeStructure(container, slug, parentColumn, orderColumn, updateEndpoint);
             }
         });
+
+        sortableInstances.set(list, instance);
+    });
+}
+
+function updateExpandCollapseButtons(container) {
+    container.querySelectorAll('.tree-item').forEach(item => {
+        const childList = item.querySelector(':scope > .tree-list');
+        const btnContainer = item.querySelector('.dd-item-btns');
+        const hasChildren = childList && childList.querySelectorAll(':scope > .tree-item').length > 0;
+
+        if (hasChildren) {
+            // Has children - remove empty class, show buttons
+            if (childList) {
+                childList.classList.remove('tree-list-empty');
+            }
+            if (btnContainer) {
+                btnContainer.style.display = '';
+            } else {
+                // Create buttons if they don't exist
+                const handle = item.querySelector('.dd-handle');
+                if (handle) {
+                    const btns = document.createElement('div');
+                    btns.className = 'dd-item-btns';
+                    btns.innerHTML = `
+                        <button type="button" data-action="expand" class="hidden" aria-label="Expand">
+                            <i class="voyager-angle-down"></i>
+                        </button>
+                        <button type="button" data-action="collapse" aria-label="Collapse">
+                            <i class="voyager-angle-up"></i>
+                        </button>
+                    `;
+                    handle.insertBefore(btns, handle.querySelector('.dd-content'));
+
+                    // Add event listeners to new buttons
+                    btns.querySelectorAll('button').forEach(btn => {
+                        btn.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            const action = btn.dataset.action;
+                            const treeItem = btn.closest('.tree-item');
+                            const childList = treeItem.querySelector(':scope > .tree-list');
+
+                            if (!childList) return;
+
+                            if (action === 'collapse') {
+                                childList.style.display = 'none';
+                                btn.classList.add('hidden');
+                                treeItem.querySelector('[data-action="expand"]')?.classList.remove('hidden');
+                            } else {
+                                childList.style.display = '';
+                                btn.classList.add('hidden');
+                                treeItem.querySelector('[data-action="collapse"]')?.classList.remove('hidden');
+                            }
+                        });
+                    });
+                }
+            }
+        } else {
+            // No children - add empty class, hide buttons
+            if (childList) {
+                childList.classList.add('tree-list-empty');
+            }
+            if (btnContainer) {
+                btnContainer.style.display = 'none';
+            }
+        }
     });
 }
 
