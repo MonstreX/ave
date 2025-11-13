@@ -3,10 +3,11 @@
     $bulkActions = $bulkActions ?? [];
     $resourceInstance = $resourceInstance ?? new $resource();
     $currentUser = auth()->user();
+    $hasGlobalActions = count($globalActions) > 0;
 @endphp
 
 <div class="resource-actions-inline">
-    @if($resourceInstance->can('create', $currentUser))
+    @if(!$hasGlobalActions && $resourceInstance->can('create', $currentUser))
         <a href="{{ route('ave.resource.create', array_merge(['slug' => $slug], request()->query())) }}" class="btn btn-success">
             <i class="voyager-plus"></i> <span>Create {{ $resource::getSingularLabel() }}</span>
         </a>
