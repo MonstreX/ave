@@ -262,12 +262,14 @@ class ResourceController extends Controller
         if ($displayMode === 'tree' || $displayMode === 'sortable') {
             $orderColumn = $table->getOrderColumn() ?? 'order';
             $allRecords = $query->orderBy($orderColumn)->get();
+            $count = $allRecords->count();
 
             // Create fake paginator for compatibility
+            // perPage must be at least 1 to avoid division by zero
             $records = new \Illuminate\Pagination\LengthAwarePaginator(
                 $allRecords,
-                $allRecords->count(),
-                $allRecords->count(),
+                $count,
+                max($count, 1),
                 1,
                 ['path' => $request->url(), 'query' => $request->query()]
             );

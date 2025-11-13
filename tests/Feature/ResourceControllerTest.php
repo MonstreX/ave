@@ -651,6 +651,37 @@ class ResourceControllerTest extends TestCase
         $this->assertSame(3, $capturedPaginator->count());
     }
 
+    public function test_index_tree_mode_with_no_records(): void
+    {
+        // No records inserted
+        TestResource::setTableFactory(function () {
+            return Table::make()
+                ->tree('parent_id', 'order', 'title')
+                ->columns([Column::make('title')]);
+        });
+
+        $capturedPaginator = null;
+        $renderer = $this->createMock(ResourceRenderer::class);
+        $renderer->expects($this->once())
+            ->method('index')
+            ->willReturnCallback(function ($resourceClass, $table, $records, $request, $badges) use (&$capturedPaginator) {
+                $capturedPaginator = $records;
+                return 'rendered';
+            });
+
+        $controller = $this->makeController($renderer);
+        $request = Request::create('/admin/resource/test-items', 'GET');
+        $request->setUserResolver(fn () => new FakeUser(10, 1));
+
+        $response = $controller->index($request, 'test-items');
+
+        $this->assertSame('rendered', $response);
+        $this->assertInstanceOf(LengthAwarePaginator::class, $capturedPaginator);
+        // Should handle empty result without division by zero
+        $this->assertSame(0, $capturedPaginator->total());
+        $this->assertSame(0, $capturedPaginator->count());
+    }
+
     private function makeController(?ResourceRenderer $renderer = null): ResourceController
     {
         $renderer ??= $this->createMock(ResourceRenderer::class);
