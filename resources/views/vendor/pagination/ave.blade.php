@@ -12,11 +12,11 @@
             {{-- First Page Button --}}
             @if ($paginator->onFirstPage())
                 <span class="pagination-btn pagination-first disabled" aria-disabled="true" aria-label="First Page">
-                    <i class="voyager-angle-double-left"></i>
+                    <i class="voyager-double-left"></i>
                 </span>
             @else
                 <a href="{{ $paginator->url(1) }}" class="pagination-btn pagination-first" rel="first" aria-label="First Page">
-                    <i class="voyager-angle-double-left"></i>
+                    <i class="voyager-double-left"></i>
                 </a>
             @endif
 
@@ -66,11 +66,11 @@
             {{-- Last Page Button --}}
             @if ($currentPage == $lastPage)
                 <span class="pagination-btn pagination-last disabled" aria-disabled="true" aria-label="Last Page">
-                    <i class="voyager-angle-double-right"></i>
+                    <i class="voyager-double-right"></i>
                 </span>
             @else
                 <a href="{{ $paginator->url($lastPage) }}" class="pagination-btn pagination-last" rel="last" aria-label="Last Page">
-                    <i class="voyager-angle-double-right"></i>
+                    <i class="voyager-double-right"></i>
                 </a>
             @endif
 
