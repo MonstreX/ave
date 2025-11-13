@@ -8,6 +8,7 @@ use Monstrex\Ave\Core\Columns\Column;
 use Monstrex\Ave\Core\Components\Div;
 use Monstrex\Ave\Core\Criteria\FieldEqualsFilter;
 use Monstrex\Ave\Core\Fields\BelongsToSelect;
+use Monstrex\Ave\Core\Fields\Hidden;
 use Monstrex\Ave\Core\Fields\Number;
 use Monstrex\Ave\Core\Fields\Select;
 use Monstrex\Ave\Core\Fields\TextInput;
@@ -35,8 +36,9 @@ class Resource extends BaseResource
     public static function beforeCreate(array $data, \Illuminate\Http\Request $request): array
     {
         // Auto-fill menu_id from URL query parameter
-        if ($request->has('menu_id') && !isset($data['menu_id'])) {
-            $data['menu_id'] = $request->get('menu_id');
+        $menuId = $request->input('menu_id') ?? $request->query('menu_id');
+        if ($menuId && !isset($data['menu_id'])) {
+            $data['menu_id'] = $menuId;
         }
 
         return $data;
@@ -70,7 +72,14 @@ class Resource extends BaseResource
 
     public static function form($context): Form
     {
+        // $context is actually the Request object
+        $request = $context;
+
         return Form::make()->schema([
+            // Hidden field for menu_id from URL query parameter
+            Hidden::make('menu_id')
+                ->default($request?->query('menu_id')),
+
             Div::make('row')->schema([
                 Div::make('col-12 col-lg-6')->schema([
                     TextInput::make('title')
