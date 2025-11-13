@@ -14,6 +14,7 @@ abstract class BaseAction implements ActionInterface
     protected string $color = 'primary';
     protected ?string $confirm = null;
     protected ?string $ability = null;
+    protected int $order = 100;
 
     public function key(): string
     {
@@ -53,6 +54,11 @@ abstract class BaseAction implements ActionInterface
     public function ability(): ?string
     {
         return $this->ability;
+    }
+
+    public function order(): int
+    {
+        return $this->order;
     }
 
     public function authorize(ActionContext $context): bool

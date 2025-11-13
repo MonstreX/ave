@@ -375,6 +375,11 @@ class ResourceController extends Controller
             throw $exception;
         }
 
+        // Auto-fill menu_id from URL if present and not in data
+        if ($slug === 'menu-items' && $request->has('menu_id') && !isset($data['menu_id'])) {
+            $data['menu_id'] = $request->get('menu_id');
+        }
+
         $model = $this->persistence->create($resourceClass, $form, $data, $request, $context);
 
         return $this->redirectAfterSave($request, $slug, $model, 'create');
@@ -690,8 +695,14 @@ class ResourceController extends Controller
                 ->with('status', $statusMessage);
         }
 
+        // For menu-items, redirect back with menu_id filter
+        $routeParams = ['slug' => $slug];
+        if ($slug === 'menu-items' && isset($model->menu_id)) {
+            $routeParams['menu_id'] = $model->menu_id;
+        }
+
         return redirect()
-            ->route('ave.resource.index', ['slug' => $slug])
+            ->route('ave.resource.index', $routeParams)
             ->with('status', $statusMessage)
             ->with('model_id', $model->getKey());
     }

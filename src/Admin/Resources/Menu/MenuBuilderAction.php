@@ -12,6 +12,7 @@ class MenuBuilderAction extends BaseAction implements RowAction
     protected string $key = 'menu-builder';
     protected string $color = 'info';
     protected ?string $ability = 'update';
+    protected int $order = 1;
 
     public function label(): string
     {

@@ -231,7 +231,12 @@ abstract class Resource implements Authorizable
             $filtered[$instance->key()] = $instance;
         }
 
-        return array_values($filtered);
+        $result = array_values($filtered);
+
+        // Sort actions by order (lower = first)
+        usort($result, fn($a, $b) => $a->order() <=> $b->order());
+
+        return $result;
     }
 
     protected static function instantiateAction(mixed $action): ?ActionInterface

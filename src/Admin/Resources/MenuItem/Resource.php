@@ -57,20 +57,6 @@ class Resource extends BaseResource
         return Form::make()->schema([
             Div::make('row')->schema([
                 Div::make('col-12 col-lg-6')->schema([
-                    BelongsToSelect::make('menu_id')
-                        ->label('Menu')
-                        ->relationship('menu', 'name')
-                        ->required(),
-                ]),
-                Div::make('col-12 col-lg-6')->schema([
-                    BelongsToSelect::make('parent_id')
-                        ->label('Parent item')
-                        ->relationship('parent', 'title')
-                        ->nullable(),
-                ]),
-            ]),
-            Div::make('row')->schema([
-                Div::make('col-12 col-lg-6')->schema([
                     TextInput::make('title')
                         ->label('Title')
                         ->required(),
