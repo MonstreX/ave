@@ -4,7 +4,7 @@
     $fieldInputName = $inputName ?? \Monstrex\Ave\Support\FormInputName::nameFromStatePath($fieldStatePath);
     $fieldInputId = $inputId ?? \Monstrex\Ave\Support\FormInputName::idFromStatePath($fieldStatePath);
 @endphp
-<div class="form-field media-field @if($hasError) has-error @endif" data-field-name="{{ $fieldStatePath }}">
+<div class="form-field media-field @if($hasError) has-error @endif" data-field-name="{{ $fieldStatePath }}" data-field-id="{{ $fieldInputId }}">
     @if($label)
         <label for="{{ $fieldInputId }}" class="form-label">
             {{ $label }}

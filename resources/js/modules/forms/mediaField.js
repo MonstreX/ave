@@ -143,7 +143,9 @@ export default function initMediaFields(root = document) {
         const modelId = container.dataset.modelId || '';
         const customPath = container.dataset.customPath || '';  // Custom path from pathGenerator
         const pathPrefix = container.dataset.pathPrefix || '';
-        const fieldName = container.closest('[data-field-name]')?.dataset.fieldName || 'media';
+        const fieldWrapper = container.closest('[data-field-name]');
+        const fieldName = fieldWrapper?.dataset.fieldName || 'media';
+        const fieldId = fieldWrapper?.dataset.fieldId || fieldName.replace(/[^A-Za-z0-9_-]+/g, '-');
         let metaKey = computeMetaKey(container.dataset.metaKey || fieldName);
         container.dataset.metaKey = metaKey;
         const propNames = JSON.parse(container.dataset.propNames || '[]');
@@ -447,9 +449,9 @@ export default function initMediaFields(root = document) {
         }
 
         function addMediaItem(media) {
-            const template = document.getElementById('media-item-template-' + fieldName);
+            const template = document.getElementById('media-item-template-' + fieldId);
             if (!template) {
-                console.error('Media item template not found:', 'media-item-template-' + fieldName);
+                console.error('Media item template not found:', 'media-item-template-' + fieldId);
                 return;
             }
 
