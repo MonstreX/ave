@@ -33,6 +33,12 @@ class Column
     protected array|string|null $inlineRules = null;
     protected ?array $linkAction = null;
     protected mixed $linkUrl = null;
+    // Styling properties
+    protected ?string $fontSize = null;
+    protected int|string|null $fontWeight = null;
+    protected bool $fontItalic = false;
+    protected bool $fontBold = false;
+    protected ?string $textColor = null;
 
     public function __construct(string $key)
     {
@@ -149,6 +155,62 @@ class Column
     public function format(Closure $callback): static
     {
         $this->formatCallback = $callback;
+        return $this;
+    }
+
+    /**
+     * Set font size for the column value.
+     * 
+     * @param string $size CSS font-size value (e.g., '12px', '0.875rem', '14px')
+     */
+    public function fontSize(string $size): static
+    {
+        $this->fontSize = $size;
+        return $this;
+    }
+
+    /**
+     * Set font weight for the column value.
+     * 
+     * @param int|string $weight CSS font-weight value (e.g., 400, 600, 700, 'normal', 'bold')
+     */
+    public function fontWeight(int|string $weight): static
+    {
+        $this->fontWeight = (string) $weight;
+        return $this;
+    }
+
+    /**
+     * Make the column value bold (font-weight: 700).
+     */
+    public function bold(bool $on = true): static
+    {
+        $this->fontBold = $on;
+        if ($on) {
+            $this->fontWeight = '700';
+        } elseif ($this->fontWeight === '700') {
+            $this->fontWeight = null;
+        }
+        return $this;
+    }
+
+    /**
+     * Make the column value italic (font-style: italic).
+     */
+    public function italic(bool $on = true): static
+    {
+        $this->fontItalic = $on;
+        return $this;
+    }
+
+    /**
+     * Set text color for the column value.
+     * 
+     * @param string $color CSS color value (e.g., '#ff0000', 'red', 'rgb(255, 0, 0)')
+     */
+    public function color(string $color): static
+    {
+        $this->textColor = $color;
         return $this;
     }
 
@@ -346,6 +408,43 @@ class Column
     public function getMeta(): array
     {
         return $this->meta;
+    }
+
+    /**
+     * Get inline styles string for the column cell.
+     */
+    public function getCellStyle(): string
+    {
+        $styles = [];
+
+        if ($this->fontSize !== null) {
+            $styles[] = "font-size: {$this->fontSize}";
+        }
+
+        if ($this->fontWeight !== null) {
+            $styles[] = "font-weight: {$this->fontWeight}";
+        }
+
+        if ($this->fontItalic) {
+            $styles[] = "font-style: italic";
+        }
+
+        if ($this->textColor !== null) {
+            $styles[] = "color: {$this->textColor}";
+        }
+
+        return implode('; ', $styles);
+    }
+
+    /**
+     * Check if column has any custom styles.
+     */
+    public function hasCustomStyles(): bool
+    {
+        return $this->fontSize !== null
+            || $this->fontWeight !== null
+            || $this->fontItalic
+            || $this->textColor !== null;
     }
 
     public function resolveRecordValue(mixed $record): mixed

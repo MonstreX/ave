@@ -8,6 +8,7 @@
         'text-' . $column->getAlign(),
         $column->getCellClass(),
     ]);
+    $valueStyles = $column->hasCustomStyles() ? $column->getCellStyle() : '';
 @endphp
 <td class="{{ implode(' ', $classes) }}">
     @php

@@ -12,6 +12,7 @@
     if ($width !== null) {
         $styles[] = 'width: ' . (is_numeric($width) ? $width . 'px' : $width);
     }
+    $valueStyles = $column->hasCustomStyles() ? $column->getCellStyle() : '';
 @endphp
 <td class="{{ implode(' ', $classes) }}" @if(!empty($styles)) style="{{ implode('; ', $styles) }}" @endif>
     @if($formattedValue !== '' && $formattedValue !== null)

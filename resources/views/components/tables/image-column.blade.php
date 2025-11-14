@@ -28,6 +28,7 @@
     $fitClass = $column->getFit() === 'cover'
         ? 'image-column__image--fit-cover'
         : 'image-column__image--fit-height';
+    $valueStyles = $column->hasCustomStyles() ? $column->getCellStyle() : '';
 @endphp
 <td class="{{ implode(' ', $classes) }}">
     <div class="image-column__list image-column__list--{{ $display }}">

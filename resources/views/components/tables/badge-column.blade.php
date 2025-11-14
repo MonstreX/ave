@@ -12,10 +12,11 @@
         $displayValue = '—';
     }
     $color = $column->resolveColor($displayValue);
+    $valueStyles = $column->hasCustomStyles() ? $column->getCellStyle() : '';
     $icon = $column->resolveIcon($displayValue);
 @endphp
 <td class="{{ implode(' ', $classes) }}">
-    <span class="badge badge-{{ $color }} {{ $column->isPill() ? 'badge-pill' : '' }}">
+    <span class="badge badge-{{ $color }} {{ $column->isPill() ? 'badge-pill' : '' }}" @if($valueStyles) style="{{ $valueStyles }}" @endif>
         @if($icon)
             <i class="{{ $icon }}"></i>
         @endif

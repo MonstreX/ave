@@ -24,9 +24,12 @@
     }
 
     $displayValue = $formattedValue === null || $formattedValue === '' ? '—' : $formattedValue;
+    
+    // Custom column styles (font-size, font-weight, color, etc.)
+    $valueStyles = $column->hasCustomStyles() ? $column->getCellStyle() : '';
 @endphp
 <td class="{{ implode(' ', $classes) }}" @if(!empty($styles)) style="{{ implode('; ', $styles) }}" @endif>
-    <div class="table-cell__value" @if($column->getTooltip()) title="{{ $column->getTooltip() }}" @endif>
+    <div class="table-cell__value" @if($column->getTooltip()) title="{{ $column->getTooltip() }}" @endif @if($valueStyles) style="{{ $valueStyles }}" @endif>
         @if(!empty($link))
             <a href="{{ $link }}" class="table-link">
                 @if($column->shouldEscape())
