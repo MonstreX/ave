@@ -3,7 +3,6 @@
  */
 import Sortable from 'sortablejs';
 import { showToast } from '../ui/toast.js';
-import { ANIMATION_DURATIONS } from '../forms/formConstants.js';
 
 const csrfMeta = document.querySelector('meta[name="csrf-token"]');
 const CSRF_TOKEN = csrfMeta ? csrfMeta.content : '';
@@ -24,19 +23,25 @@ function initializeSortable(tbody) {
         return;
     }
 
-    // Initialize SortableJS on tbody
-    tbody.sortableInstance = Sortable.create(tbody, {
-        animation: ANIMATION_DURATIONS.SORTABLE || 150,
-        handle: '.sortable-drag-handle',
+    // Initialize SortableJS on tbody - EXACTLY like working test
+    const sortable = Sortable.create(tbody, {
+        animation: 150,
         ghostClass: 'sortable-ghost',
         dragClass: 'sortable-drag',
-        direction: 'vertical',
-
-        onEnd: (evt) => {
-            // Save new order after drag ends
-            saveSortableOrder(tbody, slug, orderColumn, updateEndpoint);
+        
+        onStart: function(evt) {
+            console.log('Drag started:', evt.item);
+        },
+        
+        onEnd: function(evt) {
+            console.log('Drag ended. Old index:', evt.oldIndex, 'New index:', evt.newIndex);
+            if (evt.oldIndex !== evt.newIndex) {
+                saveSortableOrder(tbody, slug, orderColumn, updateEndpoint);
+            }
         }
     });
+
+    tbody.sortableInstance = sortable;
 }
 
 /**
@@ -75,36 +80,18 @@ function saveSortableOrder(tbody, slug, orderColumn, updateEndpoint) {
             items: items
         })
     })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
-        }
-        return response.json();
-    })
+    .then(response => response.json())
     .then(data => {
         if (data.success) {
             showToast('success', data.message || 'Order updated successfully');
         } else {
             showToast('danger', data.message || 'Failed to update order');
-            // Revert order on failure
-            revertSortableOrder(tbody);
+            window.location.reload();
         }
     })
     .catch(error => {
         console.error('Sortable table update error:', error);
         showToast('danger', 'Failed to update table order');
-        // Revert order on error
-        revertSortableOrder(tbody);
+        setTimeout(() => window.location.reload(), 1500);
     });
-}
-
-/**
- * Revert table order by reloading the page
- */
-function revertSortableOrder(tbody) {
-    // Simple approach: reload page to restore original order
-    // Alternative: store original order before drag and restore from memory
-    setTimeout(() => {
-        window.location.reload();
-    }, 1500);
 }

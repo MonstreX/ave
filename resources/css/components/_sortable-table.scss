@@ -3,6 +3,11 @@
 // Drag-n-drop row reordering for tables
 // ============================================
 
+// Make rows draggable with cursor
+tbody[data-sortable="true"] tr {
+    cursor: move;
+}
+
 // Sortable handle column
 .sortable-handle-column {
     width: 40px;
@@ -66,48 +71,13 @@
     }
 }
 
-// Row being dragged
-.sortable-drag {
-    opacity: 1;
-    background-color: #ffffff !important;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    border: 2px solid #3490dc !important;
-
-    td {
-        border-color: transparent !important;
-    }
-}
-
 // Ghost placeholder (where the row will drop)
 .sortable-ghost {
     opacity: 0.4;
     background-color: #e0f2fe !important;
-
-    td {
-        border-color: #3490dc !important;
-        color: transparent;
-    }
-
-    // Hide drag handle in ghost
-    .sortable-drag-handle {
-        visibility: hidden;
-    }
 }
 
-// Ensure sortable rows have proper cursor when hovering over drag handle
-.sortable-row {
-    transition: background-color 0.15s ease;
-
-    &:hover .sortable-drag-handle {
-        background-color: #f3f4f6;
-    }
-}
-
-// Disable pointer events on table cells during drag to prevent issues
-.sortable-chosen {
-    cursor: grabbing !important;
-
-    td {
-        pointer-events: none;
-    }
+// Row being dragged
+.sortable-drag {
+    background: #fff;
 }
