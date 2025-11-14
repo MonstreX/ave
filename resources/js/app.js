@@ -11,6 +11,7 @@ import initResourceActions from './modules/resources/actions.js';
 import initInlineEditing from './modules/resources/inlineEditing.js';
 import initPagination from './modules/resources/pagination.js';
 import initTreeView from './modules/resources/treeView.js';
+import initSortableTable from './modules/resources/sortableTable.js';
 import initFormValidation from './modules/forms/formValidation.js';
 
 // Expose global event bus
@@ -35,6 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initResourceActions();
     initInlineEditing();
     initPagination();
+    initSortableTable();
     initTreeView();
 
     // Notify all listeners that DOM is ready and initialized
