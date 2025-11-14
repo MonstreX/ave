@@ -279,29 +279,7 @@ class ResourceController extends Controller
 
         // Paginate for table mode
         $perPage = $this->resolvePerPage($request, $table, $slug);
-
-        // Check if loadAll mode is enabled and within limits
-        if ($table->shouldLoadAll()) {
-            $maxLoadAll = $table->getMaxLoadAll() ?? config('ave.pagination.max_load_all', 1000);
-            $totalCount = $query->count();
-
-            if ($totalCount <= $maxLoadAll) {
-                // Load all records and create manual paginator
-                $allRecords = $query->get();
-                $records = new \Illuminate\Pagination\LengthAwarePaginator(
-                    $allRecords,
-                    $totalCount,
-                    $totalCount,
-                    1,
-                    ['path' => $request->url(), 'query' => $request->query()]
-                );
-            } else {
-                // Fallback to regular pagination if exceeds limit
-                $records = $query->paginate($perPage)->appends($request->query());
-            }
-        } else {
-            $records = $query->paginate($perPage)->appends($request->query());
-        }
+        $records = $query->paginate($perPage)->appends($request->query());
 
         return $this->renderer->index($resourceClass, $table, $records, $request, $criteriaBadges);
     }
@@ -848,7 +826,12 @@ class ResourceController extends Controller
         [$resourceClass, $resource] = $this->resolveAndAuthorize($slug, 'update', $request);
 
         $modelClass = $resourceClass::$model;
-        $table = $resourceClass::table(null);
+        $table = $resourceClass::table($request);
+
+        if ($table->getDisplayMode() !== 'sortable') {
+            throw new ResourceException("Resource '{$slug}' does not support sortable mode", 422);
+        }
+
         $orderColumn = $table->getOrderColumn() ?? 'order';
 
         $validated = $request->validate([
@@ -857,18 +840,25 @@ class ResourceController extends Controller
             "items.*.{$orderColumn}" => 'required|integer',
         ]);
 
-        // Check authorization for each item
+        $user = $request->user();
+        $loadedModels = [];
+
+        // Check authorization for each item and keep loaded models for saving
         foreach ($validated['items'] as $itemData) {
             $model = $modelClass::findOrFail($itemData['id']);
-            if (!$resource->can('update', $request->user(), $model)) {
+
+            if (!$resource->can('update', $user, $model)) {
                 throw ResourceException::unauthorized($slug, 'update');
             }
+
+            $loadedModels[$itemData['id']] = $model;
         }
 
-        // Update order for all items
+        // Update order for all items through Eloquent to trigger events/mutators
         foreach ($validated['items'] as $itemData) {
-            $modelClass::where('id', $itemData['id'])
-                ->update([$orderColumn => $itemData[$orderColumn]]);
+            $model = $loadedModels[$itemData['id']];
+            $model->setAttribute($orderColumn, $itemData[$orderColumn]);
+            $model->save();
         }
 
         return response()->json([
@@ -886,26 +876,37 @@ class ResourceController extends Controller
     {
         [$resourceClass, $resource] = $this->resolveAndAuthorize($slug, 'update', $request);
 
+        $table = $resourceClass::table($request);
+
+        if ($table->getDisplayMode() !== 'tree') {
+            throw new ResourceException("Resource '{$slug}' does not support tree mode", 422);
+        }
+
         $validated = $request->validate([
             'tree' => 'required|array',
-            'parent_column' => 'required|string',
-            'order_column' => 'required|string',
         ]);
 
         $modelClass = $resourceClass::$model;
-        $parentCol = $validated['parent_column'];
-        $orderCol = $validated['order_column'];
+        $parentCol = $table->getParentColumn() ?? 'parent_id';
+        $orderCol = $table->getOrderColumn() ?? 'order';
+        $maxDepth = max(1, $table->getTreeMaxDepth());
+
+        $treePayload = $this->normalizeTreePayload($validated['tree']);
+        $this->assertTreeDepthWithinLimit($treePayload, $maxDepth);
 
         // Process tree recursively
         $this->processTreeItems(
             $modelClass,
-            $validated['tree'],
+            $treePayload,
             null,
             0,
             $parentCol,
             $orderCol,
             $resource,
-            $request->user()
+            $request->user(),
+            1,
+            $maxDepth,
+            $slug
         );
 
         return response()->json([
@@ -925,25 +926,34 @@ class ResourceController extends Controller
         string $parentCol,
         string $orderCol,
         $resource,
-        $user
+        $user,
+        int $currentDepth,
+        int $maxDepth,
+        string $slug
     ): void {
+        if ($currentDepth > $maxDepth) {
+            throw new ResourceException("Tree depth exceeds allowed maximum for resource '{$slug}'", 422);
+        }
+
         foreach ($items as $index => $item) {
+            if (!isset($item['id'])) {
+                throw new ResourceException('Tree payload is missing node id', 422);
+            }
+
             $model = $modelClass::findOrFail($item['id']);
 
             // Check authorization
             if (!$resource->can('update', $user, $model)) {
-                throw ResourceException::unauthorized('resource', 'update');
+                throw ResourceException::unauthorized($slug, 'update');
             }
 
             // Update parent_id and order
-            $modelClass::where('id', $item['id'])
-                ->update([
-                    $parentCol => $parentId,
-                    $orderCol => $order + $index,
-                ]);
+            $model->setAttribute($parentCol, $parentId);
+            $model->setAttribute($orderCol, $order + $index);
+            $model->save();
 
             // Process children recursively
-            if (isset($item['children']) && is_array($item['children'])) {
+            if (isset($item['children']) && is_array($item['children']) && count($item['children']) > 0) {
                 $this->processTreeItems(
                     $modelClass,
                     $item['children'],
@@ -952,8 +962,58 @@ class ResourceController extends Controller
                     $parentCol,
                     $orderCol,
                     $resource,
-                    $user
+                    $user,
+                    $currentDepth + 1,
+                    $maxDepth,
+                    $slug
                 );
+            }
+        }
+    }
+
+    /**
+     * Normalize and validate tree payload.
+     *
+     * @param  array<int,array<string,mixed>>  $items
+     * @return array<int,array<string,mixed>>
+     */
+    protected function normalizeTreePayload(array $items): array
+    {
+        return array_map(function ($item) {
+            if (!isset($item['id'])) {
+                throw new ResourceException('Tree payload is missing node id', 422);
+            }
+
+            $normalized = [
+                'id' => (int) $item['id'],
+            ];
+
+            if (isset($item['children'])) {
+                if (!is_array($item['children'])) {
+                    throw new ResourceException('Tree node children must be an array', 422);
+                }
+
+                $normalized['children'] = $this->normalizeTreePayload($item['children']);
+            }
+
+            return $normalized;
+        }, $items);
+    }
+
+    /**
+     * Ensure tree depth never exceeds configured limit.
+     *
+     * @param  array<int,array<string,mixed>>  $items
+     */
+    protected function assertTreeDepthWithinLimit(array $items, int $maxDepth, int $currentDepth = 1): void
+    {
+        if ($currentDepth > $maxDepth) {
+            throw new ResourceException('Tree depth exceeds the configured limit', 422);
+        }
+
+        foreach ($items as $item) {
+            if (isset($item['children']) && is_array($item['children']) && count($item['children']) > 0) {
+                $this->assertTreeDepthWithinLimit($item['children'], $maxDepth, $currentDepth + 1);
             }
         }
     }

@@ -563,6 +563,29 @@ class ResourceControllerTest extends TestCase
         $this->assertSame(2, TestRecord::find(2)->order);
     }
 
+    public function test_reorder_requires_sortable_mode(): void
+    {
+        TestRecord::insert([
+            ['id' => 1, 'title' => 'Item 1', 'order' => 0, 'tenant_id' => 1],
+        ]);
+
+        // No sortable() call
+        TestResource::setTableFactory(function () {
+            return Table::make();
+        });
+
+        $controller = $this->makeController();
+        $request = Request::create('/admin/resource/test-items/reorder', 'POST', [
+            'items' => [
+                ['id' => 1, 'order' => 0],
+            ],
+        ]);
+        $request->setUserResolver(fn () => new FakeUser(10, 1));
+
+        $this->expectException(ResourceException::class);
+        $controller->reorder($request, 'test-items');
+    }
+
     public function test_update_tree_updates_hierarchy_and_order(): void
     {
         TestRecord::insert([
@@ -586,8 +609,6 @@ class ResourceControllerTest extends TestCase
                     ],
                 ],
             ],
-            'parent_column' => 'parent_id',
-            'order_column' => 'order',
         ]);
         $request->setUserResolver(fn () => new FakeUser(10, 1));
 
@@ -612,6 +633,50 @@ class ResourceControllerTest extends TestCase
 
         $this->assertSame(1, $item3->parent_id);
         $this->assertSame(1, $item3->order);
+    }
+
+    public function test_update_tree_requires_tree_mode(): void
+    {
+        TestResource::setTableFactory(function () {
+            return Table::make(); // default table mode
+        });
+
+        $controller = $this->makeController();
+        $request = Request::create('/admin/resource/test-items/update-tree', 'POST', [
+            'tree' => [],
+        ]);
+        $request->setUserResolver(fn () => new FakeUser(10, 1));
+
+        $this->expectException(ResourceException::class);
+        $controller->updateTree($request, 'test-items');
+    }
+
+    public function test_update_tree_respects_max_depth(): void
+    {
+        TestRecord::insert([
+            ['id' => 1, 'title' => 'Parent', 'parent_id' => null, 'order' => 0, 'tenant_id' => 1],
+            ['id' => 2, 'title' => 'Child', 'parent_id' => null, 'order' => 1, 'tenant_id' => 1],
+        ]);
+
+        TestResource::setTableFactory(function () {
+            return Table::make()->tree('parent_id', 'order', 'title', 1); // only root level allowed
+        });
+
+        $controller = $this->makeController();
+        $request = Request::create('/admin/resource/test-items/update-tree', 'POST', [
+            'tree' => [
+                [
+                    'id' => 1,
+                    'children' => [
+                        ['id' => 2],
+                    ],
+                ],
+            ],
+        ]);
+        $request->setUserResolver(fn () => new FakeUser(10, 1));
+
+        $this->expectException(ResourceException::class);
+        $controller->updateTree($request, 'test-items');
     }
 
     public function test_index_loads_all_records_for_tree_mode(): void

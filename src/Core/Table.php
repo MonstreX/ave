@@ -16,8 +16,6 @@ class Table
     protected int $perPage = 25;
     protected array $perPageOptions = [10, 25, 50, 100];
     protected bool $showPerPageSelector = true;
-    protected bool $loadAll = false;
-    protected ?int $maxLoadAll = null;
     protected bool $searchable = true;
     protected ?string $searchPlaceholder = null;
 
@@ -77,21 +75,6 @@ class Table
     public function showPerPageSelector(bool $show = true): static
     {
         $this->showPerPageSelector = $show;
-        return $this;
-    }
-
-    public function loadAll(bool $loadAll = true, ?int $maxRecords = null): static
-    {
-        $this->loadAll = $loadAll;
-        if ($maxRecords !== null) {
-            $this->maxLoadAll = $maxRecords;
-        }
-        return $this;
-    }
-
-    public function maxLoadAll(?int $max): static
-    {
-        $this->maxLoadAll = $max;
         return $this;
     }
 
@@ -205,16 +188,6 @@ class Table
     public function shouldShowPerPageSelector(): bool
     {
         return $this->showPerPageSelector;
-    }
-
-    public function shouldLoadAll(): bool
-    {
-        return $this->loadAll;
-    }
-
-    public function getMaxLoadAll(): ?int
-    {
-        return $this->maxLoadAll;
     }
 
     public function findInlineColumn(string $field): ?Column
