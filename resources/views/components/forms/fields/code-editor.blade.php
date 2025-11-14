@@ -1,5 +1,8 @@
 {{-- resources/views/components/forms/fields/code-editor.blade.php --}}
 @php
+    $fieldStatePath = $statePath ?? $field->getStatePath();
+    $fieldInputName = $inputName ?? \Monstrex\Ave\Support\FormInputName::nameFromStatePath($fieldStatePath);
+    $fieldInputId = $inputId ?? \Monstrex\Ave\Support\FormInputName::idFromStatePath($fieldStatePath);
     $labelText = $label ?? $field->getLabel();
     $helpText = ($help ?? null) ?: $field->getHelpText();
     $isRequired = $required ?? $field->isRequired();
@@ -7,9 +10,9 @@
     $isReadonly = $readonly ?? false;
 @endphp
 
-<div class="form-field @if($hasError) has-error @endif" data-field-type="code-editor">
+<div class="form-field @if($hasError) has-error @endif" data-field-type="code-editor" data-field-name="{{ $fieldStatePath }}">
     @if($labelText)
-        <label for="{{ $key }}" class="form-label">
+        <label for="{{ $fieldInputId }}" class="form-label">
             {{ $labelText }}
             @if($isRequired)
                 <span class="required">*</span>
@@ -19,8 +22,8 @@
 
     <div class="code-editor-wrapper" data-theme="{{ $theme }}">
         <textarea
-            id="{{ $key }}"
-            name="{{ $key }}"
+            id="{{ $fieldInputId }}"
+            name="{{ $fieldInputName }}"
             class="code-editor-field"
             data-language="{{ $language }}"
             data-height="{{ $height }}"
@@ -37,7 +40,7 @@
         >{{ is_array($value) ? json_encode($value, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) : ($value ?? '') }}</textarea>
 
         <!-- CodeMirror will be mounted here -->
-        <div class="code-editor-content" data-editor-target="{{ $key }}"></div>
+        <div class="code-editor-content" data-editor-target="{{ $fieldInputId }}"></div>
     </div>
 
     @if(!empty($errors))

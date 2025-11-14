@@ -1,5 +1,7 @@
 @php
-    $name = $field->key();
+    $fieldStatePath = $statePath ?? $field->getStatePath();
+    $fieldInputName = $inputName ?? \Monstrex\Ave\Support\FormInputName::nameFromStatePath($fieldStatePath);
+    $fieldInputId = $inputId ?? \Monstrex\Ave\Support\FormInputName::idFromStatePath($fieldStatePath);
     $labelText = $field->getLabel();
     $helpText = $field->getHelpText();
     $isRequired = $field->isRequired();
@@ -7,9 +9,9 @@
     $inputValue = $value ?? $field->getValue();
 @endphp
 
-<div class="form-field slug-field">
+<div class="form-field slug-field" data-field-name="{{ $fieldStatePath }}">
     @if(!empty($labelText))
-        <label for="{{ $name }}" class="form-label">
+        <label for="{{ $fieldInputId }}" class="form-label">
             {{ $labelText }}
             @if($isRequired)
                 <span class="required">*</span>
@@ -20,9 +22,9 @@
     <div class="slug-input-wrapper" style="position: relative;">
         <input
             type="text"
-            id="{{ $name }}"
-            name="{{ $name }}"
-            value="{{ old($name, $inputValue) }}"
+            id="{{ $fieldInputId }}"
+            name="{{ $fieldInputName }}"
+            value="{{ old($fieldStatePath, $inputValue) }}"
             class="form-control slug-input @if($hasError) is-invalid @endif"
 
             {{-- Data attributes для JS --}}

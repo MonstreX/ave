@@ -1,19 +1,21 @@
 @php
-    $id = 'toggle_' . uniqid();
-    $isChecked = $checked ?? ($value ?? false) ?? old($key);
+    $fieldStatePath = $statePath ?? $field->getStatePath();
+    $fieldInputName = $inputName ?? \Monstrex\Ave\Support\FormInputName::nameFromStatePath($fieldStatePath);
+    $fieldInputId = $inputId ?? 'toggle_' . uniqid();
+    $isChecked = $checked ?? ($value ?? false) ?? old($fieldStatePath);
     $onLabel = $field->getOnLabel() ?? 'On';
     $offLabel = $field->getOffLabel() ?? 'Off';
 @endphp
 
-<div class="form-field @if($hasError) has-error @endif">
+<div class="form-field @if($hasError) has-error @endif" data-field-name="{{ $fieldStatePath }}">
     <div class="toggle-wrapper">
         <div class="toggle @if(!$isChecked) off @endif"
              data-toggle="toggle"
              data-on="{{ $onLabel }}"
              data-off="{{ $offLabel }}">
             <input type="checkbox"
-                   id="{{ $id }}"
-                   name="{{ $key }}"
+                   id="{{ $fieldInputId }}"
+                   name="{{ $fieldInputName }}"
                    class="toggleswitch"
                    @if($isChecked) checked @endif
                    @if($required ?? $field->isRequired()) required @endif

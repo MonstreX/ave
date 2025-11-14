@@ -6,7 +6,10 @@
     <div class="criteria-badges">
         @foreach($criteriaBadges as $badge)
             @php
-                $variantClass = 'btn-' . ($badge['variant'] ?? 'primary');
+                $variant = $badge['variant'] ?? 'primary';
+                $variantClass = $variant === 'limit-warning'
+                    ? 'btn-warning criteria-badge--limit'
+                    : 'btn-' . $variant;
                 $key = $badge['key'] ?? null;
                 $removeUrl = $key ? request()->fullUrlWithoutQuery($key) : request()->url();
             @endphp

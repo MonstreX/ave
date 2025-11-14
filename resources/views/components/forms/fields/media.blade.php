@@ -1,7 +1,12 @@
 {{-- resources/views/components/forms/fields/media.blade.php --}}
-<div class="form-field media-field @if($hasError) has-error @endif" data-field-name="{{ $key }}">
+@php
+    $fieldStatePath = $statePath ?? $field->getStatePath();
+    $fieldInputName = $inputName ?? \Monstrex\Ave\Support\FormInputName::nameFromStatePath($fieldStatePath);
+    $fieldInputId = $inputId ?? \Monstrex\Ave\Support\FormInputName::idFromStatePath($fieldStatePath);
+@endphp
+<div class="form-field media-field @if($hasError) has-error @endif" data-field-name="{{ $fieldStatePath }}">
     @if($label)
-        <label for="{{ $key }}" class="form-label">
+        <label for="{{ $fieldInputId }}" class="form-label">
             {{ $label }}
             @if($required)
                 <span class="required">*</span>
@@ -41,8 +46,8 @@
         {{-- Upload Area --}}
         <div class="media-upload-area" data-media-dropzone>
             <input type="file"
-                   id="{{ $key }}_file_input"
-                   name="{{ $key }}_files[]"
+                   id="{{ $fieldInputId }}_file_input"
+                   name="{{ $fieldInputId }}_files[]"
                    @if($multiple) multiple @endif
                    @if(!empty($accept)) accept="{{ $acceptString }}" @endif
                    class="media-file-input"
@@ -150,7 +155,7 @@
         </div>
 
         {{-- Hidden inputs for tracking changes --}}
-        <input type="hidden" name="{{ $key }}" value="{{ $collection }}" data-media-value>
+        <input type="hidden" name="{{ $fieldInputName }}" value="{{ $collection }}" data-media-value>
         <input type="hidden" name="__media_uploaded[{{ $metaKey }}]" value="" data-uploaded-ids>
         <input type="hidden" name="__media_deleted[{{ $metaKey }}]" value="" data-deleted-ids>
     </div>
@@ -169,7 +174,7 @@
 </div>
 
 {{-- Template for dynamically added media items --}}
-<template id="media-item-template-{{ $key }}">
+<template id="media-item-template-{{ $fieldInputId }}">
     <div class="media-item" data-media-id="">
         <div class="media-order"></div>
         <div class="media-preview @if($multiple) media-drag-handle @endif">

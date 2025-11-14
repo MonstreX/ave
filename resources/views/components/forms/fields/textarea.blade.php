@@ -1,6 +1,8 @@
 {{-- resources/views/components/forms/fields/textarea.blade.php --}}
 @php
-    $name = ($key ?? null) ?: $field->key();
+    $fieldStatePath = $statePath ?? $field->getStatePath();
+    $fieldInputName = $inputName ?? \Monstrex\Ave\Support\FormInputName::nameFromStatePath($fieldStatePath);
+    $fieldInputId = $inputId ?? \Monstrex\Ave\Support\FormInputName::idFromStatePath($fieldStatePath);
     $labelText = $label ?? $field->getLabel();
     $helpText = ($help ?? null) ?: $field->getHelpText();
     $isRequired = $required ?? $field->isRequired();
@@ -11,9 +13,9 @@
     $rowsCount = $rows ?? 4;
 @endphp
 
-<div class="form-field @if($hasError) has-error @endif">
+<div class="form-field @if($hasError) has-error @endif" data-field-name="{{ $fieldStatePath }}">
     @if(!empty($labelText))
-        <label for="{{ $name }}" class="form-label">
+        <label for="{{ $fieldInputId }}" class="form-label">
             {{ $labelText }}
             @if($isRequired)
                 <span class="required">*</span>
@@ -22,8 +24,8 @@
     @endif
 
     <textarea
-        id="{{ $name }}"
-        name="{{ $name }}"
+        id="{{ $fieldInputId }}"
+        name="{{ $fieldInputName }}"
         rows="{{ $rowsCount }}"
         @if($isRequired) required @endif
         @if($isDisabled) disabled @endif

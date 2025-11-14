@@ -1,5 +1,8 @@
 {{-- resources/views/components/forms/fields/color-picker.blade.php --}}
 @php
+    $fieldStatePath = $statePath ?? $field->getStatePath();
+    $fieldInputName = $inputName ?? \Monstrex\Ave\Support\FormInputName::nameFromStatePath($fieldStatePath);
+    $fieldInputId = $inputId ?? \Monstrex\Ave\Support\FormInputName::idFromStatePath($fieldStatePath);
     $labelText = $label ?? $field->getLabel();
     $helpText = ($help ?? null) ?: $field->getHelpText();
     $isRequired = $required ?? $field->isRequired();
@@ -8,9 +11,9 @@
     $colorValue = $value ?? $field->getValue() ?? '#000000';
 @endphp
 
-<div class="form-field @if($hasError) has-error @endif">
+<div class="form-field @if($hasError) has-error @endif" data-field-name="{{ $fieldStatePath }}">
     @if($labelText)
-        <label for="{{ $key }}" class="form-label">
+        <label for="{{ $fieldInputId }}" class="form-label">
             {{ $labelText }}
             @if($isRequired)
                 <span class="required">*</span>
@@ -21,8 +24,8 @@
     <div class="color-picker-wrapper">
         <input
             type="color"
-            id="{{ $key }}"
-            name="{{ $key }}"
+            id="{{ $fieldInputId }}"
+            name="{{ $fieldInputName }}"
             value="{{ $colorValue }}"
             @if($isRequired) required @endif
             @if($isDisabled) disabled @endif

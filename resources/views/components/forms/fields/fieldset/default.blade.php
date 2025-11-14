@@ -5,7 +5,10 @@
     if ($field instanceof \Monstrex\Ave\Core\Fields\Fieldset) {
         $fieldsetData = $field->toArray();
 
-        $key = $field->getKey();
+        $statePath = $statePath ?? $field->getStatePath();
+        $inputName = $inputName ?? \Monstrex\Ave\Support\FormInputName::nameFromStatePath($statePath);
+        $templateId = \Monstrex\Ave\Support\FormInputName::idFromStatePath($statePath ?? 'fieldset');
+        $key = $statePath;
         $label = $field->getLabel();
         $required = $field->isRequired();
         $sortable = $field->isSortable();
@@ -17,11 +20,11 @@
         $itemInstances = $fieldsetData["itemInstances"] ?? [];
         $itemIds = $fieldsetData["itemIds"] ?? [];
         $helpText = $field->getHelpText();
-        $errors = $context ? $context->getErrors($key) : [];
+        $errors = $context ? $context->getErrors($statePath ?? $field->getKey()) : [];
     }
 @endphp
 
-<div class="form-field fieldset-field @if(!empty($errors)) has-error @endif" data-field-name="{{ $key ?? 'fieldset' }}">
+<div class="form-field fieldset-field @if(!empty($errors)) has-error @endif" data-field-name="{{ $statePath ?? 'fieldset' }}">
     <div class="fieldset-container"
          data-fieldset
          data-sortable="{{ !empty($sortable) ? 'true' : 'false' }}"
@@ -29,7 +32,7 @@
          data-collapsed="{{ !empty($collapsed) ? 'true' : 'false' }}"
          data-min-items="{{ $minItems ?? '' }}"
          data-max-items="{{ $maxItems ?? '' }}"
-         data-field-name="{{ $key ?? 'fieldset' }}">
+         data-field-name="{{ $statePath ?? 'fieldset' }}">
 
         <div class="fieldset-actions">
             <div class="fieldset-actions-left">
@@ -113,7 +116,7 @@
                             </div>
 
                             <div class="fieldset-item-fields">
-                                <input type="hidden" name="{{ $key }}[{{ $item['id'] }}][_id]" value="{{ $item['id'] }}" data-field-id>
+                                <input type="hidden" name="{{ $inputName }}[{{ $item['id'] }}][_id]" value="{{ $item['id'] }}" data-field-id>
 
                                 @if(!empty($item['fields']))
                                     @foreach($item['fields'] as $itemField)
@@ -164,7 +167,7 @@
 </div>
 
 {{-- Template for new items --}}
-<template id="fieldset-template-{{ $key ?? 'fieldset' }}">
+<template id="fieldset-template-{{ $templateId ?? 'fieldset' }}">
     @php
         $fieldsetInstance = $field; // Save fieldset instance before it gets overwritten in loops
         $templateFields = $fieldsetInstance?->prepareTemplateFields() ?? [];
@@ -214,7 +217,7 @@
 
             <div class="fieldset-item-fields">
                 {{-- Hidden field to store unique item ID (value will be set by JS) --}}
-                <input type="hidden" name="{{ $key ?? 'fieldset' }}[__ITEM__][_id]" value="" data-field-id>
+                <input type="hidden" name="{{ $inputName ?? 'fieldset' }}[__ITEM__][_id]" value="" data-field-id>
 
                 {{-- Template fields with __ITEM__ placeholder --}}
                 @if(!empty($templateFields))

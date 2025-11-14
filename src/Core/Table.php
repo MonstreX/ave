@@ -24,6 +24,15 @@ class Table
     protected ?string $orderColumn = null;
     protected ?string $parentColumn = null;
     protected int $treeMaxDepth = 5;
+    /**
+     * Upper bound for instant-loading datasets (tree / sortable modes).
+     * Keeps payloads cacheable per .doc/CORE-CHEKLIST.md (Cacheable & lightweight schemas).
+     */
+    protected int $maxInstantLoad = 500;
+    /**
+     * When true, controller must stop instant loading if limit is exceeded instead of falling back silently.
+     */
+    protected bool $forcePaginationOnOverflow = true;
 
     // Grouping
     protected ?string $groupByColumn = null;
@@ -262,6 +271,24 @@ class Table
     }
 
     /**
+     * Configure the maximum amount of records that can be loaded instantly for tree/sortable modes.
+     */
+    public function maxInstantLoad(int $limit): static
+    {
+        $this->maxInstantLoad = max(1, $limit);
+        return $this;
+    }
+
+    /**
+     * Allow forcing an error when the instant load limit is exceeded.
+     */
+    public function forcePaginationOnOverflow(bool $force = true): static
+    {
+        $this->forcePaginationOnOverflow = $force;
+        return $this;
+    }
+
+    /**
      * Get group by column name.
      */
     public function getGroupByColumn(): ?string
@@ -283,5 +310,21 @@ class Table
     public function getGroupByOrderColumn(): string
     {
         return $this->groupByOrderColumn ?? 'order';
+    }
+
+    /**
+     * Get configured instant-load ceiling.
+     */
+    public function getMaxInstantLoad(): int
+    {
+        return $this->maxInstantLoad;
+    }
+
+    /**
+     * Whether controller must enforce the limit strictly.
+     */
+    public function shouldForceInstantLoadLimit(): bool
+    {
+        return $this->forcePaginationOnOverflow;
     }
 }

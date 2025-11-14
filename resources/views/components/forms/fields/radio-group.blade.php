@@ -1,5 +1,7 @@
 {{-- resources/views/components/forms/fields/radio-group.blade.php --}}
 @php
+    $fieldStatePath = $statePath ?? $field->getStatePath();
+    $fieldInputName = $inputName ?? \Monstrex\Ave\Support\FormInputName::nameFromStatePath($fieldStatePath);
     $labelText = $label ?? $field->getLabel();
     $helpText = ($help ?? null) ?: $field->getHelpText();
     $isRequired = $required ?? $field->isRequired();
@@ -8,7 +10,7 @@
     $isInline = $inline ?? false;
 @endphp
 
-<div class="form-field form-field-radio-group @if($hasError) has-error @endif">
+<div class="form-field form-field-radio-group @if($hasError) has-error @endif" data-field-name="{{ $fieldStatePath }}">
     @if($labelText)
         <label class="form-label">
             {{ $labelText }}
@@ -23,9 +25,9 @@
             <label class="radio-label">
                 <input
                     type="radio"
-                    name="{{ $key }}"
+                    name="{{ $fieldInputName }}"
                     value="{{ $optionValue }}"
-                    @if($optionValue == old($key, $value ?? '')) checked @endif
+                    @if($optionValue == old($fieldStatePath, $value ?? '')) checked @endif
                     @if($isRequired) required @endif
                     @if($isDisabled) disabled @endif
                     @if($isReadonly) readonly @endif

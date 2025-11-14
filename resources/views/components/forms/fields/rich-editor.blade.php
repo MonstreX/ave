@@ -1,5 +1,8 @@
 {{-- resources/views/components/forms/fields/rich-editor.blade.php --}}
 @php
+    $fieldStatePath = $statePath ?? $field->getStatePath();
+    $fieldInputName = $inputName ?? \Monstrex\Ave\Support\FormInputName::nameFromStatePath($fieldStatePath);
+    $fieldInputId = $inputId ?? \Monstrex\Ave\Support\FormInputName::idFromStatePath($fieldStatePath);
     $labelText = $label ?? $field->getLabel();
     $helpText = ($help ?? null) ?: $field->getHelpText();
     $isRequired = $required ?? $field->isRequired();
@@ -9,9 +12,9 @@
     $editorValue = $value ?? $field->getValue();
 @endphp
 
-<div class="form-field @if($hasError) has-error @endif" data-field-type="rich-editor">
+<div class="form-field @if($hasError) has-error @endif" data-field-type="rich-editor" data-field-name="{{ $fieldStatePath }}">
     @if($labelText)
-        <label for="{{ $key }}" class="form-label">
+        <label for="{{ $fieldInputId }}" class="form-label">
             {{ $labelText }}
             @if($isRequired)
                 <span class="required">*</span>
@@ -21,8 +24,8 @@
 
     <div wire:ignore>
         <textarea
-            id="{{ $key }}"
-            name="{{ $key }}"
+            id="{{ $fieldInputId }}"
+            name="{{ $fieldInputName }}"
             data-editor="rich"
             data-height="{{ $editorHeight }}"
             @if(!empty($jsConfig))data-config="{{ $jsConfig }}"@endif

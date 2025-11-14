@@ -2,8 +2,12 @@
 
 namespace Monstrex\Ave\Http\Controllers;
 
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Routing\Controller;
 use Monstrex\Ave\Core\ResourceManager;
@@ -11,8 +15,11 @@ use Monstrex\Ave\Core\Validation\FormValidator;
 use Monstrex\Ave\Core\Persistence\ResourcePersistence;
 use Monstrex\Ave\Core\Rendering\ResourceRenderer;
 use Monstrex\Ave\Core\Criteria\CriteriaPipeline;
+use Monstrex\Ave\Core\Form;
 use Monstrex\Ave\Core\FormContext;
 use Monstrex\Ave\Core\Table;
+use Monstrex\Ave\Core\Sorting\SortableOrderService;
+use Monstrex\Ave\Support\Http\RequestDebugSanitizer;
 use Monstrex\Ave\Exceptions\ResourceException;
 use Monstrex\Ave\Core\Columns\BooleanColumn;
 use Monstrex\Ave\Core\Actions\Contracts\ActionInterface;
@@ -31,7 +38,9 @@ class ResourceController extends Controller
         protected ResourceManager $resources,
         protected ResourceRenderer $renderer,
         protected FormValidator $validator,
-        protected ResourcePersistence $persistence
+        protected ResourcePersistence $persistence,
+        protected SortableOrderService $sortingService,
+        protected RequestDebugSanitizer $requestSanitizer
     ) {}
 
     /**
@@ -258,69 +267,25 @@ class ResourceController extends Controller
         // Check display mode
         $displayMode = $table->getDisplayMode();
 
-        // For tree view - load all records without pagination
-        if ($displayMode === 'tree' || $displayMode === 'sortable') {
-            $orderColumn = $table->getOrderColumn() ?? 'order';
-            $allRecords = $query->orderBy($orderColumn)->get();
-            $count = $allRecords->count();
-
-            // Create fake paginator for compatibility
-            // perPage must be at least 1 to avoid division by zero
-            $records = new \Illuminate\Pagination\LengthAwarePaginator(
-                $allRecords,
-                $count,
-                max($count, 1),
-                1,
-                ['path' => $request->url(), 'query' => $request->query()]
+        if (in_array($displayMode, ['tree', 'sortable', 'sortable-grouped'], true)) {
+            $structureResult = $this->resolveRecordsForStructureMode(
+                $request,
+                $table,
+                $query,
+                $displayMode,
+                $slug,
+                $modelClass
             );
 
-            return $this->renderer->index($resourceClass, $table, $records, $request, $criteriaBadges);
-        }
+            $criteriaBadges = array_merge($criteriaBadges, $structureResult['badges']);
 
-        // For grouped sortable view - load all records grouped by specified column
-        if ($displayMode === 'sortable-grouped') {
-            $groupByColumn = $table->getGroupByColumn();
-            $groupByRelation = $table->getGroupByRelation();
-            $groupOrderColumn = $table->getGroupByOrderColumn();
-            $itemOrderColumn = $table->getOrderColumn() ?? 'order';
-
-            // Eager load the group relation if specified
-            if ($groupByRelation) {
-                $query->with($groupByRelation);
-            }
-
-            // Get the related model table name for joining
-            if ($groupByRelation) {
-                $model = new $modelClass();
-                $relation = $model->{$groupByRelation}();
-                $relatedTable = $relation->getRelated()->getTable();
-                $foreignKey = $groupByColumn;
-                $ownerKey = $relation->getOwnerKeyName();
-
-                // Join with group table and order by group order, then item order
-                $query->join($relatedTable, "{$model->getTable()}.{$foreignKey}", '=', "{$relatedTable}.{$ownerKey}")
-                      ->orderBy("{$relatedTable}.{$groupOrderColumn}")
-                      ->orderBy("{$model->getTable()}.{$itemOrderColumn}")
-                      ->select("{$model->getTable()}.*");
-            } else {
-                // No relation - just order by group column and item order
-                $query->orderBy($groupByColumn)
-                      ->orderBy($itemOrderColumn);
-            }
-
-            $allRecords = $query->get();
-            $count = $allRecords->count();
-
-            // Create fake paginator for compatibility
-            $records = new \Illuminate\Pagination\LengthAwarePaginator(
-                $allRecords,
-                $count,
-                max($count, 1),
-                1,
-                ['path' => $request->url(), 'query' => $request->query()]
+            return $this->renderer->index(
+                $resourceClass,
+                $table,
+                $structureResult['records'],
+                $request,
+                $criteriaBadges
             );
-
-            return $this->renderer->index($resourceClass, $table, $records, $request, $criteriaBadges);
         }
 
         // Paginate for table mode
@@ -381,13 +346,15 @@ class ResourceController extends Controller
         try {
             $data = $request->validate($rules);
         } catch (ValidationException $exception) {
-            Log::error('Resource validation failed on store', [
-                'resource' => $resourceClass,
-                'slug' => $slug,
-                'errors' => $exception->errors(),
-                'input' => $request->all(),
-                'rules' => $rules,
-            ]);
+            $traceId = $this->logValidationFailure(
+                stage: 'store',
+                resourceClass: $resourceClass,
+                slug: $slug,
+                request: $request,
+                rules: $rules,
+                form: $form,
+                errors: $exception->errors()
+            );
 
             $errorMessages = $this->formatValidationErrors($exception->errors());
 
@@ -397,6 +364,7 @@ class ResourceController extends Controller
                     'success' => false,
                     'message' => $errorMessages,
                     'errors' => $exception->errors(),
+                    'trace_id' => $traceId,
                 ], 422);
             }
 
@@ -404,6 +372,7 @@ class ResourceController extends Controller
             $request->session()->flash('toast', [
                 'type' => 'danger',
                 'message' => $errorMessages,
+                'trace_id' => $traceId,
             ]);
 
             throw $exception;
@@ -492,14 +461,16 @@ class ResourceController extends Controller
         try {
             $data = $request->validate($rules);
         } catch (ValidationException $exception) {
-            Log::error('Resource validation failed on update', [
-                'resource' => $resourceClass,
-                'slug' => $slug,
-                'model_id' => $model->getKey(),
-                'errors' => $exception->errors(),
-                'input' => $request->all(),
-                'rules' => $rules,
-            ]);
+            $traceId = $this->logValidationFailure(
+                stage: 'update',
+                resourceClass: $resourceClass,
+                slug: $slug,
+                request: $request,
+                rules: $rules,
+                form: $form,
+                model: $model,
+                errors: $exception->errors()
+            );
 
             $errorMessages = $this->formatValidationErrors($exception->errors());
 
@@ -509,6 +480,7 @@ class ResourceController extends Controller
                     'success' => false,
                     'message' => $errorMessages,
                     'errors' => $exception->errors(),
+                    'trace_id' => $traceId,
                 ], 422);
             }
 
@@ -516,6 +488,7 @@ class ResourceController extends Controller
             $request->session()->flash('toast', [
                 'type' => 'danger',
                 'message' => $errorMessages,
+                'trace_id' => $traceId,
             ]);
 
             throw $exception;
@@ -879,8 +852,14 @@ class ResourceController extends Controller
         $orderColumn = $table->getOrderColumn() ?? 'order';
         $order = $this->normalizeOrderInput($request, $orderColumn);
 
-        $loadedModels = $this->authorizeAndLoadModels($modelClass, $resource, $order, $request->user(), $slug);
-        $this->persistItemOrder($loadedModels, $order, $orderColumn);
+        $this->sortingService->reorder(
+            $order,
+            $orderColumn,
+            $resource,
+            $request->user(),
+            $modelClass,
+            $slug
+        );
 
         return response()->json([
             'success' => true,
@@ -930,39 +909,6 @@ class ResourceController extends Controller
         }
         return $order;
     }
-
-    /**
-     * Authorize and load models for update
-     */
-    protected function authorizeAndLoadModels(string $modelClass, $resource, array $order, $user, string $slug): array
-    {
-        $loadedModels = [];
-
-        foreach ($order as $id => $position) {
-            $model = $modelClass::findOrFail($id);
-
-            if (!$resource->can('update', $user, $model)) {
-                throw ResourceException::unauthorized($slug, 'update');
-            }
-
-            $loadedModels[$id] = $model;
-        }
-
-        return $loadedModels;
-    }
-
-    /**
-     * Persist order changes to database
-     */
-    protected function persistItemOrder(array $loadedModels, array $order, string $orderColumn): void
-    {
-        foreach ($order as $id => $position) {
-            $model = $loadedModels[$id];
-            $model->setAttribute($orderColumn, $position);
-            $model->save();
-        }
-    }
-
 
     /**
      * Update item's group assignment
@@ -1039,25 +985,13 @@ class ResourceController extends Controller
         ]);
 
         $modelClass = $resourceClass::$model;
-        $parentCol = $table->getParentColumn() ?? 'parent_id';
-        $orderCol = $table->getOrderColumn() ?? 'order';
-        $maxDepth = max(1, $table->getTreeMaxDepth());
-
         $treePayload = $this->normalizeTreePayload($validated['tree']);
-        $this->assertTreeDepthWithinLimit($treePayload, $maxDepth);
-
-        // Process tree recursively
-        $this->processTreeItems(
-            $modelClass,
+        $this->sortingService->rebuildTree(
             $treePayload,
-            null,
-            0,
-            $parentCol,
-            $orderCol,
+            $table,
             $resource,
             $request->user(),
-            1,
-            $maxDepth,
+            $modelClass,
             $slug
         );
 
@@ -1065,62 +999,6 @@ class ResourceController extends Controller
             'success' => true,
             'message' => 'Tree structure updated successfully',
         ]);
-    }
-
-    /**
-     * Recursively process tree items
-     */
-    protected function processTreeItems(
-        string $modelClass,
-        array $items,
-        $parentId,
-        int $order,
-        string $parentCol,
-        string $orderCol,
-        $resource,
-        $user,
-        int $currentDepth,
-        int $maxDepth,
-        string $slug
-    ): void {
-        if ($currentDepth > $maxDepth) {
-            throw new ResourceException("Tree depth exceeds allowed maximum for resource '{$slug}'", 422);
-        }
-
-        foreach ($items as $index => $item) {
-            if (!isset($item['id'])) {
-                throw new ResourceException('Tree payload is missing node id', 422);
-            }
-
-            $model = $modelClass::findOrFail($item['id']);
-
-            // Check authorization
-            if (!$resource->can('update', $user, $model)) {
-                throw ResourceException::unauthorized($slug, 'update');
-            }
-
-            // Update parent_id and order
-            $model->setAttribute($parentCol, $parentId);
-            $model->setAttribute($orderCol, $order + $index);
-            $model->save();
-
-            // Process children recursively
-            if (isset($item['children']) && is_array($item['children']) && count($item['children']) > 0) {
-                $this->processTreeItems(
-                    $modelClass,
-                    $item['children'],
-                    $item['id'],
-                    0,
-                    $parentCol,
-                    $orderCol,
-                    $resource,
-                    $user,
-                    $currentDepth + 1,
-                    $maxDepth,
-                    $slug
-                );
-            }
-        }
     }
 
     /**
@@ -1153,21 +1031,57 @@ class ResourceController extends Controller
     }
 
     /**
-     * Ensure tree depth never exceeds configured limit.
+     * Collect keys of fields marked as sensitive on the form.
      *
-     * @param  array<int,array<string,mixed>>  $items
+     * @return array<int,string>
      */
-    protected function assertTreeDepthWithinLimit(array $items, int $maxDepth, int $currentDepth = 1): void
+    protected function gatherSensitiveFieldKeys(Form $form): array
     {
-        if ($currentDepth > $maxDepth) {
-            throw new ResourceException('Tree depth exceeds the configured limit', 422);
-        }
+        $keys = [];
 
-        foreach ($items as $item) {
-            if (isset($item['children']) && is_array($item['children']) && count($item['children']) > 0) {
-                $this->assertTreeDepthWithinLimit($item['children'], $maxDepth, $currentDepth + 1);
+        foreach ($form->getAllFields() as $field) {
+            if (method_exists($field, 'isSensitive') && $field->isSensitive()) {
+                $keys[] = $field->key();
+                $keys[] = $field->baseKey();
+
+                if (method_exists($field, 'getStatePath')) {
+                    $keys[] = $field->getStatePath();
+                }
             }
         }
+
+        return array_values(array_filter(array_unique($keys)));
+    }
+
+    /**
+     * Log validation failures with sanitized payload per .doc/CODE-REVIEW-RULES security section.
+     */
+    protected function logValidationFailure(
+        string $stage,
+        string $resourceClass,
+        string $slug,
+        Request $request,
+        array $rules,
+        Form $form,
+        ?Model $model = null,
+        array $errors = []
+    ): string {
+        $traceId = (string) Str::uuid();
+        $sensitiveKeys = $this->gatherSensitiveFieldKeys($form);
+
+        $sanitizedInput = $this->requestSanitizer->sanitize($request, $sensitiveKeys);
+
+        Log::error("Resource validation failed on {$stage}", [
+            'trace_id' => $traceId,
+            'resource' => $resourceClass,
+            'slug' => $slug,
+            'model_id' => $model?->getKey(),
+            'errors' => $errors,
+            'input' => $sanitizedInput,
+            'rules' => array_keys($rules),
+        ]);
+
+        return $traceId;
     }
 
     /**
@@ -1261,5 +1175,97 @@ class ResourceController extends Controller
             'formHtml' => $html,
             'currentData' => [],
         ]);
+    }
+
+    /**
+     * Resolve records for tree / sortable displays while enforcing instant-load limits.
+     *
+     * @return array{records: LengthAwarePaginator, badges: array<int,array<string,mixed>>}
+     */
+    protected function resolveRecordsForStructureMode(
+        Request $request,
+        Table $table,
+        Builder $baseQuery,
+        string $displayMode,
+        string $slug,
+        string $modelClass
+    ): array {
+        $limit = max(1, $table->getMaxInstantLoad());
+        $forceLimit = $table->shouldForceInstantLoadLimit();
+        $orderedQuery = clone $baseQuery;
+
+        if ($displayMode === 'sortable-grouped') {
+            $groupByColumn = $table->getGroupByColumn();
+            $groupByRelation = $table->getGroupByRelation();
+            $groupOrderColumn = $table->getGroupByOrderColumn();
+            $itemOrderColumn = $table->getOrderColumn() ?? 'order';
+
+            if ($groupByRelation) {
+                $orderedQuery->with($groupByRelation);
+                $model = new $modelClass();
+                $relation = $model->{$groupByRelation}();
+                $relatedTable = $relation->getRelated()->getTable();
+                $foreignKey = $groupByColumn;
+                $ownerKey = $relation->getOwnerKeyName();
+
+                $orderedQuery->join(
+                    $relatedTable,
+                    "{$model->getTable()}.{$foreignKey}",
+                    '=',
+                    "{$relatedTable}.{$ownerKey}"
+                )
+                    ->orderBy("{$relatedTable}.{$groupOrderColumn}")
+                    ->orderBy("{$model->getTable()}.{$itemOrderColumn}")
+                    ->select("{$model->getTable()}.*");
+            } else {
+                $orderedQuery->orderBy($groupByColumn)
+                    ->orderBy($itemOrderColumn);
+            }
+        } else {
+            $orderColumn = $table->getOrderColumn() ?? 'order';
+            $orderedQuery->orderBy($orderColumn);
+        }
+
+        // Load up to limit + 1 rows to detect overflow without fetching the whole dataset.
+        $records = $orderedQuery
+            ->limit($limit + 1)
+            ->get();
+
+        $limitExceeded = $records->count() > $limit;
+
+        if ($limitExceeded && $forceLimit) {
+            // Per .doc/CORE-CHEKLIST.md, we must keep tree payloads cacheable and predictable.
+            throw new ResourceException(
+                "Resource '{$slug}' exceeds instant load limit of {$limit}. Apply filters or switch to paginated mode.",
+                422
+            );
+        }
+
+        if ($limitExceeded) {
+            $records = $records->take($limit)->values();
+        }
+
+        $paginator = new LengthAwarePaginator(
+            $records,
+            $limitExceeded ? $limit + 1 : $records->count(),
+            max($records->count(), 1),
+            1,
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
+
+        $badges = [];
+        if ($limitExceeded) {
+            $badges[] = [
+                'label' => "Limited to first {$limit} records (instant load cap)",
+                'key' => 'instant-load-limit',
+                'value' => $limit,
+                'variant' => 'limit-warning',
+            ];
+        }
+
+        return [
+            'records' => $paginator,
+            'badges' => $badges,
+        ];
     }
 }

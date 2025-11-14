@@ -1,5 +1,8 @@
 {{-- resources/views/components/forms/fields/file.blade.php --}}
 @php
+    $fieldStatePath = $statePath ?? $field->getStatePath();
+    $fieldInputName = $inputName ?? \Monstrex\Ave\Support\FormInputName::nameFromStatePath($fieldStatePath);
+    $fieldInputId = $inputId ?? \Monstrex\Ave\Support\FormInputName::idFromStatePath($fieldStatePath);
     $labelText = $label ?? $field->getLabel();
     $helpText = ($help ?? null) ?: $field->getHelpText();
     $isRequired = $required ?? $field->isRequired();
@@ -10,9 +13,9 @@
     $fileName = $hasFile ? basename($value) : null;
 @endphp
 
-<div class="form-field @if($hasError) has-error @endif">
+<div class="form-field @if($hasError) has-error @endif" data-field-name="{{ $fieldStatePath }}">
     @if($labelText)
-        <label for="{{ $key }}" class="form-label">
+        <label for="{{ $fieldInputId }}" class="form-label">
             {{ $labelText }}
             @if($isRequired)
                 <span class="required">*</span>
@@ -21,7 +24,7 @@
     @endif
 
     <div class="file-upload-wrapper"
-         data-file-field="{{ $key }}"
+         data-file-field="{{ $fieldStatePath }}"
          data-path-prefix="{{ $pathPrefix ?? '' }}"
          @if($customPath ?? false) data-custom-path="{{ $customPath }}" @endif>
         <!-- File preview if exists -->
@@ -42,8 +45,8 @@
         <div class="custom-file-input @if($hasFile) hidden @endif" data-file-input-area>
             <input
                 type="file"
-                id="{{ $key }}"
-                name="{{ $key }}_file_upload"
+                id="{{ $fieldInputId }}"
+                name="{{ $fieldInputId }}_file_upload"
                 @if($isMultiple) multiple @endif
                 @if($isRequired && !$hasFile) required @endif
                 @if($isDisabled) disabled @endif
@@ -64,7 +67,7 @@
         <!-- Hidden input to store file path in the correct field name -->
         <input
             type="hidden"
-            name="{{ $key }}"
+            name="{{ $fieldInputName }}"
             class="file-path-input"
             value="{{ $value ?? '' }}"
         >

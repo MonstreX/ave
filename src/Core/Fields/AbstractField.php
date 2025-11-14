@@ -11,6 +11,7 @@ use Monstrex\Ave\Core\FormContext;
 use Monstrex\Ave\Core\Fields\Concerns\HasContainer;
 use Monstrex\Ave\Core\Fields\Concerns\HasStatePath;
 use Monstrex\Ave\Core\Fields\Concerns\IsTemplate;
+use Monstrex\Ave\Support\FormInputName;
 
 abstract class AbstractField implements FormField, NestableField
 {
@@ -30,6 +31,7 @@ abstract class AbstractField implements FormField, NestableField
     protected ?string $placeholder = null;
     protected ?string $view = null;
     protected string $displayVariant = 'default';
+    protected bool $sensitive = false;
 
     public function __construct(string $key)
     {
@@ -115,6 +117,18 @@ abstract class AbstractField implements FormField, NestableField
         $this->placeholder = $placeholder;
 
         return $this;
+    }
+
+    public function sensitive(bool $sensitive = true): static
+    {
+        $this->sensitive = $sensitive;
+
+        return $this;
+    }
+
+    public function isSensitive(): bool
+    {
+        return $this->sensitive;
     }
 
     public function template(string $view): static
@@ -213,6 +227,9 @@ abstract class AbstractField implements FormField, NestableField
 
         $hasError = $context->hasError($this->key);
         $errors = $context->getErrors($this->key);
+        $statePath = $this->getStatePath();
+        $inputName = FormInputName::nameFromStatePath($statePath);
+        $inputId = FormInputName::idFromStatePath($statePath);
 
         return view($view, [
             'field' => $this,
@@ -220,6 +237,9 @@ abstract class AbstractField implements FormField, NestableField
             'hasError' => $hasError,
             'errors' => $errors,
             'attributes' => '',
+            'statePath' => $statePath,
+            'inputName' => $inputName,
+            'inputId' => $inputId,
             ...$fieldData,
         ])->render();
     }

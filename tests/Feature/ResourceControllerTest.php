@@ -38,6 +38,8 @@ use Monstrex\Ave\Core\Table;
 use Monstrex\Ave\Core\Validation\FormValidator;
 use Monstrex\Ave\Core\Persistence\ResourcePersistence;
 use Monstrex\Ave\Core\Rendering\ResourceRenderer;
+use Monstrex\Ave\Core\Sorting\SortableOrderService;
+use Monstrex\Ave\Support\Http\RequestDebugSanitizer;
 use Monstrex\Ave\Exceptions\ResourceException;
 use Monstrex\Ave\Http\Controllers\ResourceController;
 use PHPUnit\Framework\TestCase;
@@ -418,7 +420,9 @@ class ResourceControllerTest extends TestCase
             $this->resourceManagerStub(),
             $renderer,
             $validator,
-            $persistence
+            $persistence,
+            $this->sortingService(),
+            new RequestDebugSanitizer()
         );
 
         $request = Request::create('/admin/resource/test-items', 'POST', ['title' => 'Created']);
@@ -454,7 +458,9 @@ class ResourceControllerTest extends TestCase
             $this->resourceManagerStub(),
             $renderer,
             $validator,
-            $persistence
+            $persistence,
+            $this->sortingService(),
+            new RequestDebugSanitizer()
         );
 
         $request = Request::create('/admin/resource/test-items/300', 'POST', ['title' => 'After']);
@@ -485,7 +491,9 @@ class ResourceControllerTest extends TestCase
             $this->resourceManagerStub(),
             $renderer,
             $validator,
-            $persistence
+            $persistence,
+            $this->sortingService(),
+            new RequestDebugSanitizer()
         );
 
         $request = Request::create('/admin/resource/test-items/400', 'DELETE');
@@ -757,8 +765,15 @@ class ResourceControllerTest extends TestCase
             $this->resourceManagerStub(),
             $renderer,
             $validator,
-            $persistence
+            $persistence,
+            $this->sortingService(),
+            new RequestDebugSanitizer()
         );
+    }
+
+    private function sortingService(): SortableOrderService
+    {
+        return new SortableOrderService($this->capsule->getConnection());
     }
 
     private function resourceManagerStub(): ResourceManager

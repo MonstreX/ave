@@ -1,5 +1,8 @@
 {{-- resources/views/components/forms/fields/checkbox.blade.php --}}
 @php
+    $fieldStatePath = $statePath ?? $field->getStatePath();
+    $fieldInputName = $inputName ?? \Monstrex\Ave\Support\FormInputName::nameFromStatePath($fieldStatePath);
+    $fieldInputId = $inputId ?? \Monstrex\Ave\Support\FormInputName::idFromStatePath($fieldStatePath);
     $labelText = $label ?? $field->getLabel();
     $helpText = ($help ?? null) ?: $field->getHelpText();
     $isRequired = $required ?? $field->isRequired();
@@ -8,7 +11,7 @@
     $isChecked = $checked ?? ($value ?? false);
 @endphp
 
-<div class="form-field form-field-checkbox @if($hasError) has-error @endif">
+<div class="form-field form-field-checkbox @if($hasError) has-error @endif" data-field-name="{{ $fieldStatePath }}">
     @if($labelText)
         <label class="form-label">
             {{ $labelText }}
@@ -20,13 +23,13 @@
 
     <div class="checkbox-wrapper">
         <label class="checkbox-label">
-            <input type="hidden" name="{{ $key }}" value="0">
+            <input type="hidden" name="{{ $fieldInputName }}" value="0">
             <input
                 type="checkbox"
-                id="{{ $key }}"
-                name="{{ $key }}"
+                id="{{ $fieldInputId }}"
+                name="{{ $fieldInputName }}"
                 value="1"
-                @if($isChecked || old($key, false)) checked @endif
+                @if($isChecked || old($fieldStatePath, false)) checked @endif
                 @if($isRequired) required @endif
                 @if($isDisabled) disabled @endif
                 @if($isReadonly) readonly @endif

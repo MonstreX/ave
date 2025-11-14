@@ -12,6 +12,7 @@ use Illuminate\Support\ViewErrorBag;
 use Monstrex\Ave\Core\DataSources\ArrayDataSource;
 use Monstrex\Ave\Core\DataSources\DataSourceInterface;
 use Monstrex\Ave\Core\DataSources\ModelDataSource;
+use Monstrex\Ave\Support\FormInputName;
 
 /**
  * Form context - manages form state and data source
@@ -190,7 +191,13 @@ class FormContext
      */
     public function hasOldInput(string $key): bool
     {
-        return Arr::has($this->oldInput, $key);
+        foreach ($this->normalizeKeyVariants($key) as $variant) {
+            if (Arr::has($this->oldInput, $variant)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -201,7 +208,13 @@ class FormContext
      */
     public function oldInput(string $key): mixed
     {
-        return Arr::get($this->oldInput, $key);
+        foreach ($this->normalizeKeyVariants($key) as $variant) {
+            if (Arr::has($this->oldInput, $variant)) {
+                return Arr::get($this->oldInput, $variant);
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -212,7 +225,13 @@ class FormContext
      */
     public function hasError(string $key): bool
     {
-        return $this->errors->has($key);
+        foreach ($this->normalizeKeyVariants($key) as $variant) {
+            if ($this->errors->has($variant)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -223,7 +242,13 @@ class FormContext
      */
     public function getErrors(string $key): array
     {
-        return $this->errors->get($key, []);
+        $messages = [];
+
+        foreach ($this->normalizeKeyVariants($key) as $variant) {
+            $messages = array_merge($messages, $this->errors->get($variant, []));
+        }
+
+        return array_values(array_unique($messages));
     }
 
     /**
@@ -246,28 +271,24 @@ class FormContext
     public function addError(string $key, string $message): void
     {
         // Get the current 'default' bag from ViewErrorBag
+        $normalizedKey = FormInputName::toDotNotation($key) ?: $key;
         $messageBag = $this->errors->getBag('default');
 
         if (!$messageBag instanceof LaravelMessageBag) {
-            // If no default bag exists, create a new one with this error
-            $messageBag = new LaravelMessageBag([$key => [$message]]);
+            $messageBag = new LaravelMessageBag([$normalizedKey => [$message]]);
         } else {
-            // Get existing errors for this key
-            $existingErrors = $messageBag->get($key, []);
+            $existingErrors = $messageBag->get($normalizedKey, []);
 
-            // Add the new message
             if (!is_array($existingErrors)) {
                 $existingErrors = [];
             }
             $existingErrors[] = $message;
 
-            // Create new MessageBag with updated errors
             $allErrors = $messageBag->messages();
-            $allErrors[$key] = $existingErrors;
+            $allErrors[$normalizedKey] = $existingErrors;
             $messageBag = new LaravelMessageBag($allErrors);
         }
 
-        // Put the updated MessageBag back into ViewErrorBag under 'default' key
         $this->errors->put('default', $messageBag);
     }
 
@@ -315,5 +336,25 @@ class FormContext
     public function request(): ?Request
     {
         return $this->request;
+    }
+
+    /**
+     * @return array<int,string>
+     */
+    protected function normalizeKeyVariants(string $key): array
+    {
+        $variants = [$key];
+
+        $dot = FormInputName::toDotNotation($key);
+        if ($dot !== '' && $dot !== $key) {
+            $variants[] = $dot;
+        }
+
+        $bracket = $dot !== '' ? FormInputName::nameFromStatePath($dot) : '';
+        if ($bracket !== '' && $bracket !== $key) {
+            $variants[] = $bracket;
+        }
+
+        return array_values(array_unique(array_filter($variants, static fn ($variant) => $variant !== '')));
     }
 }
