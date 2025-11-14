@@ -1,0 +1,89 @@
+// ============================================
+// SORTABLE GROUPED TABLE
+// Drag-n-drop row reordering with groups
+// ============================================
+@use './drag-handle' as *;
+
+// Inherit base sortable styles
+@use './sortable-table';
+
+// Group header tbody
+.group-header-tbody {
+    background: transparent;
+}
+
+// Group header row
+.group-header-row {
+    background: #f8f9fa !important;
+    border-top: 2px solid #dee2e6;
+    border-bottom: 1px solid #dee2e6;
+
+    &:hover {
+        background: #f8f9fa !important;
+    }
+
+    td {
+        border: none !important;
+    }
+}
+
+// Group header cell (spans full width)
+.group-header-cell {
+    padding: 0.75rem 1rem !important;
+    font-weight: 600;
+    font-size: 14px;
+    color: #2c3e50;
+    background: #f8f9fa;
+}
+
+// Group header content
+.group-header-content {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+// Group header title
+.group-header-title {
+    font-weight: 700;
+    color: #151515;
+}
+
+// Group header count
+.group-header-count {
+    font-weight: 400;
+    color: #6b7280;
+    font-size: 13px;
+}
+
+// Group items tbody
+.group-items-tbody {
+    // Items within group get subtle background
+    tr {
+        background: #fff;
+        transition: background 0.15s ease;
+
+        &:hover {
+            background: #f9fafb;
+        }
+    }
+
+    // Drag states
+    .sortable-ghost {
+        opacity: 0.4;
+        background-color: #e0f2fe !important;
+    }
+
+    .sortable-drag {
+        background: #fff;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+}
+
+// Empty group message
+.group-empty-message {
+    padding: 1rem;
+    text-align: center;
+    color: #9ca3af;
+    font-style: italic;
+}

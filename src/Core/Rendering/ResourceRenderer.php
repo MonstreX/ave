@@ -24,7 +24,7 @@ class ResourceRenderer
         $bulkActions = method_exists($resourceClass, 'bulkActions') ? $resourceClass::bulkActions() : [];
         $globalActions = method_exists($resourceClass, 'globalActions') ? $resourceClass::globalActions() : [];
 
-        return view($view, [
+        $viewData = [
             'resource' => $resourceClass,
             'resourceInstance' => $resourceInstance,
             'slug' => $slug,
@@ -36,8 +36,22 @@ class ResourceRenderer
             'bulkActions' => $bulkActions,
             'globalActions' => $globalActions,
             'displayMode' => $displayMode,
-        ]);
+        ];
+
+        // For grouped mode, group records by the specified column
+        if ($displayMode === 'sortable-grouped' && $table) {
+            $groupByColumn = $table->getGroupByColumn();
+            if ($groupByColumn) {
+                $groupedRecords = $records->groupBy($groupByColumn)->filter(function($group) {
+                    return $group->isNotEmpty();
+                });
+                $viewData['groupedRecords'] = $groupedRecords;
+            }
+        }
+
+        return view($view, $viewData);
     }
+
 
     public function form(string $resourceClass, $form, $model, Request $request)
     {

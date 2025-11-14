@@ -25,6 +25,11 @@ class Table
     protected ?string $parentColumn = null;
     protected int $treeMaxDepth = 5;
 
+    // Grouping
+    protected ?string $groupByColumn = null;
+    protected ?string $groupByRelation = null;
+    protected ?string $groupByOrderColumn = 'order';
+
     public static function make(): static
     {
         return new static();
@@ -231,5 +236,52 @@ class Table
     public function getTreeMaxDepth(): int
     {
         return $this->treeMaxDepth;
+    }
+
+    /**
+     * Configure grouped sortable mode.
+     * Records will be grouped by the specified column and sorted within each group.
+     *
+     * @param string $groupColumn Column name for grouping (e.g., "group_id")
+     * @param string|null $relation Relation name for loading group data (e.g., "group")
+     * @param string $groupOrderColumn Column for ordering groups (default: "order")
+     * @param string $itemOrderColumn Column for ordering items within groups (default: "order")
+     */
+    public function groupedSortable(
+        string $groupColumn,
+        ?string $relation = null,
+        string $groupOrderColumn = 'order',
+        string $itemOrderColumn = 'order'
+    ): static {
+        $this->displayMode = 'sortable-grouped';
+        $this->groupByColumn = $groupColumn;
+        $this->groupByRelation = $relation;
+        $this->groupByOrderColumn = $groupOrderColumn;
+        $this->orderColumn = $itemOrderColumn;
+        return $this;
+    }
+
+    /**
+     * Get group by column name.
+     */
+    public function getGroupByColumn(): ?string
+    {
+        return $this->groupByColumn;
+    }
+
+    /**
+     * Get group by relation name.
+     */
+    public function getGroupByRelation(): ?string
+    {
+        return $this->groupByRelation;
+    }
+
+    /**
+     * Get group order column name.
+     */
+    public function getGroupByOrderColumn(): string
+    {
+        return $this->groupByOrderColumn ?? 'order';
     }
 }

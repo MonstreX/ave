@@ -12,6 +12,7 @@ import initInlineEditing from './modules/resources/inlineEditing.js';
 import initPagination from './modules/resources/pagination.js';
 import initTreeView from './modules/resources/treeView.js';
 import initSortableTable from './modules/resources/sortableTable.js';
+import initSortableGroupedTable from './modules/resources/sortableGroupedTable.js';
 import initFormValidation from './modules/forms/formValidation.js';
 
 // Expose global event bus
@@ -38,6 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initPagination();
     initSortableTable();
     initTreeView();
+    initSortableGroupedTable();
 
     // Notify all listeners that DOM is ready and initialized
     // This allows dynamic content loaders to trigger reinitialization

@@ -43,6 +43,9 @@ trait RegistersCrudRoutes
         $router->post('/resource/{slug}/reorder', [ResourceController::class, 'reorder'])
             ->name('ave.resource.reorder');
 
+        $router->post('/resource/{slug}/update-group', [ResourceController::class, 'updateGroup'])
+            ->name('ave.resource.updateGroup');
+
         $router->post('/resource/{slug}/update-tree', [ResourceController::class, 'updateTree'])
             ->name('ave.resource.update-tree');
 

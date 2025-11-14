@@ -277,6 +277,52 @@ class ResourceController extends Controller
             return $this->renderer->index($resourceClass, $table, $records, $request, $criteriaBadges);
         }
 
+        // For grouped sortable view - load all records grouped by specified column
+        if ($displayMode === 'sortable-grouped') {
+            $groupByColumn = $table->getGroupByColumn();
+            $groupByRelation = $table->getGroupByRelation();
+            $groupOrderColumn = $table->getGroupByOrderColumn();
+            $itemOrderColumn = $table->getOrderColumn() ?? 'order';
+
+            // Eager load the group relation if specified
+            if ($groupByRelation) {
+                $query->with($groupByRelation);
+            }
+
+            // Get the related model table name for joining
+            if ($groupByRelation) {
+                $model = new $modelClass();
+                $relation = $model->{$groupByRelation}();
+                $relatedTable = $relation->getRelated()->getTable();
+                $foreignKey = $groupByColumn;
+                $ownerKey = $relation->getOwnerKeyName();
+
+                // Join with group table and order by group order, then item order
+                $query->join($relatedTable, "{$model->getTable()}.{$foreignKey}", '=', "{$relatedTable}.{$ownerKey}")
+                      ->orderBy("{$relatedTable}.{$groupOrderColumn}")
+                      ->orderBy("{$model->getTable()}.{$itemOrderColumn}")
+                      ->select("{$model->getTable()}.*");
+            } else {
+                // No relation - just order by group column and item order
+                $query->orderBy($groupByColumn)
+                      ->orderBy($itemOrderColumn);
+            }
+
+            $allRecords = $query->get();
+            $count = $allRecords->count();
+
+            // Create fake paginator for compatibility
+            $records = new \Illuminate\Pagination\LengthAwarePaginator(
+                $allRecords,
+                $count,
+                max($count, 1),
+                1,
+                ['path' => $request->url(), 'query' => $request->query()]
+            );
+
+            return $this->renderer->index($resourceClass, $table, $records, $request, $criteriaBadges);
+        }
+
         // Paginate for table mode
         $perPage = $this->resolvePerPage($request, $table, $slug);
         $records = $query->paginate($perPage)->appends($request->query());
@@ -828,36 +874,57 @@ class ResourceController extends Controller
         $modelClass = $resourceClass::$model;
         $table = $resourceClass::table($request);
 
-        if ($table->getDisplayMode() !== 'sortable') {
+        $displayMode = $table->getDisplayMode();
+        if (!in_array($displayMode, ['sortable', 'sortable-grouped'])) {
             throw new ResourceException("Resource '{$slug}' does not support sortable mode", 422);
         }
 
         $orderColumn = $table->getOrderColumn() ?? 'order';
 
-        $validated = $request->validate([
-            'items' => 'required|array',
-            'items.*.id' => 'required|integer',
-            "items.*.{$orderColumn}" => 'required|integer',
-        ]);
+        // Support both formats: 'items' (old format) and 'order' (new format from sortableGroupedTable.js)
+        $order = null;
+        if ($request->has('order')) {
+            // New format: { order: { id1: pos1, id2: pos2 }, order_column: 'order', group_id: 1 }
+            $validated = $request->validate([
+                'order' => 'required|array',
+                'order.*' => 'required|integer',
+                'order_column' => 'nullable|string',
+                'group_id' => 'nullable|integer',
+            ]);
+            $order = $validated['order'];
+            $orderColumn = $validated['order_column'] ?? $orderColumn;
+        } else {
+            // Old format: { items: [{ id: 1, order: 1 }] }
+            $validated = $request->validate([
+                'items' => 'required|array',
+                'items.*.id' => 'required|integer',
+                "items.*.{$orderColumn}" => 'required|integer',
+            ]);
+            // Convert to new format
+            $order = [];
+            foreach ($validated['items'] as $item) {
+                $order[$item['id']] = $item[$orderColumn];
+            }
+        }
 
         $user = $request->user();
         $loadedModels = [];
 
         // Check authorization for each item and keep loaded models for saving
-        foreach ($validated['items'] as $itemData) {
-            $model = $modelClass::findOrFail($itemData['id']);
+        foreach ($order as $id => $position) {
+            $model = $modelClass::findOrFail($id);
 
             if (!$resource->can('update', $user, $model)) {
                 throw ResourceException::unauthorized($slug, 'update');
             }
 
-            $loadedModels[$itemData['id']] = $model;
+            $loadedModels[$id] = $model;
         }
 
         // Update order for all items through Eloquent to trigger events/mutators
-        foreach ($validated['items'] as $itemData) {
-            $model = $loadedModels[$itemData['id']];
-            $model->setAttribute($orderColumn, $itemData[$orderColumn]);
+        foreach ($order as $id => $position) {
+            $model = $loadedModels[$id];
+            $model->setAttribute($orderColumn, $position);
             $model->save();
         }
 
@@ -866,6 +933,58 @@ class ResourceController extends Controller
             'message' => 'Order updated successfully',
         ]);
     }
+
+
+    /**
+     * Update item's group assignment
+     *
+     * POST /admin/resource/{slug}/update-group
+     */
+    public function updateGroup(Request $request, string $slug)
+    {
+        [$resourceClass, $resource] = $this->resolveAndAuthorize($slug, 'update', $request);
+
+        $modelClass = $resourceClass::$model;
+        $table = $resourceClass::table($request);
+
+        if ($table->getDisplayMode() !== 'sortable-grouped') {
+            throw new ResourceException("Resource '{$slug}' does not support grouped sortable mode", 422);
+        }
+
+        $groupColumn = $table->getGroupByColumn();
+
+        if (!$groupColumn) {
+            throw new ResourceException("No group column configured for resource '{$slug}'", 422);
+        }
+
+        $validated = $request->validate([
+            'item_id' => 'required|integer',
+            'group_column' => 'required|string',
+            'group_id' => 'required|integer',
+        ]);
+
+        // Verify the group column matches the table configuration
+        if ($validated['group_column'] !== $groupColumn) {
+            throw new ResourceException("Invalid group column specified", 422);
+        }
+
+        $model = $modelClass::findOrFail($validated['item_id']);
+        $user = $request->user();
+
+        if (!$resource->can('update', $user, $model)) {
+            throw ResourceException::unauthorized($slug, 'update');
+        }
+
+        // Update group assignment
+        $model->setAttribute($groupColumn, $validated['group_id']);
+        $model->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Item moved to new group successfully',
+        ]);
+    }
+
 
     /**
      * Update tree structure (parent_id and order)

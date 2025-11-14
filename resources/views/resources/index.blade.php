@@ -45,6 +45,18 @@
                 'resourceInstance' => $resourceInstance ?? null,
                 'slug' => $slug,
             ])
+        @elseif(($displayMode ?? 'table') === 'sortable-grouped')
+            @include('ave::partials.index.sortable-grouped-list', [
+                'table' => $table,
+                'records' => $records,
+                'groupedRecords' => $groupedRecords ?? null,
+                'rowActions' => $rowActions ?? [],
+                'bulkActions' => $bulkActions ?? [],
+                'criteriaBadges' => $criteriaBadges ?? [],
+                'resource' => $resource,
+                'resourceInstance' => $resourceInstance ?? null,
+                'slug' => $slug,
+            ])
         @elseif(($displayMode ?? 'table') === 'sortable')
             @include('ave::partials.index.sortable-list', [
                 'table' => $table,
