@@ -37,9 +37,9 @@ document.addEventListener('DOMContentLoaded', () => {
     initResourceActions();
     initInlineEditing();
     initPagination();
-    initSortableTable();
-    initTreeView();
     initSortableGroupedTable();
+    initTreeView();
+    initSortableTable();
 
     // Notify all listeners that DOM is ready and initialized
     // This allows dynamic content loaders to trigger reinitialization

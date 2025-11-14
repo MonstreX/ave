@@ -976,12 +976,23 @@ class ResourceController extends Controller
         }
 
         // Update group assignment
+        $oldGroupId = $model->getAttribute($groupColumn);
         $model->setAttribute($groupColumn, $validated['group_id']);
-        $model->save();
+        $saved = $model->save();
+
+        \Log::info('UpdateGroup:', [
+            'item_id' => $validated['item_id'],
+            'old_group' => $oldGroupId,
+            'new_group' => $validated['group_id'],
+            'saved' => $saved,
+            'current_value' => $model->fresh()->getAttribute($groupColumn)
+        ]);
 
         return response()->json([
             'success' => true,
             'message' => 'Item moved to new group successfully',
+            'old_group' => $oldGroupId,
+            'new_group' => $validated['group_id'],
         ]);
     }
 

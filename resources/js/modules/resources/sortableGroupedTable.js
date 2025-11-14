@@ -6,7 +6,8 @@ import { showToast } from '../ui/toast.js'
  * Allows drag-n-drop reordering within groups and moving items between groups
  */
 export default function initSortableGroupedTable() {
-    const groupTbodies = document.querySelectorAll('.group-items-tbody[data-sortable="true"]')
+    // Use specific selector to avoid conflict with sortableTable.js
+    const groupTbodies = document.querySelectorAll('tbody.group-items-tbody[data-group-id]')
 
     if (groupTbodies.length === 0) {
         return
@@ -27,7 +28,11 @@ export default function initSortableGroupedTable() {
             handle: '.sortable-drag-handle',
             ghostClass: 'sortable-ghost',
             dragClass: 'sortable-drag',
-            group: 'shared-groups', // All groups share same namespace for cross-group drag
+            group: {
+                name: 'shared-groups',
+                pull: true,
+                put: true
+            },
 
             onStart: function(evt) {
                 console.log('[Sortable] Drag started:', {
@@ -66,16 +71,24 @@ export default function initSortableGroupedTable() {
                                 return saveGroupOrder(oldTbody, oldGroupId, orderColumn, updateEndpoint)
                             }
                         })
+                        .then(() => {
+                            showToast('success', 'Item moved to new group successfully')
+                        })
                         .catch(error => {
                             console.error('[Sortable] Error updating groups:', error)
-                            showToast('Error updating item group', 'error')
+                            showToast('danger', 'Error updating item group')
+                            // Revert the DOM change on error
+                            oldTbody.insertBefore(evt.item, oldTbody.children[evt.oldIndex])
                         })
                 } else if (evt.oldIndex !== evt.newIndex) {
                     // Moved within same group - just update order
                     saveGroupOrder(newTbody, newGroupId, orderColumn, updateEndpoint)
+                        .then(() => {
+                            showToast('success', 'Order updated successfully')
+                        })
                         .catch(error => {
                             console.error('[Sortable] Error saving order:', error)
-                            showToast('Error saving order', 'error')
+                            showToast('danger', 'Error saving order')
                         })
                 }
             }
@@ -87,7 +100,14 @@ export default function initSortableGroupedTable() {
  * Update item's group assignment
  */
 async function updateItemGroup(itemId, newGroupId, groupColumn, endpoint) {
-    console.log('[Sortable] Updating item group:', { itemId, newGroupId, groupColumn })
+    console.log('[Sortable] Updating item group:', { itemId, newGroupId, groupColumn, endpoint })
+
+    const payload = {
+        item_id: itemId,
+        group_column: groupColumn,
+        group_id: newGroupId
+    }
+    console.log('[Sortable] Request payload:', payload)
 
     const response = await fetch(endpoint, {
         method: 'POST',
@@ -96,15 +116,14 @@ async function updateItemGroup(itemId, newGroupId, groupColumn, endpoint) {
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
             'Accept': 'application/json'
         },
-        body: JSON.stringify({
-            item_id: itemId,
-            group_column: groupColumn,
-            group_id: newGroupId
-        })
+        body: JSON.stringify(payload)
     })
+
+    console.log('[Sortable] Response status:', response.status)
 
     if (!response.ok) {
         const errorData = await response.json().catch(() => ({}))
+        console.error('[Sortable] Error response:', errorData)
         throw new Error(errorData.message || 'Failed to update group')
     }
 
@@ -149,8 +168,6 @@ async function saveGroupOrder(tbody, groupId, orderColumn, endpoint) {
 
     const data = await response.json()
     console.log('[Sortable] Order saved successfully:', data)
-
-    showToast(data.message || 'Order updated successfully', 'success')
 
     return data
 }
