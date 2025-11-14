@@ -874,43 +874,70 @@ class ResourceController extends Controller
         $modelClass = $resourceClass::$model;
         $table = $resourceClass::table($request);
 
+        $this->validateSortableMode($table, $slug);
+
+        $orderColumn = $table->getOrderColumn() ?? 'order';
+        $order = $this->normalizeOrderInput($request, $orderColumn);
+
+        $loadedModels = $this->authorizeAndLoadModels($modelClass, $resource, $order, $request->user(), $slug);
+        $this->persistItemOrder($loadedModels, $order, $orderColumn);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Order updated successfully',
+        ]);
+    }
+
+    /**
+     * Validate that the resource supports sortable mode
+     */
+    protected function validateSortableMode($table, string $slug): void
+    {
         $displayMode = $table->getDisplayMode();
         if (!in_array($displayMode, ['sortable', 'sortable-grouped'])) {
             throw new ResourceException("Resource '{$slug}' does not support sortable mode", 422);
         }
+    }
 
-        $orderColumn = $table->getOrderColumn() ?? 'order';
-
-        // Support both formats: 'items' (old format) and 'order' (new format from sortableGroupedTable.js)
-        $order = null;
+    /**
+     * Normalize order input from different formats to unified format
+     * Supports both old format (items array) and new format (order object)
+     */
+    protected function normalizeOrderInput(Request $request, string $orderColumn): array
+    {
         if ($request->has('order')) {
-            // New format: { order: { id1: pos1, id2: pos2 }, order_column: 'order', group_id: 1 }
+            // New format: { order: { id1: pos1, id2: pos2 }, order_column: 'order' }
             $validated = $request->validate([
                 'order' => 'required|array',
                 'order.*' => 'required|integer',
                 'order_column' => 'nullable|string',
                 'group_id' => 'nullable|integer',
             ]);
-            $order = $validated['order'];
-            $orderColumn = $validated['order_column'] ?? $orderColumn;
-        } else {
-            // Old format: { items: [{ id: 1, order: 1 }] }
-            $validated = $request->validate([
-                'items' => 'required|array',
-                'items.*.id' => 'required|integer',
-                "items.*.{$orderColumn}" => 'required|integer',
-            ]);
-            // Convert to new format
-            $order = [];
-            foreach ($validated['items'] as $item) {
-                $order[$item['id']] = $item[$orderColumn];
-            }
+            return $validated['order'];
         }
 
-        $user = $request->user();
+        // Old format: { items: [{ id: 1, order: 1 }] }
+        $validated = $request->validate([
+            'items' => 'required|array',
+            'items.*.id' => 'required|integer',
+            "items.*.{$orderColumn}" => 'required|integer',
+        ]);
+
+        // Convert to new format
+        $order = [];
+        foreach ($validated['items'] as $item) {
+            $order[$item['id']] = $item[$orderColumn];
+        }
+        return $order;
+    }
+
+    /**
+     * Authorize and load models for update
+     */
+    protected function authorizeAndLoadModels(string $modelClass, $resource, array $order, $user, string $slug): array
+    {
         $loadedModels = [];
 
-        // Check authorization for each item and keep loaded models for saving
         foreach ($order as $id => $position) {
             $model = $modelClass::findOrFail($id);
 
@@ -921,17 +948,19 @@ class ResourceController extends Controller
             $loadedModels[$id] = $model;
         }
 
-        // Update order for all items through Eloquent to trigger events/mutators
+        return $loadedModels;
+    }
+
+    /**
+     * Persist order changes to database
+     */
+    protected function persistItemOrder(array $loadedModels, array $order, string $orderColumn): void
+    {
         foreach ($order as $id => $position) {
             $model = $loadedModels[$id];
             $model->setAttribute($orderColumn, $position);
             $model->save();
         }
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Order updated successfully',
-        ]);
     }
 
 
@@ -978,15 +1007,8 @@ class ResourceController extends Controller
         // Update group assignment
         $oldGroupId = $model->getAttribute($groupColumn);
         $model->setAttribute($groupColumn, $validated['group_id']);
-        $saved = $model->save();
+        $model->save();
 
-        \Log::info('UpdateGroup:', [
-            'item_id' => $validated['item_id'],
-            'old_group' => $oldGroupId,
-            'new_group' => $validated['group_id'],
-            'saved' => $saved,
-            'current_value' => $model->fresh()->getAttribute($groupColumn)
-        ]);
 
         return response()->json([
             'success' => true,
