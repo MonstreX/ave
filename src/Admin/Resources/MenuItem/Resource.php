@@ -4,6 +4,7 @@ namespace Monstrex\Ave\Admin\Resources\MenuItem;
 
 use Monstrex\Ave\Models\MenuItem as MenuItemModel;
 use Monstrex\Ave\Models\Menu as MenuModel;
+use MonstrexAveCoreColumnsBooleanColumn;
 use Monstrex\Ave\Core\Columns\ComputedColumn;
 use Monstrex\Ave\Core\Columns\Column;
 use Monstrex\Ave\Core\Components\Div;
@@ -56,6 +57,15 @@ class Resource extends BaseResource
                 maxDepth: 5
             )
             ->columns([
+                BooleanColumn::make('status')
+                    ->label('Active')
+                    ->trueLabel('Active')
+                    ->falseLabel('Inactive')
+                    ->trueValue(true)
+                    ->falseValue(false)
+                    ->trueIcon('voyager-check')
+                    ->falseIcon('voyager-x')
+                    ->inlineToggle(),
                 Column::make('title')
                     ->bold(),
                 ComputedColumn::make('target')
@@ -160,6 +170,11 @@ class Resource extends BaseResource
                 ]),
             ]),
             Div::make('row')->schema([
+                Div::make('col-12 col-md-4')->schema([
+                    Toggle::make('status')
+                        ->label('Active')
+                        ->default(true),
+                ]),
                 Div::make('col-12 col-md-4')->schema([
                     Toggle::make('is_divider')
                         ->label('Divider'),
