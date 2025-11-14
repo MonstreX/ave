@@ -18,6 +18,16 @@ use Monstrex\Ave\Core\Persistence\ResourcePersistence;
 use Monstrex\Ave\Core\Rendering\ResourceRenderer;
 use Monstrex\Ave\Core\Sorting\SortableOrderService;
 use Monstrex\Ave\Support\Http\RequestDebugSanitizer;
+use Monstrex\Ave\Http\Controllers\Resource\Actions\IndexAction;
+use Monstrex\Ave\Http\Controllers\Resource\Actions\CreateAction;
+use Monstrex\Ave\Http\Controllers\Resource\Actions\StoreAction;
+use Monstrex\Ave\Http\Controllers\Resource\Actions\EditAction;
+use Monstrex\Ave\Http\Controllers\Resource\Actions\UpdateAction;
+use Monstrex\Ave\Http\Controllers\Resource\Actions\DestroyAction;
+use Monstrex\Ave\Http\Controllers\Resource\Actions\ReorderAction;
+use Monstrex\Ave\Http\Controllers\Resource\Actions\UpdateGroupAction;
+use Monstrex\Ave\Http\Controllers\Resource\Actions\UpdateTreeAction;
+use Monstrex\Ave\Http\Controllers\Resource\Actions\InlineUpdateAction;
 use Monstrex\Ave\Exceptions\ResourceException;
 use Monstrex\Ave\Http\Controllers\ResourceController;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -75,7 +85,17 @@ class TreeModeTest extends TestCase
             $validator,
             $persistence,
             $sortingService,
-            $sanitizer
+            $sanitizer,
+            new IndexAction($this->resourceManager, $this->renderer),
+            new CreateAction($this->resourceManager, $this->renderer),
+            new StoreAction($this->resourceManager, $validator, $persistence, $sanitizer),
+            new EditAction($this->resourceManager, $this->renderer),
+            new UpdateAction($this->resourceManager, $validator, $persistence, $sanitizer),
+            new DestroyAction($this->resourceManager, $persistence),
+            new ReorderAction($this->resourceManager, $sortingService),
+            new UpdateGroupAction($this->resourceManager),
+            new UpdateTreeAction($this->resourceManager, $sortingService),
+            new InlineUpdateAction($this->resourceManager)
         );
     }
 

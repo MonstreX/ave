@@ -30,6 +30,7 @@ use Monstrex\Ave\Core\Actions\BaseAction;
 use Monstrex\Ave\Core\Actions\Contracts\BulkAction as BulkActionContract;
 use Monstrex\Ave\Core\Actions\Support\ActionContext;
 use Monstrex\Ave\Core\Columns\Column;
+use Monstrex\Ave\Core\Columns\BooleanColumn;
 use Monstrex\Ave\Core\Filters\SelectFilter;
 use Monstrex\Ave\Core\Form;
 use Monstrex\Ave\Core\Resource;
@@ -40,6 +41,16 @@ use Monstrex\Ave\Core\Persistence\ResourcePersistence;
 use Monstrex\Ave\Core\Rendering\ResourceRenderer;
 use Monstrex\Ave\Core\Sorting\SortableOrderService;
 use Monstrex\Ave\Support\Http\RequestDebugSanitizer;
+use Monstrex\Ave\Http\Controllers\Resource\Actions\CreateAction;
+use Monstrex\Ave\Http\Controllers\Resource\Actions\DestroyAction;
+use Monstrex\Ave\Http\Controllers\Resource\Actions\EditAction;
+use Monstrex\Ave\Http\Controllers\Resource\Actions\IndexAction;
+use Monstrex\Ave\Http\Controllers\Resource\Actions\ReorderAction;
+use Monstrex\Ave\Http\Controllers\Resource\Actions\StoreAction;
+use Monstrex\Ave\Http\Controllers\Resource\Actions\UpdateAction;
+use Monstrex\Ave\Http\Controllers\Resource\Actions\UpdateGroupAction;
+use Monstrex\Ave\Http\Controllers\Resource\Actions\UpdateTreeAction;
+use Monstrex\Ave\Http\Controllers\Resource\Actions\InlineUpdateAction;
 use Monstrex\Ave\Exceptions\ResourceException;
 use Monstrex\Ave\Http\Controllers\ResourceController;
 use PHPUnit\Framework\TestCase;
@@ -416,14 +427,7 @@ class ResourceControllerTest extends TestCase
             )
             ->willReturn(new TestRecord(['id' => 200, 'title' => 'Created', 'tenant_id' => 1]));
 
-        $controller = new ResourceController(
-            $this->resourceManagerStub(),
-            $renderer,
-            $validator,
-            $persistence,
-            $this->sortingService(),
-            new RequestDebugSanitizer()
-        );
+        $controller = $this->makeController($renderer, $validator, $persistence);
 
         $request = Request::create('/admin/resource/test-items', 'POST', ['title' => 'Created']);
         $request->setUserResolver(fn () => new FakeUser(1, 1));
@@ -432,6 +436,33 @@ class ResourceControllerTest extends TestCase
         $this->assertInstanceOf(TestingRedirectResponse::class, $response);
         $this->assertSame('ave.resource.index', $response->route);
         $this->assertSame(['status' => 'Created successfully', 'model_id' => 200], $response->flash);
+    }
+
+    public function test_store_save_and_continue_redirects_back_to_edit(): void
+    {
+        TestResource::setFormFactory(fn () => Form::make());
+
+        $renderer = $this->createMock(ResourceRenderer::class);
+        $validator = $this->createMock(FormValidator::class);
+        $validator->method('rulesFromForm')->willReturn(['title' => 'required']);
+
+        $persistence = $this->createMock(ResourcePersistence::class);
+        $persistence->method('create')
+            ->willReturn(new TestRecord(['id' => 201, 'title' => 'Created', 'tenant_id' => 1]));
+
+        $controller = $this->makeController($renderer, $validator, $persistence);
+
+        $request = Request::create('/admin/resource/test-items', 'POST', [
+            'title' => 'Created',
+            '_ave_form_action' => 'save-continue',
+        ]);
+        $request->setUserResolver(fn () => new FakeUser(1, 1));
+
+        $response = $controller->store($request, 'test-items');
+        $this->assertInstanceOf(TestingRedirectResponse::class, $response);
+        $this->assertSame('ave.resource.edit', $response->route);
+        $this->assertSame(['slug' => 'test-items', 'id' => 201], $response->parameters);
+        $this->assertSame(['status' => 'Created successfully'], $response->flash);
     }
 
     public function test_update_invokes_persistence_and_redirects(): void
@@ -454,14 +485,7 @@ class ResourceControllerTest extends TestCase
             ->method('update')
             ->willReturn($record);
 
-        $controller = new ResourceController(
-            $this->resourceManagerStub(),
-            $renderer,
-            $validator,
-            $persistence,
-            $this->sortingService(),
-            new RequestDebugSanitizer()
-        );
+        $controller = $this->makeController($renderer, $validator, $persistence);
 
         $request = Request::create('/admin/resource/test-items/300', 'POST', ['title' => 'After']);
         $request->setUserResolver(fn () => new FakeUser(1, 1));
@@ -470,6 +494,37 @@ class ResourceControllerTest extends TestCase
         $this->assertInstanceOf(TestingRedirectResponse::class, $response);
         $this->assertSame('ave.resource.index', $response->route);
         $this->assertSame(['status' => 'Updated successfully', 'model_id' => 300], $response->flash);
+    }
+
+    public function test_update_save_and_continue_redirects_back_to_edit(): void
+    {
+        TestResource::setFormFactory(fn () => Form::make());
+        $record = TestRecord::create([
+            'id' => 301,
+            'title' => 'Before',
+            'tenant_id' => 1,
+        ]);
+
+        $renderer = $this->createMock(ResourceRenderer::class);
+        $validator = $this->createMock(FormValidator::class);
+        $validator->method('rulesFromForm')->willReturn(['title' => 'required']);
+
+        $persistence = $this->createMock(ResourcePersistence::class);
+        $persistence->method('update')->willReturn($record);
+
+        $controller = $this->makeController($renderer, $validator, $persistence);
+
+        $request = Request::create('/admin/resource/test-items/301', 'POST', [
+            'title' => 'After',
+            '_ave_form_action' => 'save-continue',
+        ]);
+        $request->setUserResolver(fn () => new FakeUser(1, 1));
+
+        $response = $controller->update($request, 'test-items', '301');
+        $this->assertInstanceOf(TestingRedirectResponse::class, $response);
+        $this->assertSame('ave.resource.edit', $response->route);
+        $this->assertSame(['slug' => 'test-items', 'id' => 301], $response->parameters);
+        $this->assertSame(['status' => 'Updated successfully'], $response->flash);
     }
 
     public function test_destroy_invokes_delete_and_redirects(): void
@@ -487,14 +542,7 @@ class ResourceControllerTest extends TestCase
             ->method('delete')
             ->with(TestResource::class, $this->isInstanceOf(TestRecord::class));
 
-        $controller = new ResourceController(
-            $this->resourceManagerStub(),
-            $renderer,
-            $validator,
-            $persistence,
-            $this->sortingService(),
-            new RequestDebugSanitizer()
-        );
+        $controller = $this->makeController($renderer, $validator, $persistence);
 
         $request = Request::create('/admin/resource/test-items/400', 'DELETE');
         $request->setUserResolver(fn () => new FakeUser(1, 1));
@@ -755,19 +803,97 @@ class ResourceControllerTest extends TestCase
         $this->assertSame(0, $capturedPaginator->count());
     }
 
-    private function makeController(?ResourceRenderer $renderer = null): ResourceController
+    public function test_inline_update_updates_boolean_column(): void
+    {
+        TestRecord::insert([
+            ['id' => 1, 'title' => 'Alpha', 'is_published' => false, 'tenant_id' => 1],
+        ]);
+
+        TestResource::setTableFactory(function () {
+            return Table::make()
+                ->columns([
+                    BooleanColumn::make('is_published')->inlineToggle(),
+                ]);
+        });
+
+        $controller = $this->makeController();
+        $request = Request::create('/admin/resource/test-items/1/inline', 'PATCH', [
+            'field' => 'is_published',
+            'value' => '1',
+        ]);
+        $request->setUserResolver(fn () => new FakeUser(1, 1));
+
+        $response = $controller->inlineUpdate($request, 'test-items', '1');
+
+        $this->assertSame(200, $response->getStatusCode());
+        $payload = $response->getData(true);
+
+        $this->assertSame('success', $payload['status']);
+        $this->assertTrue($payload['state']);
+        $this->assertSame('1', $payload['canonical']);
+        $this->assertSame(1, TestRecord::find(1)->is_published);
+    }
+
+    public function test_inline_update_returns_error_for_non_inline_field(): void
+    {
+        TestRecord::insert([
+            ['id' => 1, 'title' => 'Alpha', 'is_published' => false, 'tenant_id' => 1],
+        ]);
+
+        TestResource::setTableFactory(function () {
+            return Table::make()
+                ->columns([
+                    Column::make('title'),
+                ]);
+        });
+
+        $controller = $this->makeController();
+        $request = Request::create('/admin/resource/test-items/1/inline', 'PATCH', [
+            'field' => 'title',
+            'value' => 'Updated',
+        ]);
+        $request->setUserResolver(fn () => new FakeUser(1, 1));
+
+        $response = $controller->inlineUpdate($request, 'test-items', '1');
+
+        $this->assertSame(422, $response->getStatusCode());
+        $payload = $response->getData(true);
+
+        $this->assertSame('error', $payload['status']);
+        $this->assertSame('Field is not inline editable.', $payload['message']);
+    }
+
+    private function makeController(
+        ?ResourceRenderer $renderer = null,
+        ?FormValidator $validator = null,
+        ?ResourcePersistence $persistence = null
+    ): ResourceController
     {
         $renderer ??= $this->createMock(ResourceRenderer::class);
-        $validator = $this->createMock(FormValidator::class);
-        $persistence = $this->createMock(ResourcePersistence::class);
+        $validator ??= $this->createMock(FormValidator::class);
+        $persistence ??= $this->createMock(ResourcePersistence::class);
+
+        $resources = $this->resourceManagerStub();
+        $sortingService = $this->sortingService();
+        $sanitizer = new RequestDebugSanitizer();
 
         return new ResourceController(
-            $this->resourceManagerStub(),
+            $resources,
             $renderer,
             $validator,
             $persistence,
-            $this->sortingService(),
-            new RequestDebugSanitizer()
+            $sortingService,
+            $sanitizer,
+            new IndexAction($resources, $renderer),
+            new CreateAction($resources, $renderer),
+            new StoreAction($resources, $validator, $persistence, $sanitizer),
+            new EditAction($resources, $renderer),
+            new UpdateAction($resources, $validator, $persistence, $sanitizer),
+            new DestroyAction($resources, $persistence),
+            new ReorderAction($resources, $sortingService),
+            new UpdateGroupAction($resources),
+            new UpdateTreeAction($resources, $sortingService),
+            new InlineUpdateAction($resources)
         );
     }
 

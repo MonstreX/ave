@@ -31,6 +31,16 @@ use Monstrex\Ave\Core\Sorting\SortableOrderService;
 use Monstrex\Ave\Core\Validation\FormValidator;
 use Monstrex\Ave\Core\Persistence\ResourcePersistence;
 use Monstrex\Ave\Core\Rendering\ResourceRenderer;
+use Monstrex\Ave\Http\Controllers\Resource\Actions\CreateAction;
+use Monstrex\Ave\Http\Controllers\Resource\Actions\DestroyAction;
+use Monstrex\Ave\Http\Controllers\Resource\Actions\EditAction;
+use Monstrex\Ave\Http\Controllers\Resource\Actions\IndexAction;
+use Monstrex\Ave\Http\Controllers\Resource\Actions\ReorderAction;
+use Monstrex\Ave\Http\Controllers\Resource\Actions\StoreAction;
+use Monstrex\Ave\Http\Controllers\Resource\Actions\UpdateAction;
+use Monstrex\Ave\Http\Controllers\Resource\Actions\UpdateGroupAction;
+use Monstrex\Ave\Http\Controllers\Resource\Actions\UpdateTreeAction;
+use Monstrex\Ave\Http\Controllers\Resource\Actions\InlineUpdateAction;
 use Monstrex\Ave\Http\Controllers\ResourceController;
 use Monstrex\Ave\Support\Http\RequestDebugSanitizer;
 use Illuminate\Support\MessageBag;
@@ -197,13 +207,29 @@ class FieldsetPersistenceTest extends TestCase
     {
         $renderer = $this->createMock(ResourceRenderer::class);
 
+        $resources = $this->resourceManagerStub();
+        $validator = new FormValidator();
+        $persistence = new ResourcePersistence();
+        $sorting = new SortableOrderService($this->capsule->getConnection());
+        $sanitizer = new RequestDebugSanitizer();
+
         return new ResourceController(
-            $this->resourceManagerStub(),
+            $resources,
             $renderer,
-            new FormValidator(),
-            new ResourcePersistence(),
-            new SortableOrderService($this->capsule->getConnection()),
-            new RequestDebugSanitizer()
+            $validator,
+            $persistence,
+            $sorting,
+            $sanitizer,
+            new IndexAction($resources, $renderer),
+            new CreateAction($resources, $renderer),
+            new StoreAction($resources, $validator, $persistence, $sanitizer),
+            new EditAction($resources, $renderer),
+            new UpdateAction($resources, $validator, $persistence, $sanitizer),
+            new DestroyAction($resources, $persistence),
+            new ReorderAction($resources, $sorting),
+            new UpdateGroupAction($resources),
+            new UpdateTreeAction($resources, $sorting),
+            new InlineUpdateAction($resources)
         );
     }
 
