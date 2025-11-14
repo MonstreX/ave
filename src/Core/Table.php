@@ -23,7 +23,6 @@ class Table
     protected string $displayMode = 'table';
     protected ?string $orderColumn = null;
     protected ?string $parentColumn = null;
-    protected ?string $treeLabelColumn = null;
     protected int $treeMaxDepth = 5;
 
     public static function make(): static
@@ -111,17 +110,16 @@ class Table
 
     /**
      * Configure tree view mode.
+     * All displayed data must be defined in columns() - no separate labelColumn.
      */
     public function tree(
         string $parentColumn = 'parent_id',
         string $orderColumn = 'order',
-        ?string $labelColumn = null,
         int $maxDepth = 5
     ): static {
         $this->displayMode = 'tree';
         $this->parentColumn = $parentColumn;
         $this->orderColumn = $orderColumn;
-        $this->treeLabelColumn = $labelColumn;
         $this->treeMaxDepth = $maxDepth;
         return $this;
     }
@@ -225,14 +223,6 @@ class Table
     public function getParentColumn(): ?string
     {
         return $this->parentColumn;
-    }
-
-    /**
-     * Get tree label column name.
-     */
-    public function getTreeLabelColumn(): ?string
-    {
-        return $this->treeLabelColumn;
     }
 
     /**

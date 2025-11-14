@@ -595,7 +595,7 @@ class ResourceControllerTest extends TestCase
         ]);
 
         TestResource::setTableFactory(function () {
-            return Table::make()->tree('parent_id', 'order', 'title');
+            return Table::make()->tree('parent_id', 'order');
         });
 
         $controller = $this->makeController();
@@ -659,7 +659,7 @@ class ResourceControllerTest extends TestCase
         ]);
 
         TestResource::setTableFactory(function () {
-            return Table::make()->tree('parent_id', 'order', 'title', 1); // only root level allowed
+            return Table::make()->tree('parent_id', 'order', 1); // only root level allowed
         });
 
         $controller = $this->makeController();
@@ -689,7 +689,7 @@ class ResourceControllerTest extends TestCase
 
         TestResource::setTableFactory(function () {
             return Table::make()
-                ->tree('parent_id', 'order', 'title')
+                ->tree('parent_id', 'order')
                 ->columns([Column::make('title')])
                 ->perPage(2); // Pagination should be ignored
         });
@@ -721,7 +721,7 @@ class ResourceControllerTest extends TestCase
         // No records inserted
         TestResource::setTableFactory(function () {
             return Table::make()
-                ->tree('parent_id', 'order', 'title')
+                ->tree('parent_id', 'order')
                 ->columns([Column::make('title')]);
         });
 

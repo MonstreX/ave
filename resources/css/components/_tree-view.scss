@@ -127,15 +127,14 @@
     text-overflow: ellipsis;
 }
 
-.tree-meta {
-    color: #6b7280;
+.tree-cell {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
     font-size: 13px;
-    white-space: nowrap;
 
-    &:not(:last-child)::after {
-        content: '•';
-        margin: 0 0.5rem;
-        color: #d1d5db;
+    &:not(:last-child) {
+        margin-right: 0.75rem;
     }
 }
 

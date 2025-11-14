@@ -2,9 +2,6 @@
     // Find children of this item
     $children = $allRecords->filter(fn($r) => $r->{$parentCol} == $item->getKey());
     $hasChildren = $children->count() > 0;
-
-    // Determine label to display
-    $displayLabel = $labelCol ? $item->{$labelCol} : $item->getKey();
 @endphp
 
 <li class="tree-item dd-item" data-id="{{ $item->getKey() }}">
@@ -24,24 +21,28 @@
             </div>
         @endif
 
-        {{-- Content --}}
+        {{-- Content: Render all columns like regular table cells --}}
         <div class="dd-content dd-nodrag">
             <div class="tree-item-info">
-                <span class="tree-item-label">{{ $displayLabel }}</span>
-
-                {{-- Display column values --}}
                 @foreach($table->getColumns() as $column)
-                    @if($column->key() !== $labelCol)
-                        @php
-                            $rawValue = $column->resolveRecordValue($item);
-                            $formattedValue = $column->formatValue($rawValue, $item);
-                        @endphp
-                        <span class="tree-meta">
-                            @if($formattedValue)
-                                {!! $formattedValue !!}
-                            @endif
-                        </span>
-                    @endif
+                    @php
+                        $rawValue = $column->resolveRecordValue($item);
+                        $formattedValue = $column->formatValue($rawValue, $item);
+                        $columnView = $column->resolveView();
+                        $cellLink = $column->resolveLink($item, $resource, $currentUser);
+                    @endphp
+                    <div class="tree-cell">
+                        @include($columnView, [
+                            'column' => $column,
+                            'record' => $item,
+                            'value' => $rawValue,
+                            'formattedValue' => $formattedValue,
+                            'slug' => $slug,
+                            'link' => $cellLink,
+                            'resourceClass' => $resource,
+                            'currentUser' => $currentUser,
+                        ])
+                    </div>
                 @endforeach
             </div>
         </div>
@@ -115,7 +116,6 @@
                 'rowActions' => $rowActions,
                 'parentCol' => $parentCol,
                 'orderCol' => $orderCol,
-                'labelCol' => $labelCol,
                 'level' => $level + 1
             ])
         @endforeach

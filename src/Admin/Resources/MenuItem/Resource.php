@@ -53,10 +53,11 @@ class Resource extends BaseResource
             ->tree(
                 parentColumn: 'parent_id',
                 orderColumn: 'order',
-                labelColumn: 'title',
                 maxDepth: 5
             )
             ->columns([
+                Column::make('title')
+                    ->label('Title'),
                 Column::make('resource_slug')
                     ->label('Resource'),
                 Column::make('route')

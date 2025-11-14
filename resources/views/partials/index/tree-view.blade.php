@@ -1,7 +1,6 @@
 @php
     $parentCol = $table->getParentColumn() ?? 'parent_id';
     $orderCol = $table->getOrderColumn() ?? 'order';
-    $labelCol = $table->getTreeLabelColumn();
     $maxDepth = $table->getTreeMaxDepth();
 @endphp
 
@@ -51,7 +50,6 @@
                             'rowActions' => $rowActions ?? [],
                             'parentCol' => $parentCol,
                             'orderCol' => $orderCol,
-                            'labelCol' => $labelCol,
                             'level' => 0
                         ])
                     @endif

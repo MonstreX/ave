@@ -110,12 +110,11 @@ class TableTest extends TestCase
 
     public function test_tree_mode_configuration(): void
     {
-        $table = Table::make()->tree('parent_id', 'order', 'title', 10);
+        $table = Table::make()->tree('parent_id', 'order', 10);
 
         $this->assertSame('tree', $table->getDisplayMode());
         $this->assertSame('parent_id', $table->getParentColumn());
         $this->assertSame('order', $table->getOrderColumn());
-        $this->assertSame('title', $table->getTreeLabelColumn());
         $this->assertSame(10, $table->getTreeMaxDepth());
     }
 
@@ -126,7 +125,6 @@ class TableTest extends TestCase
         $this->assertSame('tree', $table->getDisplayMode());
         $this->assertSame('parent_id', $table->getParentColumn());
         $this->assertSame('order', $table->getOrderColumn());
-        $this->assertNull($table->getTreeLabelColumn());
         $this->assertSame(5, $table->getTreeMaxDepth());
     }
 
