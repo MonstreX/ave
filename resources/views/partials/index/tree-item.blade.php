@@ -30,8 +30,14 @@
                         $formattedValue = $column->formatValue($rawValue, $item);
                         $columnView = $column->resolveView();
                         $cellLink = $column->resolveLink($item, $resource, $currentUser);
+                        // Build tree-cell classes with column type
+                        $treeCellClasses = array_filter([
+                            'tree-cell',
+                            $column->getType() . '-column',
+                            $column->getCellClass(),
+                        ]);
                     @endphp
-                    <div class="tree-cell">
+                    <div class="{{ implode(' ', $treeCellClasses) }}">
                         @include($columnView, [
                             'column' => $column,
                             'record' => $item,
