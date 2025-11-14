@@ -57,13 +57,11 @@ class Resource extends BaseResource
             )
             ->columns([
                 Column::make('title')
-                    ->label('Title'),
-                Column::make('resource_slug')
-                    ->label('Resource'),
-                Column::make('route')
-                    ->label('Route'),
+                    ->bold(),
+                Column::make('resource_slug'),
+                Column::make('route'),
                 Column::make('url')
-                    ->label('URL'),
+                    ->color('#3686e4'),
             ])
             ->searchable(false); // Disable search in tree mode
     }
