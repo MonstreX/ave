@@ -492,6 +492,25 @@ class FormValidatorTest extends TestCase
         $this->assertArrayHasKey('slug', $result);
     }
 
+    public function test_adjust_unique_preserves_scopes(): void
+    {
+        $reflection = new \ReflectionClass($this->validator);
+        $method = $reflection->getMethod('adjustUniqueRulesForEdit');
+        $method->setAccessible(true);
+
+        $model = $this->getMockBuilder(Model::class)->onlyMethods(['getKey', 'getKeyName'])->getMock();
+        $model->method('getKey')->willReturn(42);
+        $model->method('getKeyName')->willReturn('id');
+
+        $rules = [
+            'slug' => 'required|unique:posts,slug,NULL,id,tenant_id,7',
+        ];
+
+        $result = $method->invoke($this->validator, $rules, $model);
+
+        $this->assertSame('required|unique:posts,slug,42,id,tenant_id,7', $result['slug']);
+    }
+
     /**
      * Test multiple validator instances
      */

@@ -20,6 +20,8 @@ use Illuminate\Translation\ArrayLoader;
 use Illuminate\Translation\Translator;
 use Illuminate\Validation\Factory as ValidationFactory;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Session\ArraySessionHandler;
+use Illuminate\Session\Store as SessionStore;
 use Monstrex\Ave\Core\Actions\Contracts\FormAction as FormActionContract;
 use Monstrex\Ave\Core\Actions\Contracts\GlobalAction as GlobalActionContract;
 use Monstrex\Ave\Core\Actions\Contracts\RowAction as RowActionContract;
@@ -563,6 +565,7 @@ class ResourceControllerTest extends TestCase
 
         $controller = $this->makeController();
         $request = Request::create('/admin/resource/test-items/table.json', 'GET');
+        $request->setUserResolver(fn () => new FakeUser(10, 1));
 
         $response = $controller->tableJson($request, 'test-items');
         $payload = $response->getData(true);
@@ -576,11 +579,83 @@ class ResourceControllerTest extends TestCase
 
         $controller = $this->makeController();
         $request = Request::create('/admin/resource/test-items/form.json', 'GET');
+        $request->setUserResolver(fn () => new FakeUser(10, 1));
 
         $response = $controller->formJson($request, 'test-items');
         $payload = $response->getData(true);
 
         $this->assertIsArray($payload);
+    }
+
+    public function test_table_json_requires_authorization(): void
+    {
+        $controller = $this->makeController();
+        $request = Request::create('/admin/resource/test-items/table.json', 'GET');
+        $request->setUserResolver(fn () => null);
+
+        $this->expectException(ResourceException::class);
+        $controller->tableJson($request, 'test-items');
+    }
+
+    public function test_form_json_requires_authorization(): void
+    {
+        $controller = $this->makeController();
+        $request = Request::create('/admin/resource/test-items/form.json', 'GET');
+        $request->setUserResolver(fn () => null);
+
+        $this->expectException(ResourceException::class);
+        $controller->formJson($request, 'test-items');
+    }
+
+    public function test_set_per_page_persists_preferences(): void
+    {
+        $controller = $this->makeController();
+        $request = Request::create('/admin/resource/test-items/set-per-page', 'POST', ['per_page' => 10]);
+        $session = new SessionStore('testing', new ArraySessionHandler(120));
+        $session->start();
+        $request->setLaravelSession($session);
+        $request->setUserResolver(fn () => new FakeUser(1, 1));
+
+        $response = $controller->setPerPage($request, 'test-items')->getData(true);
+        $this->assertSame('success', $response['status']);
+        $this->assertSame(10, $session->get('ave.resources.test-items.per_page'));
+        $this->assertSame(10, $session->get('ave.per_page.test-items'));
+    }
+
+    public function test_index_uses_api_per_page_preference(): void
+    {
+        TestRecord::insert([
+            ['title' => 'A', 'tenant_id' => 1],
+            ['title' => 'B', 'tenant_id' => 1],
+            ['title' => 'C', 'tenant_id' => 1],
+        ]);
+
+        TestResource::setTableFactory(function () {
+            return Table::make()
+                ->columns([Column::make('title')])
+                ->perPage(25)
+                ->perPageOptions([10, 25, 50]);
+        });
+
+        $capturedPerPage = null;
+        $renderer = $this->createMock(ResourceRenderer::class);
+        $renderer->expects($this->once())
+            ->method('index')
+            ->willReturnCallback(function ($resourceClass, $table, LengthAwarePaginator $records) use (&$capturedPerPage) {
+                $capturedPerPage = $records->perPage();
+                return 'rendered';
+            });
+
+        $controller = $this->makeController($renderer);
+        $request = Request::create('/admin/resource/test-items', 'GET');
+        $session = new SessionStore('testing', new ArraySessionHandler(120));
+        $session->start();
+        $session->put('ave.per_page.test-items', 10);
+        $request->setLaravelSession($session);
+        $request->setUserResolver(fn () => new FakeUser(10, 1));
+
+        $controller->index($request, 'test-items');
+        $this->assertSame(10, $capturedPerPage);
     }
 
     public function test_reorder_updates_order_for_items(): void

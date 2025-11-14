@@ -246,11 +246,7 @@ class ResourceController extends Controller
 
     public function tableJson(Request $request, string $slug)
     {
-        $resourceClass = $this->resources->resource($slug);
-
-        if (!$resourceClass) {
-            throw ResourceException::notFound($slug);
-        }
+        [$resourceClass] = $this->resolveAndAuthorize($slug, 'viewAny', $request);
 
         return response()->json($resourceClass::table($request)->get());
     }
@@ -262,11 +258,7 @@ class ResourceController extends Controller
      */
     public function formJson(Request $request, string $slug)
     {
-        $resourceClass = $this->resources->resource($slug);
-
-        if (!$resourceClass) {
-            throw ResourceException::notFound($slug);
-        }
+        [$resourceClass] = $this->resolveAndAuthorize($slug, 'viewAny', $request);
 
         return response()->json($resourceClass::form($request)->rows());
     }
@@ -354,7 +346,9 @@ class ResourceController extends Controller
             return;
         }
 
-        $request->session()->put("ave.per_page.{$slug}", $perPage);
+        $session = $request->session();
+        $session->put("ave.per_page.{$slug}", $perPage);
+        $session->put("ave.resources.{$slug}.per_page", $perPage);
     }
 
     /**

@@ -136,7 +136,7 @@ class FormValidator
 
             foreach ($segments as &$segment) {
                 if (str_starts_with($segment, 'unique:')) {
-                    $segment .= ',' . $model->getKey() . ',' . $model->getKeyName();
+                    $segment = $this->adjustUniqueSegment($segment, $model);
                 }
             }
 
@@ -144,5 +144,30 @@ class FormValidator
         }
 
         return $rules;
+    }
+
+    protected function adjustUniqueSegment(string $segment, Model $model): string
+    {
+        $prefix = 'unique:';
+        $definition = substr($segment, strlen($prefix));
+        $parts = explode(',', $definition);
+
+        $extra = array_slice($parts, 4);
+        $parts = array_slice($parts, 0, 4);
+
+        if (count($parts) < 2) {
+            $parts = array_pad($parts, 2, '');
+        }
+
+        $parts = array_pad($parts, 4, null);
+        $parts[2] = (string) $model->getKey();
+
+        if ($parts[3] === null || $parts[3] === '') {
+            $parts[3] = $model->getKeyName();
+        }
+
+        $finalParts = array_merge($parts, $extra);
+
+        return $prefix . implode(',', $finalParts);
     }
 }

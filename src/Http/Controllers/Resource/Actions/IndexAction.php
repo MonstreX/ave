@@ -176,6 +176,9 @@ class IndexAction extends AbstractResourceAction
         }
 
         $sessionPerPage = $session?->get("ave.resources.{$slug}.per_page");
+        if ($sessionPerPage === null) {
+            $sessionPerPage = $session?->get("ave.per_page.{$slug}");
+        }
         if ($sessionPerPage && in_array((int) $sessionPerPage, $table->getPerPageOptions(), true)) {
             return (int) $sessionPerPage;
         }
