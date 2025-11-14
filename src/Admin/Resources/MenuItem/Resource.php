@@ -4,10 +4,10 @@ namespace Monstrex\Ave\Admin\Resources\MenuItem;
 
 use Monstrex\Ave\Models\MenuItem as MenuItemModel;
 use Monstrex\Ave\Models\Menu as MenuModel;
+use Monstrex\Ave\Core\Columns\ComputedColumn;
 use Monstrex\Ave\Core\Columns\Column;
 use Monstrex\Ave\Core\Components\Div;
 use Monstrex\Ave\Core\Criteria\FieldEqualsFilter;
-use Monstrex\Ave\Core\Fields\BelongsToSelect;
 use Monstrex\Ave\Core\Fields\Hidden;
 use Monstrex\Ave\Core\Fields\Number;
 use Monstrex\Ave\Core\Fields\Select;
@@ -58,10 +58,23 @@ class Resource extends BaseResource
             ->columns([
                 Column::make('title')
                     ->bold(),
-                Column::make('resource_slug'),
-                Column::make('route'),
-                Column::make('url')
-                    ->color('#3686e4'),
+                ComputedColumn::make('target')
+                    ->label('Target')
+                    ->compute(function($record) {
+                        // Priority: url > route > resource_slug
+                        if (!empty($record->url)) {
+                            return $record->url;
+                        }
+                        if (!empty($record->route)) {
+                            return $record->route;
+                        }
+                        if (!empty($record->resource_slug)) {
+                            return $record->resource_slug;
+                        }
+                        return null;
+                    })
+                    ->color('#3686e4')
+                    ->fontSize('13px'),
             ])
             ->searchable(false); // Disable search in tree mode
     }
