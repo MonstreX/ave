@@ -191,6 +191,10 @@
     text-align: center;
 }
 
+.checkbox-column label {
+    margin-bottom: 0;
+}
+
 // Clear All Filters button
 .query-tag-reset {
     border-color: #ccc;

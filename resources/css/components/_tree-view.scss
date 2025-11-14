@@ -1,6 +1,7 @@
 // ============================================
 // TREE VIEW
 // ============================================
+@use './drag-handle' as *;
 
 .tree-container {
     position: relative;
@@ -42,59 +43,9 @@
     }
 }
 
+// Tree drag handle uses shared placeholder
 .tree-drag-handle {
-    cursor: grab;
-    padding: 0.25rem;
-    border: none;
-    background: transparent;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    width: 20px;
-    height: 20px;
-    position: relative;
-
-    &:active {
-        cursor: grabbing;
-    }
-
-    // 6-dot grid (2x3)
-    &::before,
-    &::after {
-        content: '';
-        position: absolute;
-        width: 2px;
-        height: 2px;
-        background: #111;
-        border-radius: 50%;
-    }
-
-    &::before {
-        left: 5px;
-        top: 4px;
-        box-shadow:
-            0 6px 0 0 #111,
-            0 12px 0 0 #111;
-    }
-
-    &::after {
-        right: 5px;
-        top: 4px;
-        box-shadow:
-            0 6px 0 0 #111,
-            0 12px 0 0 #111;
-    }
-
-    &:hover {
-        &::before,
-        &::after {
-            background: #3490dc;
-            box-shadow:
-                0 6px 0 0 #3490dc,
-                0 12px 0 0 #3490dc;
-        }
-    }
+    @extend %drag-handle-base;
 }
 
 .dd-content {

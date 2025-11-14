@@ -23,9 +23,10 @@ function initializeSortable(tbody) {
         return;
     }
 
-    // Initialize SortableJS on tbody - EXACTLY like working test
+    // Initialize SortableJS on tbody with handle
     const sortable = Sortable.create(tbody, {
         animation: 150,
+        handle: '.sortable-drag-handle',  // Nested inside td, but should work
         ghostClass: 'sortable-ghost',
         dragClass: 'sortable-drag',
         

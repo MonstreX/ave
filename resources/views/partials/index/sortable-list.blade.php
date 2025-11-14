@@ -88,13 +88,7 @@
                     <tr class="resource-row sortable-row" data-id="{{ $item->getKey() }}">
                         {{-- Drag handle cell --}}
                         <td class="sortable-handle-cell">
-                            <button type="button" class="sortable-drag-handle" aria-label="Drag to reorder">
-                                <span class="handle-dots">
-                                    <span></span><span></span>
-                                    <span></span><span></span>
-                                    <span></span><span></span>
-                                </span>
-                            </button>
+                            <button type="button" class="sortable-drag-handle" aria-label="Drag to reorder"></button>
                         </td>
                         @if($hasBulkSelection)
                             <td class="checkbox-column">
