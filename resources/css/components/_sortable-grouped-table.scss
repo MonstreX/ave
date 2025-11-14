@@ -14,13 +14,8 @@
 
 // Group header row
 .group-header-row {
-    background: #f8f9fa !important;
-    border-top: 2px solid #dee2e6;
+    border-top: 1px solid #dee2e6;
     border-bottom: 1px solid #dee2e6;
-
-    &:hover {
-        background: #f8f9fa !important;
-    }
 
     td {
         border: none !important;
@@ -29,11 +24,11 @@
 
 // Group header cell (spans full width)
 .group-header-cell {
-    padding: 0.75rem 1rem !important;
-    font-weight: 600;
+    padding: 0.5rem 1rem !important;
+    font-weight: 400;
     font-size: 14px;
     color: #2c3e50;
-    background: #f8f9fa;
+    background: #eee;
 }
 
 // Group header content
@@ -45,7 +40,7 @@
 
 // Group header title
 .group-header-title {
-    font-weight: 700;
+    font-weight: 600;
     color: #151515;
 }
 
