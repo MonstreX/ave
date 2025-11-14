@@ -4,7 +4,7 @@ namespace Monstrex\Ave\Admin\Resources\MenuItem;
 
 use Monstrex\Ave\Models\MenuItem as MenuItemModel;
 use Monstrex\Ave\Models\Menu as MenuModel;
-use MonstrexAveCoreColumnsBooleanColumn;
+use Monstrex\Ave\Core\Columns\BooleanColumn;
 use Monstrex\Ave\Core\Columns\ComputedColumn;
 use Monstrex\Ave\Core\Columns\Column;
 use Monstrex\Ave\Core\Components\Div;
@@ -61,8 +61,8 @@ class Resource extends BaseResource
                     ->label('Active')
                     ->trueLabel('Active')
                     ->falseLabel('Inactive')
-                    ->trueValue(true)
-                    ->falseValue(false)
+                    ->trueValue(1)
+                    ->falseValue(0)
                     ->trueIcon('voyager-check')
                     ->falseIcon('voyager-x')
                     ->inlineToggle(),
