@@ -8,8 +8,10 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
 use Monstrex\Ave\Http\Controllers\Api\SlugController;
 use Monstrex\Ave\Http\Controllers\AuthController;
+use Monstrex\Ave\Http\Controllers\LocaleController;
 use Monstrex\Ave\Http\Controllers\MediaController;
 use Monstrex\Ave\Http\Middleware\HandleAveExceptions;
+use Monstrex\Ave\Http\Middleware\SetLocaleMiddleware;
 use Monstrex\Ave\Routing\Concerns\RegistersCrudRoutes;
 
 class RouteRegistrar
@@ -73,6 +75,7 @@ class RouteRegistrar
                 $this->registerCrudRoutes($router);
                 $this->registerMediaRoutes($router);
                 $this->registerApiRoutes($router);
+                $this->registerLocaleRoutes($router);
 
                 $router->fallback(function () {
                     abort(404);
@@ -123,6 +126,12 @@ class RouteRegistrar
         });
     }
 
+    protected function registerLocaleRoutes(Router $router): void
+    {
+        $router->post('/locale/switch', [LocaleController::class, 'switch'])
+            ->name('ave.locale.switch');
+    }
+
     protected function prefix(): string
     {
         $prefix = trim((string) config('ave.route_prefix', 'admin'));
@@ -157,6 +166,7 @@ class RouteRegistrar
         $guard = ave_auth_guard();
 
         $middleware[] = $guard ? ('auth:' . $guard) : 'auth';
+        $middleware[] = SetLocaleMiddleware::class;
 
         return $middleware;
     }

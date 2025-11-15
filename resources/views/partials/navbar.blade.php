@@ -113,6 +113,41 @@
                                 </a>
                             </li>
                             <li class="dropdown-divider" role="separator"></li>
+                            <li class="dropdown-submenu">
+                                <span class="dropdown-item">
+                                    <i class="voyager-world"></i>
+                                    <span>{{ app()->getLocale() === 'en' ? 'English' : 'Русский' }}</span>
+                                </span>
+                                <ul class="dropdown-menu dropdown-menu-locale">
+                                    @php
+                                        $langPath = base_path('vendor/monstrex/ave/lang');
+                                        if (!file_exists($langPath)) {
+                                            $langPath = __DIR__ . '/../../../lang';
+                                        }
+                                        $availableLocales = array_map('basename', \Illuminate\Support\Facades\File::directories($langPath));
+                                        $localeNames = [
+                                            'en' => 'English',
+                                            'ru' => 'Русский',
+                                        ];
+                                        $currentLocale = app()->getLocale();
+                                    @endphp
+                                    @foreach($availableLocales as $locale)
+                                        <li>
+                                            <form action="{{ route('ave.locale.switch') }}" method="POST" class="locale-switch-form">
+                                                @csrf
+                                                <input type="hidden" name="locale" value="{{ $locale }}">
+                                                <button type="submit" class="dropdown-item {{ $locale === $currentLocale ? 'active' : '' }}">
+                                                    {{ $localeNames[$locale] ?? $locale }}
+                                                    @if($locale === $currentLocale)
+                                                        <i class="voyager-check" style="float: right;"></i>
+                                                    @endif
+                                                </button>
+                                            </form>
+                                        </li>
+                                    @endforeach
+                                </ul>
+                            </li>
+                            <li class="dropdown-divider" role="separator"></li>
                             @if(\Illuminate\Support\Facades\Route::has('ave.logout'))
                                 <li class="dropdown-logout">
                                     <form action="{{ route('ave.logout') }}" method="POST">

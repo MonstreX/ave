@@ -9,4 +9,5 @@ return [
     'inactive' => 'Inactive',
     'save' => 'Save',
     'delete' => 'Delete',
+    'locale_changed' => 'Language changed successfully',
 ];
