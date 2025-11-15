@@ -1,106 +1,45 @@
 # Ave Admin Panel
 
-A modern, lightweight admin panel package for Laravel with declarative component-based architecture.
+A modern, declarative admin panel for Laravel with advanced media management and composable field architecture.
 
-## Features
+## Key Features
 
-- **Declarative Resources** - Define admin panels with clean, intuitive PHP classes
-- **Advanced ACL** - Granular permissions with roles, groups, and resource-level control
-- **Media Library** - Powerful file management with multiple upload strategies and image processing
-- **Fieldsets** - Reusable, composable field groups with conditional logic
+- **Advanced Media System** - State-path based collections, deferred actions, multiple upload strategies, image conversions, drag-n-drop reordering
+- **Fieldset Component** - Repeatable field groups stored in JSON with nested media support, drag-n-drop sorting, and automatic cleanup
+- **Hierarchical Relations** - BelongsToSelect with automatic parent-child tree building and visual indentation
 - **Modal CRUD** - Create and edit records in modals without page reload
-- **Hierarchical Data** - Built-in support for nested/tree structures (menus, categories)
-- **Rich Components** - Advanced fields (WYSIWYG, CodeMirror, BelongsTo with search, etc.)
-- **Performance** - Optimized with caching, lazy loading, and minimal queries
+- **Inline Editing** - Edit table cells directly with text, number, and toggle support
+- **Rich Components** - 23 field types including RichEditor (Jodit), CodeEditor, hierarchical selects
+- **Granular ACL** - Role-based permissions with groups, bulk operations, caching, and default roles
 
 ## Requirements
 
 - PHP 8.2 or higher
 - Laravel 12.0 or higher
-- Node.js 18+ and NPM (only for development/asset compilation)
 
 ## Installation
 
-### Quick Installation (Recommended)
-
-Install the package via Composer and run the install command:
+Install via Composer and run the setup command:
 
 ```bash
 composer require monstrex/ave
 php artisan ave:install
 ```
 
-The install command will automatically:
-- Publish configuration files
-- Publish compiled assets (CSS, JS, fonts, images)
-- Publish and run migrations
-- Show you the next steps
+This will:
+- Publish configuration and assets
+- Run migrations
+- Set up the admin panel at `/admin`
 
 **Options:**
 ```bash
 php artisan ave:install --force        # Overwrite existing files
-php artisan ave:install --no-migrate   # Skip running migrations
+php artisan ave:install --no-migrate   # Skip migrations
 ```
 
-That's it! Visit `/admin` in your browser to access the admin panel.
+## Quick Start
 
-### Manual Installation (Advanced)
-
-If you prefer manual control over the installation process:
-
-#### Step 1: Install Package
-
-```bash
-composer require monstrex/ave
-```
-
-The service provider will be automatically registered via Laravel's package auto-discovery.
-
-#### Step 2: Publish Configuration
-
-```bash
-php artisan vendor:publish --tag=ave-config
-```
-
-This creates `config/ave.php` where you can customize:
-- Route prefix (default: `admin`)
-- User model and table
-- Access control settings
-- Cache configuration
-- And more...
-
-#### Step 3: Publish Assets
-
-```bash
-php artisan vendor:publish --tag=ave-assets --force
-```
-
-Assets will be published to `public/vendor/ave/`.
-
-#### Step 4: Publish Migrations
-
-```bash
-php artisan vendor:publish --tag=ave-migrations
-```
-
-#### Step 5: Run Migrations
-
-```bash
-php artisan migrate
-```
-
-This creates:
-- `ave_roles` - User roles
-- `ave_role_user` - Role assignments
-- `ave_groups` - Permission groups
-- `ave_group_role` - Group-role relationships
-- `ave_permissions` - Resource permissions
-- `ave_media` - Media files
-- Adds `locale` column to users table
-
-### Create Admin Resources
-
-Create your first resource by creating a class in `app/Ave/Resources`:
+Create a resource in `app/Ave/Resources`:
 
 ```php
 <?php
@@ -109,179 +48,328 @@ namespace App\Ave\Resources;
 
 use Monstrex\Ave\Admin\BaseResource;
 use Monstrex\Ave\Core\Components\Fields\TextInput;
+use Monstrex\Ave\Core\Components\Fields\Media;
 use Monstrex\Ave\Core\Components\Columns\Column;
+use Monstrex\Ave\Core\Components\Columns\ImageColumn;
 use App\Models\Post;
 
 class PostResource extends BaseResource
 {
     public static string $model = Post::class;
     protected static ?string $slug = 'posts';
-    protected static ?string $icon = 'voyager-news';
 
     public function fields(): array
     {
         return [
-            TextInput::make('title')
-                ->label(__('Title'))
-                ->required(),
-
-            TextInput::make('content')
-                ->label(__('Content'))
-                ->required(),
+            TextInput::make('title')->required(),
+            Media::make('cover')->single()->acceptImages(),
         ];
     }
 
     public function columns(): array
     {
         return [
-            Column::make('id')->label(__('ID')),
-            Column::make('title')->label(__('Title')),
-            Column::make('created_at')->label(__('Created')),
+            Column::make('title')->sortable()->searchable(),
+            ImageColumn::make('cover')->fromMedia('cover', 'thumb'),
         ];
     }
 }
 ```
 
-The resource will be automatically discovered and registered.
+Visit `/admin/posts` to see your resource.
 
-## Configuration
+## Components
 
-### Route Prefix
+### Fields (23 types)
 
-By default, Ave admin panel is accessible at `/admin`. Change this in `config/ave.php`:
+**Text Inputs:**
+- `TextInput` - Single-line with type variants (email, url, tel, number), prefix/suffix, validation
+- `Textarea` - Multi-line text
+- `Number` - Numeric input with min/max/step
+- `PasswordInput` - Password field
+- `Hidden` - Hidden field
+
+**Rich Editors:**
+- `RichEditor` - WYSIWYG editor powered by Jodit with toolbar presets (minimal/basic/full), feature toggles, and customizable height
+- `CodeEditor` - Syntax-highlighted code editing with modes (html, css, js, php, json, xml, sql, markdown, yaml) and themes (monokai, github, twilight)
+
+**Selects:**
+- `Select` - Dropdown with options array
+- `BelongsToSelect` - Relation selector with **hierarchical support** (automatic parent-child tree building), query modifiers, nullable
+- `BelongsToManySelect` - Multiple selection for many-to-many relations with automatic pivot sync
+- `CheckboxGroup` - Group of checkboxes
+- `RadioGroup` - Radio button group
+
+**Toggles:**
+- `Checkbox` - Single checkbox
+- `Toggle` - Switch toggle
+
+**Specialized:**
+- `DateTimePicker` - Date and time selection
+- `ColorPicker` - Color picker
+- `Tags` - Tag input
+- `Slug` - Auto-generate slug from another field
+
+**Files & Media:**
+- `File` - Document uploads with MIME type filtering, filename strategies (original, transliterate, unique), path strategies (flat, dated, custom)
+- `Media` - **Advanced media library** with:
+  - Single/multiple files (with maxFiles limit)
+  - Drag & drop upload and reordering
+  - Image conversions (thumbnail, medium, large)
+  - Metadata (title, alt, caption, position, custom props)
+  - Collections for grouping
+  - **Preset system**: SingleImagePreset, GalleryPreset, DocumentsPreset, IconsPreset
+  - **State-path based collection naming** for nested fields
+  - **Deferred actions** for newly created models
+  - Automatic cleanup when deleting Fieldset items
+
+**Containers:**
+- `Fieldset` - **Repeatable field groups** stored in JSON with:
+  - Add/remove/reorder items (drag & drop)
+  - Collapsible/collapsed state
+  - Stable IDs for media fields
+  - Support for nested Media with deterministic collection names
+  - minItems/maxItems limits
+  - Custom add/delete button labels
+  - Head title/preview from field values
+  - **Automatic media cleanup** on item deletion
+
+**Layout:**
+- `Row` - Bootstrap grid row
+- `Col` - Bootstrap grid column (1-12)
+- `Panel` - Panel with header
+- `Tabs` / `Tab` - Tabbed interface
+- `Div` - Container with conditional visibility
+- `Group` - Element grouping
+
+### Columns (7 types)
+
+- `Column` - Universal column with sorting, searching, formatting, alignment, width control, text wrapping, **inline editing**, styling (fontSize, bold, italic, color), and links (linkToEdit, linkUrl, linkAction)
+- `TextColumn` - Text display (extends Column)
+- `BooleanColumn` - Boolean indicator with custom labels, icons, colors, and **inline toggle editing**
+- `ImageColumn` - Image display with sizes, shapes (square, circle), lightbox, single/multiple modes, stack/grid layouts, and **media library integration** with conversion support
+- `BadgeColumn` - Badge/tag display
+- `ComputedColumn` - Calculated values
+- `TemplateColumn` - Custom Blade template
+
+### Actions (8 types)
+
+**Row Actions:**
+- `EditAction` - Navigate to edit page
+- `EditInModalAction` - Edit in modal without page reload
+- `DeleteAction` - Delete with confirmation
+- `RestoreAction` - Restore soft-deleted records
+
+**Global Actions:**
+- `CreateInModalAction` - Create in modal without page reload
+
+**Form Actions:**
+- `SaveFormAction` - Save and return
+- `SaveAndContinueFormAction` - Save and continue editing
+- `CancelFormAction` - Cancel and return
+
+## Advanced Features
+
+### Media System
+
+The Media field provides enterprise-level file management:
 
 ```php
-'route_prefix' => 'admin',
+Media::make('gallery')
+    ->multiple(true, maxFiles: 20)
+    ->acceptImages()
+    ->maxFileSize(5120) // KB
+    ->columns(8) // Grid layout
+    ->props('title', 'alt', 'caption', 'position')
+    ->conversions([
+        'thumb' => ['width' => 150, 'height' => 150],
+        'medium' => ['width' => 800],
+        'large' => ['width' => 1920],
+    ])
+    ->pathStrategy('dated')
+    ->pathPrefix('products')
+
+// Or use a preset
+Media::make('banner')->preset(SingleImagePreset::class)
 ```
 
-### User Model
+**How it works:**
+- Files are stored in `ave_media` table with metadata
+- State-path determines collection name (e.g., `gallery` → collection)
+- Supports nested fields through meta keys
+- Deferred actions handle new model creation
+- Automatic cleanup when parent is deleted
 
-Specify your user model and table:
+### Fieldset with Nested Media
+
+Create repeatable structures with media support:
 
 ```php
-'user_model' => \App\Models\User::class,
-'users_table' => 'users',
+Fieldset::make('team_members')
+    ->schema([
+        TextInput::make('name')->required(),
+        TextInput::make('position'),
+        Media::make('photo')->preset(SingleImagePreset::class),
+        Textarea::make('bio'),
+    ])
+    ->sortable()
+    ->collapsible()
+    ->minItems(1)
+    ->maxItems(10)
+    ->headTitle('name') // Use 'name' field as item title
+    ->addButtonLabel('Add Team Member')
+```
+
+**Features:**
+- Stable item IDs for media correlation
+- Drag & drop reordering
+- Automatic media cleanup on item deletion
+- Nested media uses deterministic collection names
+- Template fields for dynamic addition
+
+### Hierarchical Relations
+
+Build tree structures in dropdowns:
+
+```php
+BelongsToSelect::make('parent_id')
+    ->relationship('parent', 'title')
+    ->hierarchical() // Requires parent_id and order columns
+    ->nullable()
+    ->where(fn($q) => $q->where('status', 'active'))
+```
+
+Displays as:
+```
+Root Item
+├─ Child Item
+│  └─ Grandchild Item
+└─ Another Child
+```
+
+### Inline Editing
+
+Edit table cells directly:
+
+```php
+Column::make('price')
+    ->inline('text', ['field' => 'price'])
+    ->inlineRules('required|numeric|min:0')
+
+BooleanColumn::make('is_active')
+    ->inlineToggle() // Click to toggle
 ```
 
 ### Access Control
 
-Enable or disable the ACL system:
+Define granular permissions:
 
 ```php
-'acl_enabled' => true,
+// In a seeder or service provider
+$accessManager->registerPermissions('posts', [
+    'viewAny' => ['name' => 'View Posts List'],
+    'view' => ['name' => 'View Post Details'],
+    'create' => ['name' => 'Create Posts'],
+    'update' => ['name' => 'Edit Posts'],
+    'delete' => ['name' => 'Delete Posts'],
+]);
 ```
 
-### Caching
+Check permissions:
+```php
+$accessManager->allows($user, 'posts', 'create'); // boolean
+```
 
-Configure resource discovery caching:
+**Features:**
+- Role-based with groups for organization
+- Super role bypasses all checks
+- Default roles for new users
+- Bulk permission checks (optimized)
+- Caching with configurable TTL
+
+### Lifecycle Hooks
+
+Intercept CRUD operations:
 
 ```php
-'cache_discovery' => true,
-'cache_ttl' => 3600, // seconds
+class PostResource extends BaseResource
+{
+    protected function beforeCreate(array $data): array
+    {
+        $data['author_id'] = auth()->id();
+        return $data;
+    }
+
+    protected function afterCreate($model): void
+    {
+        // Trigger notifications, etc.
+    }
+
+    protected function beforeUpdate($model, array $data): array
+    {
+        $data['updated_by'] = auth()->id();
+        return $data;
+    }
+}
 ```
 
-Clear cache when needed:
+Available hooks: `beforeCreate`, `afterCreate`, `beforeUpdate`, `afterUpdate`, `afterDelete`
+
+## Configuration
+
+Customize in `config/ave.php`:
+
+```php
+return [
+    'route_prefix' => 'admin',
+    'user_model' => \App\Models\User::class,
+    'users_table' => 'users',
+
+    'acl' => [
+        'enabled' => true,
+        'super_role' => 'admin',
+        'cache_ttl' => 300,
+    ],
+
+    'pagination' => [
+        'default_per_page' => 25,
+        'per_page_options' => [10, 25, 50, 100],
+    ],
+
+    'cache_discovery' => true,
+    'cache_ttl' => 3600,
+];
+```
+
+Clear cache: `php artisan ave:cache-clear`
+
+## Customization
+
+Publish assets for customization:
 
 ```bash
-php artisan ave:cache-clear
+php artisan vendor:publish --tag=ave-views    # Blade templates
+php artisan vendor:publish --tag=ave-lang     # Translations (en, ru)
+php artisan vendor:publish --tag=ave-config   # Configuration
 ```
-
-## Localization
-
-Ave comes with English and Russian translations. Users can switch languages via the navbar selector.
-
-### User Locale Preference
-
-Each user's language preference is stored in the `locale` column of the users table and automatically applied on login.
-
-### Publishing Translations
-
-To customize translations, publish the language files:
-
-```bash
-php artisan vendor:publish --tag=ave-lang
-```
-
-Files will be published to `lang/vendor/ave/`.
-
-### Adding New Languages
-
-1. Create a new directory in `lang/vendor/ave/` (e.g., `fr` for French)
-2. Copy translation files from `en` or `ru` directory
-3. Translate the strings
-4. Update the `$localeNames` array in `resources/views/partials/navbar.blade.php`
-
-## Customizing Views
-
-Publish the Blade templates to customize the UI:
-
-```bash
-php artisan vendor:publish --tag=ave-views
-```
-
-Views will be published to `resources/views/vendor/ave/`.
-
-## Publishing Migrations
-
-If you need to customize the database structure, publish migrations:
-
-```bash
-php artisan vendor:publish --tag=ave-migrations
-```
-
-Migrations will be published to `database/migrations/`.
 
 ## Development
 
-### Building Assets
-
-If you need to modify the package's CSS or JavaScript:
-
-1. Navigate to the package directory
-2. Install dependencies: `npm install`
-3. Make your changes in `resources/css/` or `resources/js/`
-4. Build assets: `npm run build` (production) or `npm run dev` (development)
-
-### Running Tests
-
-The package includes a comprehensive test suite:
-
+**Run tests:**
 ```bash
 cd vendor/monstrex/ave
 php ../../../vendor/bin/phpunit
 ```
 
-## Components
-
-Ave provides a rich set of components for building admin interfaces:
-
-### Advanced Fields
-
-- **`MediaUpload`** - Powerful file/image upload with drag-n-drop, preview, multiple files support
-- **`Fieldset`** - Reusable field groups with conditional visibility and nested structures
-- **`BelongsToSelect`** - Smart relation field with search, hierarchical data, and lazy loading
-- **`WysiwygEditor`** - Rich text editing with TinyMCE integration
-- **`CodeEditor`** - Syntax-highlighted code editing with CodeMirror
-- `TextInput`, `TextArea`, `Select`, `Checkbox`, `DatePicker` - Standard form inputs
-- `Toggle`, `Radio`, `Hidden` - Additional input types
-
-### Table Columns
-
-- `Column` - Basic text column with sorting and formatting
-- `ImageColumn` - Image thumbnail from media library
-- `BooleanColumn` - Visual status indicator
-- `DateColumn` - Formatted date/time display
-- `RelationColumn` - Display related model data
-
-### Actions
-
-- `CreateInModalAction`, `EditInModalAction` - Modal-based CRUD without page reload
-- `DeleteAction` - Safe deletion with confirmation
-- `CustomAction` - Build your own actions with custom logic
+**Build assets:**
+```bash
+npm install
+npm run build  # or npm run dev
+```
 
 ## License
 
-This package is open-sourced software licensed under the [MIT license](LICENSE).
+MIT License. See [LICENSE](LICENSE) for details.
 
 ## Credits
 
@@ -289,4 +377,4 @@ Developed by [Monstrex](https://github.com/monstrex).
 
 ## Support
 
-For issues, feature requests, or questions, please use the [GitHub issue tracker](https://github.com/monstrex/ave/issues).
+Report issues at [GitHub issue tracker](https://github.com/monstrex/ave/issues).
