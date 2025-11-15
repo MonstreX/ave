@@ -31,7 +31,6 @@ abstract class AbstractField implements FormField, NestableField
     protected ?string $placeholder = null;
     protected ?string $view = null;
     protected string $displayVariant = 'default';
-    protected bool $sensitive = false;
 
     public function __construct(string $key)
     {
@@ -117,18 +116,6 @@ abstract class AbstractField implements FormField, NestableField
         $this->placeholder = $placeholder;
 
         return $this;
-    }
-
-    public function sensitive(bool $sensitive = true): static
-    {
-        $this->sensitive = $sensitive;
-
-        return $this;
-    }
-
-    public function isSensitive(): bool
-    {
-        return $this->sensitive;
     }
 
     public function template(string $view): static

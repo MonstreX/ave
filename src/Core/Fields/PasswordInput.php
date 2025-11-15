@@ -37,12 +37,6 @@ namespace Monstrex\Ave\Core\Fields;
  */
 class PasswordInput extends TextInput
 {
-    public function __construct(string $key)
-    {
-        parent::__construct($key);
-        $this->sensitive();
-    }
-
     /**
      * Whether to show password visibility toggle button
      */
