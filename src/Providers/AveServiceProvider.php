@@ -3,7 +3,6 @@
 namespace Monstrex\Ave\Providers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
@@ -17,7 +16,6 @@ use Monstrex\Ave\Core\Validation\FormValidator;
 use Monstrex\Ave\Core\Persistence\ResourcePersistence;
 use Monstrex\Ave\Core\Discovery\AdminResourceDiscovery;
 use Monstrex\Ave\Core\Discovery\AdminPageDiscovery;
-use Monstrex\Ave\Console\Commands\CacheClearCommand;
 use Monstrex\Ave\Console\Commands\InstallCommand;
 use Monstrex\Ave\Console\Commands\MakeResourceCommand;
 use Monstrex\Ave\View\Composers\SidebarComposer;
@@ -112,7 +110,6 @@ class AveServiceProvider extends ServiceProvider
         // Register commands
         if ($this->app->runningInConsole()) {
             $this->commands([
-                CacheClearCommand::class,
                 InstallCommand::class,
                 MakeResourceCommand::class,
             ]);
@@ -318,28 +315,14 @@ class AveServiceProvider extends ServiceProvider
     }
 
     /**
-     * Discover and register resources and pages with caching
+     * Discover and register resources and pages
      *
      * @return void
      */
     protected function discoverAndRegister(): void
     {
-        // Clear any existing cache first
-        Cache::forget('ave.discovery');
-
-        $cacheEnabled = config('ave.cache_discovery', false);
-        $cacheTtl = config('ave.cache_ttl', 3600);
-
-        if ($cacheEnabled) {
-            $cached = Cache::remember('ave.discovery', $cacheTtl, function () {
-                return $this->performDiscovery();
-            });
-
-            $this->registerDiscovered($cached);
-        } else {
-            $discovered = $this->performDiscovery();
-            $this->registerDiscovered($discovered);
-        }
+        $discovered = $this->performDiscovery();
+        $this->registerDiscovered($discovered);
     }
 
     /**

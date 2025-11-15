@@ -99,10 +99,4 @@ return [
     'user_table' => env('AVE_USER_TABLE', 'users'),
     'login_route' => 'login',
     'login_submit_route' => 'login.submit',
-
-    /*
-     * Discovery cache configuration.
-     */
-    'cache_discovery' => (bool) env('AVE_CACHE_DISCOVERY', false),
-    'cache_ttl' => (int) env('AVE_CACHE_TTL', 3600),
 ];

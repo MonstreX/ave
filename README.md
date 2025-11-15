@@ -335,13 +335,8 @@ return [
         'default_per_page' => 25,
         'per_page_options' => [10, 25, 50, 100],
     ],
-
-    'cache_discovery' => true,
-    'cache_ttl' => 3600,
 ];
 ```
-
-Clear cache: `php artisan ave:cache-clear`
 
 ## Customization
 
