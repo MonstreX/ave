@@ -19,6 +19,7 @@ use Monstrex\Ave\Core\Discovery\AdminResourceDiscovery;
 use Monstrex\Ave\Core\Discovery\AdminPageDiscovery;
 use Monstrex\Ave\Console\Commands\CacheClearCommand;
 use Monstrex\Ave\Console\Commands\InstallCommand;
+use Monstrex\Ave\Console\Commands\MakeResourceCommand;
 use Monstrex\Ave\View\Composers\SidebarComposer;
 use Monstrex\Ave\Support\PackageAssets;
 use Monstrex\Ave\Routing\RouteRegistrar;
@@ -113,6 +114,7 @@ class AveServiceProvider extends ServiceProvider
             $this->commands([
                 CacheClearCommand::class,
                 InstallCommand::class,
+                MakeResourceCommand::class,
             ]);
         }
 
