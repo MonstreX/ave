@@ -1,0 +1,294 @@
+# Ave Admin Panel
+
+A modern, lightweight admin panel package for Laravel with declarative component-based architecture.
+
+## Features
+
+- <¨ **Modern UI** - Clean, responsive interface built with modern CSS and JavaScript
+- = **Role-Based Access Control** - Flexible permissions system with roles and groups
+- < **Multi-language Support** - Built-in English and Russian translations with easy extensibility
+- =Ý **Declarative Resources** - Define your admin panels with clean, intuitive PHP classes
+- =' **Flexible Components** - Rich set of form fields, columns, actions, and layouts
+- =ñ **Responsive Design** - Works seamlessly on desktop, tablet, and mobile devices
+- =€ **Performance** - Optimized with caching and lazy loading
+- <¯ **Modal Support** - Create and edit records in modals without page reload
+- =Á **Media Management** - Built-in file upload and management system
+
+## Requirements
+
+- PHP 8.2 or higher
+- Laravel 12.0 or higher
+- Node.js 18+ and NPM (only for development/asset compilation)
+
+## Installation
+
+### Step 1: Install Package
+
+Install the package via Composer:
+
+```bash
+composer require monstrex/ave
+```
+
+The service provider will be automatically registered via Laravel's package auto-discovery.
+
+### Step 2: Publish Configuration
+
+Publish the configuration file:
+
+```bash
+php artisan vendor:publish --tag=ave-config
+```
+
+This creates `config/ave.php` where you can customize:
+- Route prefix (default: `admin`)
+- Authentication guard
+- User model and table
+- Access control settings
+- Cache configuration
+- And more...
+
+### Step 3: Publish Assets
+
+Publish the compiled CSS and JavaScript assets:
+
+```bash
+php artisan vendor:publish --tag=ave-assets --force
+```
+
+Assets will be published to `public/vendor/ave/`.
+
+### Step 4: Run Migrations
+
+Run the package migrations to create necessary database tables:
+
+```bash
+php artisan migrate
+```
+
+This creates:
+- `ave_roles` - User roles
+- `ave_role_user` - Role assignments
+- `ave_groups` - Permission groups
+- `ave_group_role` - Group-role relationships
+- `ave_permissions` - Resource permissions
+- `ave_media` - Media files
+- Adds `locale` column to users table
+
+### Step 5: Configure Authentication
+
+Update your `config/auth.php` to define the Ave admin guard. Add to the `guards` array:
+
+```php
+'guards' => [
+    // ... existing guards ...
+
+    'ave' => [
+        'driver' => 'session',
+        'provider' => 'users',
+    ],
+],
+```
+
+Then set the `AVE_AUTH_GUARD` in your `.env` file:
+
+```
+AVE_AUTH_GUARD=ave
+```
+
+### Step 6: Create Admin Resources
+
+Create your first resource by creating a class in `app/Ave/Resources`:
+
+```php
+<?php
+
+namespace App\Ave\Resources;
+
+use Monstrex\Ave\Admin\BaseResource;
+use Monstrex\Ave\Core\Components\Fields\TextInput;
+use Monstrex\Ave\Core\Components\Columns\Column;
+use App\Models\Post;
+
+class PostResource extends BaseResource
+{
+    public static string $model = Post::class;
+    protected static ?string $slug = 'posts';
+    protected static ?string $icon = 'voyager-news';
+
+    public function fields(): array
+    {
+        return [
+            TextInput::make('title')
+                ->label(__('Title'))
+                ->required(),
+
+            TextInput::make('content')
+                ->label(__('Content'))
+                ->required(),
+        ];
+    }
+
+    public function columns(): array
+    {
+        return [
+            Column::make('id')->label(__('ID')),
+            Column::make('title')->label(__('Title')),
+            Column::make('created_at')->label(__('Created')),
+        ];
+    }
+}
+```
+
+The resource will be automatically discovered and registered.
+
+## Configuration
+
+### Route Prefix
+
+By default, Ave admin panel is accessible at `/admin`. Change this in `config/ave.php`:
+
+```php
+'route_prefix' => 'admin',
+```
+
+### User Model
+
+Specify your user model and table:
+
+```php
+'user_model' => \App\Models\User::class,
+'users_table' => 'users',
+```
+
+### Access Control
+
+Enable or disable the ACL system:
+
+```php
+'acl_enabled' => true,
+```
+
+### Caching
+
+Configure resource discovery caching:
+
+```php
+'cache_discovery' => true,
+'cache_ttl' => 3600, // seconds
+```
+
+Clear cache when needed:
+
+```bash
+php artisan ave:cache-clear
+```
+
+## Localization
+
+Ave comes with English and Russian translations. Users can switch languages via the navbar selector.
+
+### User Locale Preference
+
+Each user's language preference is stored in the `locale` column of the users table and automatically applied on login.
+
+### Publishing Translations
+
+To customize translations, publish the language files:
+
+```bash
+php artisan vendor:publish --tag=ave-lang
+```
+
+Files will be published to `lang/vendor/ave/`.
+
+### Adding New Languages
+
+1. Create a new directory in `lang/vendor/ave/` (e.g., `fr` for French)
+2. Copy translation files from `en` or `ru` directory
+3. Translate the strings
+4. Update the `$localeNames` array in `resources/views/partials/navbar.blade.php`
+
+## Customizing Views
+
+Publish the Blade templates to customize the UI:
+
+```bash
+php artisan vendor:publish --tag=ave-views
+```
+
+Views will be published to `resources/views/vendor/ave/`.
+
+## Publishing Migrations
+
+If you need to customize the database structure, publish migrations:
+
+```bash
+php artisan vendor:publish --tag=ave-migrations
+```
+
+Migrations will be published to `database/migrations/`.
+
+## Development
+
+### Building Assets
+
+If you need to modify the package's CSS or JavaScript:
+
+1. Navigate to the package directory
+2. Install dependencies: `npm install`
+3. Make your changes in `resources/css/` or `resources/js/`
+4. Build assets: `npm run build` (production) or `npm run dev` (development)
+
+### Running Tests
+
+The package includes a comprehensive test suite:
+
+```bash
+cd vendor/monstrex/ave
+php ../../../vendor/bin/phpunit
+```
+
+## Components
+
+Ave provides a rich set of components for building admin interfaces:
+
+### Form Fields
+
+- `TextInput` - Single-line text input
+- `TextArea` - Multi-line text input
+- `Select` - Dropdown selection
+- `MultiSelect` - Multiple selection
+- `Checkbox` - Boolean checkbox
+- `DatePicker` - Date selection
+- `MediaUpload` - File upload with preview
+- And more...
+
+### Table Columns
+
+- `Column` - Basic text column
+- `DateColumn` - Formatted date display
+- `BooleanColumn` - Visual boolean indicator
+- `ImageColumn` - Image thumbnail
+- `RelationColumn` - Display related model data
+
+### Actions
+
+- `CreateAction` - Create new records
+- `CreateInModalAction` - Create in modal
+- `EditAction` - Edit records
+- `EditInModalAction` - Edit in modal
+- `DeleteAction` - Delete records
+- `CustomAction` - Define custom actions
+
+## License
+
+This package is open-sourced software licensed under the [MIT license](LICENSE).
+
+## Credits
+
+Developed by [Monstrex](https://github.com/monstrex).
+
+## Support
+
+For issues, feature requests, or questions, please use the [GitHub issue tracker](https://github.com/monstrex/ave/issues).
