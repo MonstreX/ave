@@ -175,7 +175,9 @@ class FormContext
             } catch (\Exception $e) {
                 \Illuminate\Support\Facades\Log::error('Deferred action execution failed', [
                     'error' => $e->getMessage(),
-                    'trace' => $e->getTraceAsString(),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    // Not logging trace to prevent exposing sensitive data in stack trace
                 ]);
             }
         }

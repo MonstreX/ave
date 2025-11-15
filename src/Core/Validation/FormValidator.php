@@ -31,10 +31,12 @@ class FormValidator
             ? FormContext::forEdit($model, [], $request)
             : FormContext::forCreate([], $request);
 
-        Log::debug('FormValidator::rulesFromForm() START', [
-            'resource' => $resourceClass,
-            'mode' => $mode,
-        ]);
+        if (config('app.debug')) {
+            Log::debug('FormValidator::rulesFromForm() START', [
+                'resource' => $resourceClass,
+                'mode' => $mode,
+            ]);
+        }
 
         foreach ($form->getAllFields() as $field) {
             if ($field instanceof HandlesFormRequest) {
@@ -57,11 +59,14 @@ class FormValidator
             $rules = $this->adjustUniqueRulesForEdit($rules, $model);
         }
 
-        Log::debug('FormValidator generated rules', [
-            'resource' => $resourceClass,
-            'mode' => $mode,
-            'rules' => $rules,
-        ]);
+        if (config('app.debug')) {
+            Log::debug('FormValidator generated rules', [
+                'resource' => $resourceClass,
+                'mode' => $mode,
+                'rules_count' => count($rules),
+                // Not logging rules to prevent DB structure leaking in production
+            ]);
+        }
 
         return $rules;
     }
