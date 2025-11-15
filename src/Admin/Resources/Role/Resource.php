@@ -27,34 +27,34 @@ class Resource extends BaseResource
 
     public static function getLabel(): string
     {
-        return static::$label ?? __('ave::resources.roles.label');
+        return static::$label ?? __('ave::resources_roles.label');
     }
 
     public static function getSingularLabel(): string
     {
-        return static::$singularLabel ?? __('ave::resources.roles.singular');
+        return static::$singularLabel ?? __('ave::resources_roles.singular');
     }
 
     public static function getGroup(): ?string
     {
-        return static::$group ?? __('ave::resources.groups.system');
+        return static::$group ?? __('ave::resources_groups.system');
     }
 
     public static function table($context): Table
     {
         return Table::make()->columns([
             Column::make('name')
-                ->label(__('ave::resources.roles.columns.name'))
+                ->label(__('ave::resources_roles.columns.name'))
                 ->searchable(true)
                 ->sortable(true),
             Column::make('slug')
-                ->label(__('ave::resources.roles.columns.slug'))
+                ->label(__('ave::resources_roles.columns.slug'))
                 ->sortable(true),
             Column::make('is_default')
-                ->label(__('ave::resources.roles.columns.is_default'))
+                ->label(__('ave::resources_roles.columns.is_default'))
                 ->format(fn ($value) => $value ? __('ave::common.yes') : __('ave::common.no')),
             Column::make('created_at')
-                ->label(__('ave::resources.roles.columns.created_at'))
+                ->label(__('ave::resources_roles.columns.created_at'))
                 ->format(fn ($value) => optional($value)?->format('Y-m-d H:i')),
         ]);
     }
@@ -65,33 +65,33 @@ class Resource extends BaseResource
             Div::make('row')->schema([
                 Div::make('col-12 col-md-6')->schema([
                     TextInput::make('name')
-                        ->label(__('ave::resources.roles.fields.name'))
+                        ->label(__('ave::resources_roles.fields.name'))
                         ->required()
                         ->maxLength(150),
                 ]),
                 Div::make('col-12 col-md-6')->schema([
                     TextInput::make('slug')
-                        ->label(__('ave::resources.roles.fields.slug'))
+                        ->label(__('ave::resources_roles.fields.slug'))
                         ->required()
                         ->maxLength(150)
-                        ->help(__('ave::resources.roles.help.slug')),
+                        ->help(__('ave::resources_roles.help.slug')),
                 ]),
             ]),
             Div::make('row')->schema([
                 Div::make('col-12')->schema([
                     Textarea::make('description')
-                        ->label(__('ave::resources.roles.fields.description'))
+                        ->label(__('ave::resources_roles.fields.description'))
                         ->rows(3),
                 ]),
             ]),
             Div::make('row')->schema([
                 Div::make('col-12 col-md-4')->schema([
                     Toggle::make('is_default')
-                        ->label(__('ave::resources.roles.fields.is_default'))
-                        ->help(__('ave::resources.roles.help.is_default')),
+                        ->label(__('ave::resources_roles.fields.is_default'))
+                        ->help(__('ave::resources_roles.help.is_default')),
                 ]),
             ]),
-            PermissionMatrix::make()->label(__('ave::resources.roles.fields.permissions')),
+            PermissionMatrix::make()->label(__('ave::resources_roles.fields.permissions')),
         ]);
     }
 

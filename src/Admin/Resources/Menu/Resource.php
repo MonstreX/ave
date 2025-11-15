@@ -22,17 +22,17 @@ class Resource extends BaseResource
 
     public static function getLabel(): string
     {
-        return static::$label ?? __('ave::resources.menus.label');
+        return static::$label ?? __('ave::resources_menus.label');
     }
 
     public static function getSingularLabel(): string
     {
-        return static::$singularLabel ?? __('ave::resources.menus.singular');
+        return static::$singularLabel ?? __('ave::resources_menus.singular');
     }
 
     public static function getGroup(): ?string
     {
-        return static::$group ?? __('ave::resources.groups.system');
+        return static::$group ?? __('ave::resources_groups.system');
     }
 
     public static function actions(): array
@@ -46,16 +46,16 @@ class Resource extends BaseResource
     {
         return Table::make()->columns([
             Column::make('name')
-                ->label(__('ave::resources.menus.columns.name'))
+                ->label(__('ave::resources_menus.columns.name'))
                 ->sortable(true),
             Column::make('slug')
-                ->label(__('ave::resources.menus.columns.slug'))
+                ->label(__('ave::resources_menus.columns.slug'))
                 ->sortable(true),
             Column::make('is_default')
-                ->label(__('ave::resources.menus.columns.is_default'))
+                ->label(__('ave::resources_menus.columns.is_default'))
                 ->format(fn ($value) => $value ? __('ave::common.yes') : __('ave::common.no')),
             Column::make('created_at')
-                ->label(__('ave::resources.menus.columns.created_at'))
+                ->label(__('ave::resources_menus.columns.created_at'))
                 ->format(fn ($value) => optional($value)?->format('Y-m-d H:i')),
         ]);
     }
@@ -66,19 +66,19 @@ class Resource extends BaseResource
             Div::make('row')->schema([
                 Div::make('col-12 col-md-6')->schema([
                     TextInput::make('name')
-                        ->label(__('ave::resources.menus.fields.name'))
+                        ->label(__('ave::resources_menus.fields.name'))
                         ->required(),
                 ]),
                 Div::make('col-12 col-md-6')->schema([
                     TextInput::make('slug')
-                        ->label(__('ave::resources.menus.fields.slug'))
+                        ->label(__('ave::resources_menus.fields.slug'))
                         ->required(),
                 ]),
             ]),
             Div::make('row')->schema([
                 Div::make('col-12 col-md-4')->schema([
                     Toggle::make('is_default')
-                        ->label(__('ave::resources.menus.fields.is_default')),
+                        ->label(__('ave::resources_menus.fields.is_default')),
                 ]),
             ]),
         ]);

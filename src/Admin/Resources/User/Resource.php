@@ -23,34 +23,34 @@ class Resource extends BaseResource
 
     public static function getLabel(): string
     {
-        return static::$label ?? __('ave::resources.users.label');
+        return static::$label ?? __('ave::resources_users.label');
     }
 
     public static function getSingularLabel(): string
     {
-        return static::$singularLabel ?? __('ave::resources.users.singular');
+        return static::$singularLabel ?? __('ave::resources_users.singular');
     }
 
     public static function getGroup(): ?string
     {
-        return static::$group ?? __('ave::resources.groups.system');
+        return static::$group ?? __('ave::resources_groups.system');
     }
 
     public static function table($context): Table
     {
         return Table::make()->columns([
             Column::make('id')
-                ->label(__('ave::resources.users.columns.id'))
+                ->label(__('ave::resources_users.columns.id'))
                 ->sortable(true),
             Column::make('name')
-                ->label(__('ave::resources.users.columns.name'))
+                ->label(__('ave::resources_users.columns.name'))
                 ->sortable(true)
                 ->searchable(true),
             Column::make('email')
-                ->label(__('ave::resources.users.columns.email'))
+                ->label(__('ave::resources_users.columns.email'))
                 ->searchable(true),
             Column::make('roles')
-                ->label(__('ave::resources.users.columns.roles'))
+                ->label(__('ave::resources_users.columns.roles'))
                 ->format(fn ($value, $record) => $record->roles->pluck('name')->implode(', ')),
         ]);
     }
@@ -61,13 +61,13 @@ class Resource extends BaseResource
             Div::make('row')->schema([
                 Div::make('col-12 col-md-6')->schema([
                     TextInput::make('name')
-                        ->label(__('ave::resources.users.fields.name'))
+                        ->label(__('ave::resources_users.fields.name'))
                         ->required()
                         ->rules(['required', 'string', 'max:255']),
                 ]),
                 Div::make('col-12 col-md-6')->schema([
                     TextInput::make('email')
-                        ->label(__('ave::resources.users.fields.email'))
+                        ->label(__('ave::resources_users.fields.email'))
                         ->email()
                         ->required()
                         ->rules(['required', 'email', 'max:255']),
@@ -76,18 +76,18 @@ class Resource extends BaseResource
             Div::make('row')->schema([
                 Div::make('col-12 col-md-6')->schema([
                     PasswordInput::make('password')
-                        ->label(__('ave::resources.users.fields.password'))
+                        ->label(__('ave::resources_users.fields.password'))
                         ->minLength(8)
                         ->rules(['nullable', 'string', 'min:8'])
-                        ->help(__('ave::resources.users.help.password')),
+                        ->help(__('ave::resources_users.help.password')),
                 ]),
                 Div::make('col-12')->schema([
                     BelongsToManySelect::make('roles')
-                        ->label(__('ave::resources.users.fields.roles'))
+                        ->label(__('ave::resources_users.fields.roles'))
                         ->relationship('roles', 'name')
                         ->searchable()
                         ->optionsLimit(100)
-                        ->help(__('ave::resources.users.help.roles')),
+                        ->help(__('ave::resources_users.help.roles')),
                 ]),
             ]),
         ]);

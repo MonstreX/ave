@@ -12,10 +12,14 @@ use Monstrex\Ave\Core\Actions\Support\ActionContext;
 class EditInModalAction extends BaseAction implements RowAction
 {
     protected string $key = 'edit-modal';
-    protected string $label = 'Edit';
     protected ?string $icon = 'voyager-edit';
     protected string $color = 'primary';
     protected ?string $ability = 'update';
+
+    public function label(): string
+    {
+        return __('ave::actions.edit');
+    }
 
     public function handle(ActionContext $context, Request $request): mixed
     {
@@ -35,7 +39,7 @@ class EditInModalAction extends BaseAction implements RowAction
                 'slug' => $slug,
                 'id' => $modelId,
             ]),
-            'title' => 'Edit ' . $resourceClass::getSingularLabel(),
+            'title' => __('ave::actions.edit') . ' ' . $resourceClass::getSingularLabel(),
             'size' => 'large',
         ];
     }

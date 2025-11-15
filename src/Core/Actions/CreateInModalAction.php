@@ -12,10 +12,14 @@ use Monstrex\Ave\Core\Actions\Support\ActionContext;
 class CreateInModalAction extends BaseAction implements GlobalAction
 {
     protected string $key = 'create-modal';
-    protected string $label = 'Create';
     protected ?string $icon = 'voyager-plus';
     protected string $color = 'success';
     protected ?string $ability = 'create';
+
+    public function label(): string
+    {
+        return __('ave::actions.create');
+    }
 
     public function handle(ActionContext $context, Request $request): mixed
     {
@@ -35,7 +39,7 @@ class CreateInModalAction extends BaseAction implements GlobalAction
             'save_url' => route('ave.resource.store', [
                 'slug' => $slug,
             ]),
-            'title' => 'Create ' . $resourceClass::getSingularLabel(),
+            'title' => __('ave::actions.create') . ' ' . $resourceClass::getSingularLabel(),
             'size' => 'large',
         ];
     }

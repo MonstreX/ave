@@ -10,12 +10,12 @@ class SaveFormAction extends AbstractFormButtonAction
 
     public function label(): string
     {
-        return __('Save');
+        return __('ave::actions.save');
     }
 
     public function labelForMode(string $mode): string
     {
-        return $mode === 'edit' ? __('Update') : __('Save');
+        return $mode === 'edit' ? __('ave::actions.update') : __('ave::actions.save');
     }
 }
 

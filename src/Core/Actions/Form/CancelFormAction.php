@@ -12,7 +12,7 @@ class CancelFormAction extends AbstractFormButtonAction
 
     public function label(): string
     {
-        return __('Cancel');
+        return __('ave::actions.cancel');
     }
 
     public function intent(): ?string

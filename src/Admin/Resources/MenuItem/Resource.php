@@ -32,23 +32,23 @@ class Resource extends BaseResource
 
     public static function getLabel(): string
     {
-        return static::$label ?? __('ave::resources.menu_items.label');
+        return static::$label ?? __('ave::resources_menu_items.label');
     }
 
     public static function getSingularLabel(): string
     {
-        return static::$singularLabel ?? __('ave::resources.menu_items.singular');
+        return static::$singularLabel ?? __('ave::resources_menu_items.singular');
     }
 
     public static function getGroup(): ?string
     {
-        return static::$group ?? __('ave::resources.groups.system');
+        return static::$group ?? __('ave::resources_groups.system');
     }
 
     public static function getCriteria(): array
     {
         return [
-            new FieldEqualsFilter('menu_id', 'menu_id', '=', __('ave::resources.menu_items.filters.menu')),
+            new FieldEqualsFilter('menu_id', 'menu_id', '=', __('ave::resources_menu_items.filters.menu')),
         ];
     }
 
@@ -73,7 +73,7 @@ class Resource extends BaseResource
             )
             ->columns([
                 BooleanColumn::make('status')
-                    ->label(__('ave::resources.menu_items.columns.active'))
+                    ->label(__('ave::resources_menu_items.columns.active'))
                     ->trueLabel(__('ave::common.active'))
                     ->falseLabel(__('ave::common.inactive'))
                     ->trueValue(1)
@@ -84,7 +84,7 @@ class Resource extends BaseResource
                 Column::make('title')
                     ->bold(),
                 ComputedColumn::make('target')
-                    ->label(__('ave::resources.menu_items.columns.target'))
+                    ->label(__('ave::resources_menu_items.columns.target'))
                     ->compute(function($record) {
                         // Priority: url > route > resource_slug
                         if (!empty($record->url)) {
@@ -129,70 +129,70 @@ class Resource extends BaseResource
             Div::make('row')->schema([
                 Div::make('col-12 col-lg-6')->schema([
                     TextInput::make('title')
-                        ->label(__('ave::resources.menu_items.fields.title'))
+                        ->label(__('ave::resources_menu_items.fields.title'))
                         ->required(),
                 ]),
                 Div::make('col-12 col-lg-6')->schema([
                     TextInput::make('icon')
-                        ->label(__('ave::resources.menu_items.fields.icon'))
+                        ->label(__('ave::resources_menu_items.fields.icon'))
                         ->placeholder('voyager-dot'),
                 ]),
             ]),
             Div::make('row')->schema([
                 Div::make('col-12 col-lg-6')->schema([
                     TextInput::make('route')
-                        ->label(__('ave::resources.menu_items.fields.route'))
-                        ->help(__('ave::resources.menu_items.help.route')),
+                        ->label(__('ave::resources_menu_items.fields.route'))
+                        ->help(__('ave::resources_menu_items.help.route')),
                 ]),
                 Div::make('col-12 col-lg-6')->schema([
                     TextInput::make('url')
-                        ->label(__('ave::resources.menu_items.fields.url'))
-                        ->help(__('ave::resources.menu_items.help.url')),
+                        ->label(__('ave::resources_menu_items.fields.url'))
+                        ->help(__('ave::resources_menu_items.help.url')),
                 ]),
             ]),
             Div::make('row')->schema([
                 Div::make('col-12 col-lg-4')->schema([
                     TextInput::make('resource_slug')
-                        ->label(__('ave::resources.menu_items.fields.resource_slug'))
-                        ->help(__('ave::resources.menu_items.help.resource_slug')),
+                        ->label(__('ave::resources_menu_items.fields.resource_slug'))
+                        ->help(__('ave::resources_menu_items.help.resource_slug')),
                 ]),
                 Div::make('col-12 col-lg-4')->schema([
                     TextInput::make('ability')
-                        ->label(__('ave::resources.menu_items.fields.ability'))
+                        ->label(__('ave::resources_menu_items.fields.ability'))
                         ->default('viewAny')
-                        ->help(__('ave::resources.menu_items.help.ability')),
+                        ->help(__('ave::resources_menu_items.help.ability')),
                 ]),
                 Div::make('col-12 col-lg-4')->schema([
                     TextInput::make('permission_key')
-                        ->label(__('ave::resources.menu_items.fields.permission_key'))
+                        ->label(__('ave::resources_menu_items.fields.permission_key'))
                         ->placeholder('resource.ability'),
                 ]),
             ]),
             Div::make('row')->schema([
                 Div::make('col-12 col-lg-6')->schema([
                     Select::make('target')
-                        ->label(__('ave::resources.menu_items.fields.target'))
+                        ->label(__('ave::resources_menu_items.fields.target'))
                         ->options([
-                            '_self' => __('ave::resources.menu_items.options.same_tab'),
-                            '_blank' => __('ave::resources.menu_items.options.new_tab'),
+                            '_self' => __('ave::resources_menu_items.options.same_tab'),
+                            '_blank' => __('ave::resources_menu_items.options.new_tab'),
                         ])
                         ->default('_self'),
                 ]),
                 Div::make('col-12 col-lg-6')->schema([
                     Number::make('order')
-                        ->label(__('ave::resources.menu_items.fields.order'))
+                        ->label(__('ave::resources_menu_items.fields.order'))
                         ->default(0),
                 ]),
             ]),
             Div::make('row')->schema([
                 Div::make('col-12 col-md-4')->schema([
                     Toggle::make('status')
-                        ->label(__('ave::resources.menu_items.fields.status'))
+                        ->label(__('ave::resources_menu_items.fields.status'))
                         ->default(true),
                 ]),
                 Div::make('col-12 col-md-4')->schema([
                     Toggle::make('is_divider')
-                        ->label(__('ave::resources.menu_items.fields.is_divider')),
+                        ->label(__('ave::resources_menu_items.fields.is_divider')),
                 ]),
             ]),
         ]);

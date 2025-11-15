@@ -10,14 +10,14 @@ class SaveAndContinueFormAction extends AbstractFormButtonAction
 
     public function label(): string
     {
-        return __('Save & Continue');
+        return __('ave::actions.save_and_continue');
     }
 
     public function labelForMode(string $mode): string
     {
         return $mode === 'edit'
-            ? __('Update & Continue')
-            : __('Save & Continue');
+            ? __('ave::actions.update_and_continue')
+            : __('ave::actions.save_and_continue');
     }
 }
 

@@ -11,8 +11,17 @@ use Monstrex\Ave\Core\Actions\Support\ActionContext;
 class RestoreAction extends BaseAction implements RowAction, BulkAction
 {
     protected string $color = 'warning';
-    protected ?string $confirm = 'Restore selected records?';
     protected ?string $ability = 'delete';
+
+    public function label(): string
+    {
+        return __('ave::actions.restore');
+    }
+
+    public function confirm(): ?string
+    {
+        return __('ave::actions.restore_confirm');
+    }
 
     public function authorize(ActionContext $context): bool
     {

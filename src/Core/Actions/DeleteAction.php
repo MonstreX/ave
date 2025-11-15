@@ -10,8 +10,17 @@ use Monstrex\Ave\Core\Actions\Support\ActionContext;
 class DeleteAction extends BaseAction implements RowAction, BulkAction
 {
     protected string $color = 'danger';
-    protected ?string $confirm = 'Delete selected records?';
     protected ?string $ability = 'delete';
+
+    public function label(): string
+    {
+        return __('ave::actions.delete');
+    }
+
+    public function confirm(): ?string
+    {
+        return __('ave::actions.delete_confirm');
+    }
 
     public function handle(ActionContext $context, Request $request): mixed
     {

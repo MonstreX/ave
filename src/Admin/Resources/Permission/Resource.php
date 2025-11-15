@@ -22,36 +22,36 @@ class Resource extends BaseResource
 
     public static function getLabel(): string
     {
-        return static::$label ?? __('ave::resources.permissions.label');
+        return static::$label ?? __('ave::resources_permissions.label');
     }
 
     public static function getSingularLabel(): string
     {
-        return static::$singularLabel ?? __('ave::resources.permissions.singular');
+        return static::$singularLabel ?? __('ave::resources_permissions.singular');
     }
 
     public static function getGroup(): ?string
     {
-        return static::$group ?? __('ave::resources.groups.system');
+        return static::$group ?? __('ave::resources_groups.system');
     }
 
     public static function table($context): Table
     {
         return Table::make()->columns([
             Column::make('resource_slug')
-                ->label(__('ave::resources.permissions.columns.resource'))
+                ->label(__('ave::resources_permissions.columns.resource'))
                 ->sortable(true)
                 ->searchable(true),
             Column::make('ability')
-                ->label(__('ave::resources.permissions.columns.ability'))
+                ->label(__('ave::resources_permissions.columns.ability'))
                 ->sortable(true)
                 ->searchable(true),
             Column::make('name')
-                ->label(__('ave::resources.permissions.columns.name')),
+                ->label(__('ave::resources_permissions.columns.name')),
             Column::make('description')
-                ->label(__('ave::resources.permissions.columns.description')),
+                ->label(__('ave::resources_permissions.columns.description')),
             Column::make('created_at')
-                ->label(__('ave::resources.permissions.columns.created_at'))
+                ->label(__('ave::resources_permissions.columns.created_at'))
                 ->format(fn ($value) => optional($value)?->format('Y-m-d H:i')),
         ]);
     }
@@ -62,25 +62,25 @@ class Resource extends BaseResource
             Div::make('row')->schema([
                 Div::make('col-12 col-md-6')->schema([
                     TextInput::make('resource_slug')
-                        ->label(__('ave::resources.permissions.fields.resource_slug'))
+                        ->label(__('ave::resources_permissions.fields.resource_slug'))
                         ->required(),
                 ]),
                 Div::make('col-12 col-md-6')->schema([
                     TextInput::make('ability')
-                        ->label(__('ave::resources.permissions.fields.ability'))
+                        ->label(__('ave::resources_permissions.fields.ability'))
                         ->required(),
                 ]),
             ]),
             Div::make('row')->schema([
                 Div::make('col-12')->schema([
                     TextInput::make('name')
-                        ->label(__('ave::resources.permissions.fields.name')),
+                        ->label(__('ave::resources_permissions.fields.name')),
                 ]),
             ]),
             Div::make('row')->schema([
                 Div::make('col-12')->schema([
                     Textarea::make('description')
-                        ->label(__('ave::resources.permissions.fields.description'))
+                        ->label(__('ave::resources_permissions.fields.description'))
                         ->rows(3),
                 ]),
             ]),
