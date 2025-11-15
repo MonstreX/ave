@@ -128,57 +128,48 @@ class MakeResourceCommand extends Command
         // Generate form fields
         $formFields = $this->generateFormFields($columns, $model);
 
-        $template = <<<'TEMPLATE'
-<?php
-
-namespace App\Ave\Resources\{{RESOURCE_NAME}};
-
-use {{MODEL_CLASS}};
-use Monstrex\Ave\Core\Resource as BaseResource;
-use Monstrex\Ave\Core\Table;
-use Monstrex\Ave\Core\Form;
-use Monstrex\Ave\Core\Columns\TextColumn;
-use Monstrex\Ave\Core\Fields\TextInput;
-use Monstrex\Ave\Core\Fields\Textarea;
-use Monstrex\Ave\Core\Fields\Number;
-use Monstrex\Ave\Core\Fields\DateTimePicker;
-
-class Resource extends BaseResource
-{
-    public static ?string $model = {{RESOURCE_NAME}}::class;
-
-    public static ?string $label = '{{LABEL}}';
-
-    public static ?string $singularLabel = '{{SINGULAR}}';
-
-    public static ?string $icon = 'voyager-list';
-
-    public static ?string $slug = '{{SLUG}}';
-
-    public static function table($context): Table
-    {
-        return Table::make()
-            ->columns([
-{{TABLE_COLUMNS}}
-            ]);
-    }
-
-    public static function form($context): Form
-    {
-        return Form::make()
-            ->schema([
-{{FORM_FIELDS}}
-            ]);
-    }
-}
-
-TEMPLATE;
+        $template = $this->getStub();
 
         return str_replace(
-            ['{{MODEL_CLASS}}', '{{RESOURCE_NAME}}', '{{SLUG}}', '{{LABEL}}', '{{SINGULAR}}', '{{TABLE_COLUMNS}}', '{{FORM_FIELDS}}'],
-            [$modelClass, $resourceName, $slug, $label, $singular, $tableColumns, $formFields],
+            [
+                '{{ namespace }}',
+                '{{ modelClass }}',
+                '{{ resourceName }}',
+                '{{ slug }}',
+                '{{ label }}',
+                '{{ singular }}',
+                '{{ tableColumns }}',
+                '{{ formFields }}',
+            ],
+            [
+                "App\\Ave\\Resources\\{$resourceName}",
+                $modelClass,
+                $resourceName,
+                $slug,
+                $label,
+                $singular,
+                $tableColumns,
+                $formFields,
+            ],
             $template
         );
+    }
+
+    /**
+     * Get the stub file for resource generation.
+     *
+     * First checks for published stub in application, then falls back to package stub.
+     */
+    protected function getStub(): string
+    {
+        $publishedStub = base_path('stubs/ave/resource.stub');
+        $packageStub = __DIR__ . '/../../../stubs/resource.stub';
+
+        if (file_exists($publishedStub)) {
+            return file_get_contents($publishedStub);
+        }
+
+        return file_get_contents($packageStub);
     }
 
     protected function generateTableColumns(array $columns): string

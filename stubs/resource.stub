@@ -1,0 +1,42 @@
+<?php
+
+namespace {{ namespace }};
+
+use {{ modelClass }};
+use Monstrex\Ave\Core\Resource as BaseResource;
+use Monstrex\Ave\Core\Table;
+use Monstrex\Ave\Core\Form;
+use Monstrex\Ave\Core\Columns\TextColumn;
+use Monstrex\Ave\Core\Fields\TextInput;
+use Monstrex\Ave\Core\Fields\Textarea;
+use Monstrex\Ave\Core\Fields\Number;
+use Monstrex\Ave\Core\Fields\DateTimePicker;
+
+class Resource extends BaseResource
+{
+    public static ?string $model = {{ resourceName }}::class;
+
+    public static ?string $label = '{{ label }}';
+
+    public static ?string $singularLabel = '{{ singular }}';
+
+    public static ?string $icon = 'voyager-list';
+
+    public static ?string $slug = '{{ slug }}';
+
+    public static function table($context): Table
+    {
+        return Table::make()
+            ->columns([
+{{ tableColumns }}
+            ]);
+    }
+
+    public static function form($context): Form
+    {
+        return Form::make()
+            ->schema([
+{{ formFields }}
+            ]);
+    }
+}

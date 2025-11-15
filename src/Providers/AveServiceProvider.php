@@ -406,6 +406,11 @@ class AveServiceProvider extends ServiceProvider
             $packagePath . 'lang' => $this->app->langPath('vendor/ave'),
         ], 'ave-lang');
 
+        // Publish stubs
+        $this->publishes([
+            $packagePath . 'stubs' => base_path('stubs/ave'),
+        ], 'ave-stubs');
+
         // Publish assets (dist folder)
         $assetMappings = PackageAssets::assets();
 
