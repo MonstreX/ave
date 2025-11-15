@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'navigation' => 'Pagination Navigation',
     'first_page' => 'First Page',
     'previous' => 'Previous',
     'next' => 'Next',

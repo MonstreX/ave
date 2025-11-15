@@ -3,14 +3,14 @@
 @section('page_header')
 <div class="page-header">
     <h1 class="page-title">
-        <i class="voyager-puzzle"></i> Admin Dashboard
+        <i class="voyager-puzzle"></i> {{ __('ave::dashboard.title') }}
     </h1>
     <div class="page-header-actions">
         <a href="{{ route('ave.dashboard') }}" class="btn btn-success btn-add-new">
-            <i class="voyager-plus"></i> <span>Create Item</span>
+            <i class="voyager-plus"></i> <span>{{ __('ave::dashboard.create_item') }}</span>
         </a>
         <a href="{{ route('ave.dashboard') }}" class="btn btn-primary btn-add-new">
-            <i class="voyager-list"></i> <span>View Activity</span>
+            <i class="voyager-list"></i> <span>{{ __('ave::dashboard.view_activity') }}</span>
         </a>
     </div>
 </div>

@@ -14,29 +14,44 @@ use Monstrex\Ave\Core\Table;
 class Resource extends BaseResource
 {
     public static ?string $model = PermissionModel::class;
-    public static ?string $label = 'Permissions';
-    public static ?string $singularLabel = 'Permission';
+    public static ?string $label = null;
+    public static ?string $singularLabel = null;
     public static ?string $icon = 'voyager-key';
     public static ?string $slug = 'permissions';
-    public static ?string $group = 'System';
+    public static ?string $group = null;
+
+    public static function getLabel(): string
+    {
+        return static::$label ?? __('ave::resources.permissions.label');
+    }
+
+    public static function getSingularLabel(): string
+    {
+        return static::$singularLabel ?? __('ave::resources.permissions.singular');
+    }
+
+    public static function getGroup(): ?string
+    {
+        return static::$group ?? __('ave::resources.groups.system');
+    }
 
     public static function table($context): Table
     {
         return Table::make()->columns([
             Column::make('resource_slug')
-                ->label('Resource')
+                ->label(__('ave::resources.permissions.columns.resource'))
                 ->sortable(true)
                 ->searchable(true),
             Column::make('ability')
-                ->label('Ability')
+                ->label(__('ave::resources.permissions.columns.ability'))
                 ->sortable(true)
                 ->searchable(true),
             Column::make('name')
-                ->label('Name'),
+                ->label(__('ave::resources.permissions.columns.name')),
             Column::make('description')
-                ->label('Description'),
+                ->label(__('ave::resources.permissions.columns.description')),
             Column::make('created_at')
-                ->label('Created')
+                ->label(__('ave::resources.permissions.columns.created_at'))
                 ->format(fn ($value) => optional($value)?->format('Y-m-d H:i')),
         ]);
     }
@@ -47,25 +62,25 @@ class Resource extends BaseResource
             Div::make('row')->schema([
                 Div::make('col-12 col-md-6')->schema([
                     TextInput::make('resource_slug')
-                        ->label('Resource slug')
+                        ->label(__('ave::resources.permissions.fields.resource_slug'))
                         ->required(),
                 ]),
                 Div::make('col-12 col-md-6')->schema([
                     TextInput::make('ability')
-                        ->label('Ability')
+                        ->label(__('ave::resources.permissions.fields.ability'))
                         ->required(),
                 ]),
             ]),
             Div::make('row')->schema([
                 Div::make('col-12')->schema([
                     TextInput::make('name')
-                        ->label('Display name'),
+                        ->label(__('ave::resources.permissions.fields.name')),
                 ]),
             ]),
             Div::make('row')->schema([
                 Div::make('col-12')->schema([
                     Textarea::make('description')
-                        ->label('Description')
+                        ->label(__('ave::resources.permissions.fields.description'))
                         ->rows(3),
                 ]),
             ]),

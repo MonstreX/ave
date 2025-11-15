@@ -24,16 +24,31 @@ use Monstrex\Ave\Core\Actions\EditInModalAction;
 class Resource extends BaseResource
 {
     public static ?string $model = MenuItemModel::class;
-    public static ?string $label = 'Menu Items';
-    public static ?string $singularLabel = 'Menu Item';
+    public static ?string $label = null;
+    public static ?string $singularLabel = null;
     public static ?string $icon = 'voyager-list';
     public static ?string $slug = 'menu-items';
-    public static ?string $group = 'System';
+    public static ?string $group = null;
+
+    public static function getLabel(): string
+    {
+        return static::$label ?? __('ave::resources.menu_items.label');
+    }
+
+    public static function getSingularLabel(): string
+    {
+        return static::$singularLabel ?? __('ave::resources.menu_items.singular');
+    }
+
+    public static function getGroup(): ?string
+    {
+        return static::$group ?? __('ave::resources.groups.system');
+    }
 
     public static function getCriteria(): array
     {
         return [
-            new FieldEqualsFilter('menu_id', 'menu_id', '=', 'Menu'),
+            new FieldEqualsFilter('menu_id', 'menu_id', '=', __('ave::resources.menu_items.filters.menu')),
         ];
     }
 
@@ -58,9 +73,9 @@ class Resource extends BaseResource
             )
             ->columns([
                 BooleanColumn::make('status')
-                    ->label('Active')
-                    ->trueLabel('Active')
-                    ->falseLabel('Inactive')
+                    ->label(__('ave::resources.menu_items.columns.active'))
+                    ->trueLabel(__('ave::common.active'))
+                    ->falseLabel(__('ave::common.inactive'))
                     ->trueValue(1)
                     ->falseValue(0)
                     ->trueIcon('voyager-check')
@@ -69,7 +84,7 @@ class Resource extends BaseResource
                 Column::make('title')
                     ->bold(),
                 ComputedColumn::make('target')
-                    ->label('Target')
+                    ->label(__('ave::resources.menu_items.columns.target'))
                     ->compute(function($record) {
                         // Priority: url > route > resource_slug
                         if (!empty($record->url)) {
@@ -114,70 +129,70 @@ class Resource extends BaseResource
             Div::make('row')->schema([
                 Div::make('col-12 col-lg-6')->schema([
                     TextInput::make('title')
-                        ->label('Title')
+                        ->label(__('ave::resources.menu_items.fields.title'))
                         ->required(),
                 ]),
                 Div::make('col-12 col-lg-6')->schema([
                     TextInput::make('icon')
-                        ->label('Icon class')
+                        ->label(__('ave::resources.menu_items.fields.icon'))
                         ->placeholder('voyager-dot'),
                 ]),
             ]),
             Div::make('row')->schema([
                 Div::make('col-12 col-lg-6')->schema([
                     TextInput::make('route')
-                        ->label('Route name')
-                        ->help('Laravel route name, e.g. ave.resource.index'),
+                        ->label(__('ave::resources.menu_items.fields.route'))
+                        ->help(__('ave::resources.menu_items.help.route')),
                 ]),
                 Div::make('col-12 col-lg-6')->schema([
                     TextInput::make('url')
-                        ->label('Custom URL')
-                        ->help('Overrides route if provided'),
+                        ->label(__('ave::resources.menu_items.fields.url'))
+                        ->help(__('ave::resources.menu_items.help.url')),
                 ]),
             ]),
             Div::make('row')->schema([
                 Div::make('col-12 col-lg-4')->schema([
                     TextInput::make('resource_slug')
-                        ->label('Resource slug')
-                        ->help('Automatically links to resource index'),
+                        ->label(__('ave::resources.menu_items.fields.resource_slug'))
+                        ->help(__('ave::resources.menu_items.help.resource_slug')),
                 ]),
                 Div::make('col-12 col-lg-4')->schema([
                     TextInput::make('ability')
-                        ->label('Ability')
+                        ->label(__('ave::resources.menu_items.fields.ability'))
                         ->default('viewAny')
-                        ->help('Used with resource slug'),
+                        ->help(__('ave::resources.menu_items.help.ability')),
                 ]),
                 Div::make('col-12 col-lg-4')->schema([
                     TextInput::make('permission_key')
-                        ->label('Permission key')
+                        ->label(__('ave::resources.menu_items.fields.permission_key'))
                         ->placeholder('resource.ability'),
                 ]),
             ]),
             Div::make('row')->schema([
                 Div::make('col-12 col-lg-6')->schema([
                     Select::make('target')
-                        ->label('Target')
+                        ->label(__('ave::resources.menu_items.fields.target'))
                         ->options([
-                            '_self' => 'Same tab',
-                            '_blank' => 'New tab',
+                            '_self' => __('ave::resources.menu_items.options.same_tab'),
+                            '_blank' => __('ave::resources.menu_items.options.new_tab'),
                         ])
                         ->default('_self'),
                 ]),
                 Div::make('col-12 col-lg-6')->schema([
                     Number::make('order')
-                        ->label('Order')
+                        ->label(__('ave::resources.menu_items.fields.order'))
                         ->default(0),
                 ]),
             ]),
             Div::make('row')->schema([
                 Div::make('col-12 col-md-4')->schema([
                     Toggle::make('status')
-                        ->label('Active')
+                        ->label(__('ave::resources.menu_items.fields.status'))
                         ->default(true),
                 ]),
                 Div::make('col-12 col-md-4')->schema([
                     Toggle::make('is_divider')
-                        ->label('Divider'),
+                        ->label(__('ave::resources.menu_items.fields.is_divider')),
                 ]),
             ]),
         ]);

@@ -19,27 +19,42 @@ use Monstrex\Ave\Core\Table;
 class Resource extends BaseResource
 {
     public static ?string $model = RoleModel::class;
-    public static ?string $label = 'Roles';
-    public static ?string $singularLabel = 'Role';
+    public static ?string $label = null;
+    public static ?string $singularLabel = null;
     public static ?string $icon = 'voyager-lock';
     public static ?string $slug = 'roles';
-    public static ?string $group = 'System';
+    public static ?string $group = null;
+
+    public static function getLabel(): string
+    {
+        return static::$label ?? __('ave::resources.roles.label');
+    }
+
+    public static function getSingularLabel(): string
+    {
+        return static::$singularLabel ?? __('ave::resources.roles.singular');
+    }
+
+    public static function getGroup(): ?string
+    {
+        return static::$group ?? __('ave::resources.groups.system');
+    }
 
     public static function table($context): Table
     {
         return Table::make()->columns([
             Column::make('name')
-                ->label('Name')
+                ->label(__('ave::resources.roles.columns.name'))
                 ->searchable(true)
                 ->sortable(true),
             Column::make('slug')
-                ->label('Slug')
+                ->label(__('ave::resources.roles.columns.slug'))
                 ->sortable(true),
             Column::make('is_default')
-                ->label('Default')
-                ->format(fn ($value) => $value ? 'Yes' : 'No'),
+                ->label(__('ave::resources.roles.columns.is_default'))
+                ->format(fn ($value) => $value ? __('ave::common.yes') : __('ave::common.no')),
             Column::make('created_at')
-                ->label('Created')
+                ->label(__('ave::resources.roles.columns.created_at'))
                 ->format(fn ($value) => optional($value)?->format('Y-m-d H:i')),
         ]);
     }
@@ -50,33 +65,33 @@ class Resource extends BaseResource
             Div::make('row')->schema([
                 Div::make('col-12 col-md-6')->schema([
                     TextInput::make('name')
-                        ->label('Role Name')
+                        ->label(__('ave::resources.roles.fields.name'))
                         ->required()
                         ->maxLength(150),
                 ]),
                 Div::make('col-12 col-md-6')->schema([
                     TextInput::make('slug')
-                        ->label('Slug')
+                        ->label(__('ave::resources.roles.fields.slug'))
                         ->required()
                         ->maxLength(150)
-                        ->help('Unique identifier, e.g. admin, editor'),
+                        ->help(__('ave::resources.roles.help.slug')),
                 ]),
             ]),
             Div::make('row')->schema([
                 Div::make('col-12')->schema([
                     Textarea::make('description')
-                        ->label('Description')
+                        ->label(__('ave::resources.roles.fields.description'))
                         ->rows(3),
                 ]),
             ]),
             Div::make('row')->schema([
                 Div::make('col-12 col-md-4')->schema([
                     Toggle::make('is_default')
-                        ->label('Default role')
-                        ->help('Automatically assigned to new users'),
+                        ->label(__('ave::resources.roles.fields.is_default'))
+                        ->help(__('ave::resources.roles.help.is_default')),
                 ]),
             ]),
-            PermissionMatrix::make()->label('Permissions'),
+            PermissionMatrix::make()->label(__('ave::resources.roles.fields.permissions')),
         ]);
     }
 

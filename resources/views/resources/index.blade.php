@@ -4,7 +4,7 @@
     <ol class="ave-navbar__breadcrumb hidden-xs">
         <li class="ave-navbar__breadcrumb-item">
             <a href="{{ (\Illuminate\Support\Facades\Route::has('ave.dashboard') ? route('ave.dashboard') : url('/')) }}" class="ave-navbar__breadcrumb-link">
-                <i class="voyager-boat"></i> {{ __('Dashboard') }}
+                <i class="voyager-boat"></i> {{ __('ave::dashboard.title') }}
             </a>
         </li>
         <li class="ave-navbar__breadcrumb-item is-active">

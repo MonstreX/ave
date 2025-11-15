@@ -326,11 +326,11 @@ Line: {{ $exception->getLine() }}</div>
 
         <div class="error-actions">
             <a href="{{ url(config('ave.route_prefix', 'admin')) }}" class="btn btn-primary">
-                Back to Dashboard
+                {{ __('ave::errors.back_to_dashboard') }}
             </a>
             @if($code !== 404)
                 <a href="javascript:history.back()" class="btn btn-secondary">
-                    Go Back
+                    {{ __('ave::errors.go_back') }}
                 </a>
             @endif
         </div>

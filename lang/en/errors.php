@@ -12,4 +12,7 @@ return [
 
     '500_title' => 'Server Error',
     '500_message' => 'Something went wrong on our end. Our team has been notified and we\'re working on a fix.',
+
+    'back_to_dashboard' => 'Back to Dashboard',
+    'go_back' => 'Go Back',
 ];

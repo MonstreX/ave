@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'navigation' => 'Навигация по страницам',
     'first_page' => 'Первая страница',
     'previous' => 'Назад',
     'next' => 'Вперёд',

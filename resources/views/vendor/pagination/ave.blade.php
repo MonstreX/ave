@@ -7,26 +7,26 @@
         $lastPage = $paginator->lastPage();
     @endphp
 
-    <nav class="ave-pagination-wrapper" role="navigation" aria-label="Pagination Navigation">
+    <nav class="ave-pagination-wrapper" role="navigation" aria-label="{{ __('ave::pagination.navigation') }}">
         <div class="pagination-controls">
             {{-- First Page Button --}}
             @if ($paginator->onFirstPage())
-                <span class="pagination-btn pagination-first disabled" aria-disabled="true" aria-label="First Page">
+                <span class="pagination-btn pagination-first disabled" aria-disabled="true" aria-label="{{ __('ave::pagination.first_page') }}">
                     <i class="voyager-double-left"></i>
                 </span>
             @else
-                <a href="{{ $paginator->url(1) }}" class="pagination-btn pagination-first" rel="first" aria-label="First Page">
+                <a href="{{ $paginator->url(1) }}" class="pagination-btn pagination-first" rel="first" aria-label="{{ __('ave::pagination.first_page') }}">
                     <i class="voyager-double-left"></i>
                 </a>
             @endif
 
             {{-- Previous Page Button --}}
             @if ($paginator->onFirstPage())
-                <span class="pagination-btn pagination-prev disabled" aria-disabled="true" aria-label="Previous">
+                <span class="pagination-btn pagination-prev disabled" aria-disabled="true" aria-label="{{ __('ave::pagination.previous') }}">
                     <i class="voyager-angle-left"></i>
                 </span>
             @else
-                <a href="{{ $paginator->previousPageUrl() }}" class="pagination-btn pagination-prev" rel="prev" aria-label="Previous">
+                <a href="{{ $paginator->previousPageUrl() }}" class="pagination-btn pagination-prev" rel="prev" aria-label="{{ __('ave::pagination.previous') }}">
                     <i class="voyager-angle-left"></i>
                 </a>
             @endif
@@ -54,29 +54,29 @@
 
             {{-- Next Page Button --}}
             @if ($paginator->hasMorePages())
-                <a href="{{ $paginator->nextPageUrl() }}" class="pagination-btn pagination-next" rel="next" aria-label="Next">
+                <a href="{{ $paginator->nextPageUrl() }}" class="pagination-btn pagination-next" rel="next" aria-label="{{ __('ave::pagination.next') }}">
                     <i class="voyager-angle-right"></i>
                 </a>
             @else
-                <span class="pagination-btn pagination-next disabled" aria-disabled="true" aria-label="Next">
+                <span class="pagination-btn pagination-next disabled" aria-disabled="true" aria-label="{{ __('ave::pagination.next') }}">
                     <i class="voyager-angle-right"></i>
                 </span>
             @endif
 
             {{-- Last Page Button --}}
             @if ($currentPage == $lastPage)
-                <span class="pagination-btn pagination-last disabled" aria-disabled="true" aria-label="Last Page">
+                <span class="pagination-btn pagination-last disabled" aria-disabled="true" aria-label="{{ __('ave::pagination.last_page') }}">
                     <i class="voyager-double-right"></i>
                 </span>
             @else
-                <a href="{{ $paginator->url($lastPage) }}" class="pagination-btn pagination-last" rel="last" aria-label="Last Page">
+                <a href="{{ $paginator->url($lastPage) }}" class="pagination-btn pagination-last" rel="last" aria-label="{{ __('ave::pagination.last_page') }}">
                     <i class="voyager-double-right"></i>
                 </a>
             @endif
 
             {{-- Jump to Page --}}
             <div class="pagination-jump">
-                <label for="pagination-jump-input" class="pagination-jump-label">Go to:</label>
+                <label for="pagination-jump-input" class="pagination-jump-label">{{ __('ave::pagination.go_to') }}</label>
                 <input
                     type="number"
                     id="pagination-jump-input"
@@ -86,7 +86,7 @@
                     value="{{ $currentPage }}"
                     data-last-page="{{ $lastPage }}"
                     data-base-url="{{ $paginator->url(1) }}"
-                    aria-label="Go to page"
+                    aria-label="{{ __('ave::pagination.go_to_page') }}"
                 />
             </div>
         </div>

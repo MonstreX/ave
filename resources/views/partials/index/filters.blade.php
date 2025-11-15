@@ -44,7 +44,7 @@
                             @if($isMultiple) multiple @endif
                         >
                             @if(!$isMultiple)
-                                <option value="">Select option</option>
+                                <option value="">{{ __('ave::filters.select_option') }}</option>
                             @endif
                             @foreach($options as $optionValue => $optionLabel)
                                 <option
@@ -70,7 +70,7 @@
                                 name="{{ $filterKey }}[from]"
                                 class="form-control form-control-sm"
                                 value="{{ $fromValue }}"
-                                placeholder="From"
+                                placeholder="{{ __('ave::filters.from') }}"
                             >
                             <span class="filters-field__range-sep"></span>
                             <input
@@ -78,7 +78,7 @@
                                 name="{{ $filterKey }}[to]"
                                 class="form-control form-control-sm"
                                 value="{{ $toValue }}"
-                                placeholder="To"
+                                placeholder="{{ __('ave::filters.to') }}"
                             >
                         </div>
                     @else
@@ -105,12 +105,12 @@
             @endif
 
             <button type="submit" class="btn btn-primary btn-35">
-                <i class="voyager-filter"></i> <span>Apply</span>
+                <i class="voyager-filter"></i> <span>{{ __('ave::filters.apply') }}</span>
             </button>
 
             @if($hasActiveFilters)
                 <a href="{{ route('ave.resource.index', ['slug' => $slug]) }}" class="btn btn-default btn-35">
-                    <i class="voyager-refresh"></i> <span>Reset</span>
+                    <i class="voyager-refresh"></i> <span>{{ __('ave::filters.reset') }}</span>
                 </a>
             @endif
         </div>

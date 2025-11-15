@@ -30,7 +30,7 @@
             <ol class="ave-navbar__breadcrumb hidden-xs">
                 @if($dashboardRoute)
                     <li class="ave-navbar__breadcrumb-item">
-                        <a href="{{ $dashboardRoute }}" class="ave-navbar__breadcrumb-link"><i class="voyager-boat"></i> {{ __('Dashboard') }}</a>
+                        <a href="{{ $dashboardRoute }}" class="ave-navbar__breadcrumb-link"><i class="voyager-boat"></i> {{ __('ave::dashboard.title') }}</a>
                     </li>
                     @php
                         $url = $dashboardRoute;
