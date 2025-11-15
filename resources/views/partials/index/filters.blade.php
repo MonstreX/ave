@@ -100,6 +100,9 @@
             <input type="hidden" name="q" value="{{ request('q') }}">
             <input type="hidden" name="sort" value="{{ request('sort') }}">
             <input type="hidden" name="dir" value="{{ request('dir') }}">
+            @if(request()->filled('per_page'))
+                <input type="hidden" name="per_page" value="{{ request('per_page') }}">
+            @endif
 
             <button type="submit" class="btn btn-primary btn-35">
                 <i class="voyager-filter"></i> <span>Apply</span>

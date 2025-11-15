@@ -8,6 +8,9 @@
             <input type="hidden" name="{{ $hidden }}" value="{{ request($hidden) }}">
         @endif
     @endforeach
+    @if(request()->filled('per_page'))
+        <input type="hidden" name="per_page" value="{{ request('per_page') }}">
+    @endif
     @if(request()->filled('q'))
         <input type="hidden" name="_previous_q" value="{{ request('q') }}">
     @endif
