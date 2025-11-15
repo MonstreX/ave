@@ -11,9 +11,11 @@ use Monstrex\Ave\Core\Validation\FormValidator;
 use Monstrex\Ave\Core\Persistence\ResourcePersistence;
 use Monstrex\Ave\Exceptions\ResourceException;
 use Monstrex\Ave\Core\Resource;
+use Monstrex\Ave\Http\Controllers\Resource\Concerns\HandlesValidationErrors;
 
 class StoreAction extends AbstractResourceAction
 {
+    use HandlesValidationErrors;
     public function __construct(
         ResourceManager $resources,
         protected FormValidator $validator,
@@ -47,22 +49,7 @@ class StoreAction extends AbstractResourceAction
         try {
             $data = $request->validate($rules);
         } catch (ValidationException $exception) {
-            $errorMessages = $this->formatValidationErrors($exception->errors());
-
-            if ($request->expectsJson() || $request->ajax()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => $errorMessages,
-                    'errors' => $exception->errors(),
-                ], 422);
-            }
-
-            $request->session()->flash('toast', [
-                'type' => 'danger',
-                'message' => $errorMessages,
-            ]);
-
-            throw $exception;
+            return $this->handleValidationException($exception, $request);
         }
 
         $data = $resourceClass::beforeCreate($data, $request);

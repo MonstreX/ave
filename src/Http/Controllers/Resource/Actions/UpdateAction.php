@@ -9,9 +9,11 @@ use Monstrex\Ave\Core\FormContext;
 use Monstrex\Ave\Core\ResourceManager;
 use Monstrex\Ave\Core\Validation\FormValidator;
 use Monstrex\Ave\Core\Persistence\ResourcePersistence;
+use Monstrex\Ave\Http\Controllers\Resource\Concerns\HandlesValidationErrors;
 
 class UpdateAction extends AbstractResourceAction
 {
+    use HandlesValidationErrors;
     public function __construct(
         ResourceManager $resources,
         protected FormValidator $validator,
@@ -41,22 +43,7 @@ class UpdateAction extends AbstractResourceAction
         try {
             $data = $request->validate($rules);
         } catch (ValidationException $exception) {
-            $errorMessages = $this->formatValidationErrors($exception->errors());
-
-            if ($request->expectsJson() || $request->ajax()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => $errorMessages,
-                    'errors' => $exception->errors(),
-                ], 422);
-            }
-
-            $request->session()->flash('toast', [
-                'type' => 'danger',
-                'message' => $errorMessages,
-            ]);
-
-            throw $exception;
+            return $this->handleValidationException($exception, $request);
         }
 
         $model = $this->persistence->update($resourceClass, $form, $model, $data, $request, $context);
