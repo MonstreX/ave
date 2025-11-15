@@ -37,7 +37,8 @@ interface Persistable
      *
      * @param string $resourceClass Resource class name
      * @param Model $model Model to delete
+     * @param Request $request Current request
      * @return void
      */
-    public function delete(string $resourceClass, Model $model): void;
+    public function delete(string $resourceClass, Model $model, Request $request): void;
 }

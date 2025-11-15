@@ -107,6 +107,45 @@ abstract class Resource implements Authorizable
     }
 
     /**
+     * Hook: Called after a new record has been created and saved.
+     * Override this method to perform actions after creation (logging, notifications, etc.)
+     *
+     * @param Model $model Newly created model
+     * @param \Illuminate\Http\Request $request Current request
+     * @return void
+     */
+    public static function afterCreate(Model $model, \Illuminate\Http\Request $request): void
+    {
+        // Override in subclass if needed
+    }
+
+    /**
+     * Hook: Called after a record has been updated.
+     * Override this method to perform actions after update (logging, cache clearing, etc.)
+     *
+     * @param Model $model Updated model
+     * @param \Illuminate\Http\Request $request Current request
+     * @return void
+     */
+    public static function afterUpdate(Model $model, \Illuminate\Http\Request $request): void
+    {
+        // Override in subclass if needed
+    }
+
+    /**
+     * Hook: Called after a record has been deleted.
+     * Override this method to perform cleanup actions (logging, file deletion, etc.)
+     *
+     * @param Model $model Deleted model (with original attributes still accessible)
+     * @param \Illuminate\Http\Request $request Current request
+     * @return void
+     */
+    public static function afterDelete(Model $model, \Illuminate\Http\Request $request): void
+    {
+        // Override in subclass if needed
+    }
+
+    /**
      * Hook: Provide custom query parameters for index redirect after save.
      * Override this method to add filters, context params, etc. to redirect URL.
      *

@@ -4,7 +4,6 @@ namespace Monstrex\Ave\Core\Validation;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 use Monstrex\Ave\Contracts\HandlesFormRequest;
 use Monstrex\Ave\Contracts\ProvidesValidationRules;
 use Monstrex\Ave\Core\Fields\AbstractField;
@@ -31,13 +30,6 @@ class FormValidator
             ? FormContext::forEdit($model, [], $request)
             : FormContext::forCreate([], $request);
 
-        if (config('app.debug')) {
-            Log::debug('FormValidator::rulesFromForm() START', [
-                'resource' => $resourceClass,
-                'mode' => $mode,
-            ]);
-        }
-
         foreach ($form->getAllFields() as $field) {
             if ($field instanceof HandlesFormRequest) {
                 $field->prepareRequest($request, $context);
@@ -57,15 +49,6 @@ class FormValidator
 
         if ($mode === 'edit' && $model) {
             $rules = $this->adjustUniqueRulesForEdit($rules, $model);
-        }
-
-        if (config('app.debug')) {
-            Log::debug('FormValidator generated rules', [
-                'resource' => $resourceClass,
-                'mode' => $mode,
-                'rules_count' => count($rules),
-                // Not logging rules to prevent DB structure leaking in production
-            ]);
         }
 
         return $rules;

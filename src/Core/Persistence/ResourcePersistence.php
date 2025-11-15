@@ -34,6 +34,8 @@ class ResourcePersistence implements Persistable
 
             event(new ResourceCreated($resourceClass, $model));
 
+            $resourceClass::afterCreate($model, $request);
+
             return $model;
         });
     }
@@ -55,18 +57,22 @@ class ResourcePersistence implements Persistable
 
             event(new ResourceUpdated($resourceClass, $model));
 
+            $resourceClass::afterUpdate($model, $request);
+
             return $model;
         });
     }
 
-    public function delete(string $resourceClass, Model $model): void
+    public function delete(string $resourceClass, Model $model, Request $request): void
     {
-        DB::transaction(function () use ($resourceClass, $model) {
+        DB::transaction(function () use ($resourceClass, $model, $request) {
             event(new ResourceDeleting($resourceClass, $model));
 
             $model->delete();
 
             event(new ResourceDeleted($resourceClass, $model));
+
+            $resourceClass::afterDelete($model, $request);
         });
     }
 
