@@ -103,6 +103,6 @@ return [
     /*
      * Discovery cache configuration.
      */
-    'cache_discovery' => true,
-    'cache_ttl' => 3600,
+    'cache_discovery' => (bool) env('AVE_CACHE_DISCOVERY', false),
+    'cache_ttl' => (int) env('AVE_CACHE_TTL', 3600),
 ];

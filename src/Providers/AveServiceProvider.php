@@ -324,7 +324,10 @@ class AveServiceProvider extends ServiceProvider
      */
     protected function discoverAndRegister(): void
     {
-        $cacheEnabled = config('ave.cache_discovery', true);
+        // Clear any existing cache first
+        Cache::forget('ave.discovery');
+
+        $cacheEnabled = config('ave.cache_discovery', false);
         $cacheTtl = config('ave.cache_ttl', 3600);
 
         if ($cacheEnabled) {

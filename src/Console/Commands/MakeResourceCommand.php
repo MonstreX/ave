@@ -23,11 +23,6 @@ class MakeResourceCommand extends Command
         'Monstrex\Ave\Models\Group',
         'Monstrex\Ave\Models\Menu',
         'Monstrex\Ave\Models\MenuItem',
-        'App\Models\User', // User resource already exists in Ave
-        'App\Models\Article', // Already has resource
-        'App\Models\Category', // Already has resource
-        'App\Models\Tag', // Already has resource
-        'App\Models\TagGroup', // Already has resource
     ];
 
     public function handle(): int
@@ -138,34 +133,44 @@ class MakeResourceCommand extends Command
 
 namespace App\Ave\Resources\{{RESOURCE_NAME}};
 
-use Monstrex\Ave\Admin\BaseResource;
-use Monstrex\Ave\Core\Components\Columns\Column;
-use Monstrex\Ave\Core\Components\Fields\TextInput;
-use Monstrex\Ave\Core\Components\Fields\Textarea;
-use Monstrex\Ave\Core\Components\Fields\Number;
-use Monstrex\Ave\Core\Components\Fields\DateTimePicker;
 use {{MODEL_CLASS}};
+use Monstrex\Ave\Core\Resource as BaseResource;
+use Monstrex\Ave\Core\Table;
+use Monstrex\Ave\Core\Form;
+use Monstrex\Ave\Core\Columns\TextColumn;
+use Monstrex\Ave\Core\Fields\TextInput;
+use Monstrex\Ave\Core\Fields\Textarea;
+use Monstrex\Ave\Core\Fields\Number;
+use Monstrex\Ave\Core\Fields\DateTimePicker;
+use Monstrex\Ave\Core\Components\Row;
+use Monstrex\Ave\Core\Components\Col;
 
 class Resource extends BaseResource
 {
-    public static string $model = {{RESOURCE_NAME}}::class;
-    protected static ?string $slug = '{{SLUG}}';
-    protected static ?string $label = '{{LABEL}}';
-    protected static ?string $singularLabel = '{{SINGULAR}}';
-    protected static ?string $icon = 'voyager-list';
+    public static ?string $model = {{RESOURCE_NAME}}::class;
 
-    public function columns(): array
+    public static ?string $label = '{{LABEL}}';
+
+    public static ?string $singularLabel = '{{SINGULAR}}';
+
+    public static ?string $icon = 'voyager-list';
+
+    public static ?string $slug = '{{SLUG}}';
+
+    public static function table($context): Table
     {
-        return [
+        return Table::make()
+            ->columns([
 {{TABLE_COLUMNS}}
-        ];
+            ]);
     }
 
-    public function fields(): array
+    public static function form($context): Form
     {
-        return [
+        return Form::make()
+            ->schema([
 {{FORM_FIELDS}}
-        ];
+            ]);
     }
 }
 
@@ -192,15 +197,15 @@ TEMPLATE;
             $sortable = in_array($column, ['id', 'name', 'title', 'created_at']) ? '->sortable()' : '';
             $searchable = in_array($column, ['name', 'title', 'email']) ? '->searchable()' : '';
 
-            $output[] = "            Column::make('{$column}')\n                ->label(__('{$label}')){$sortable}{$searchable},";
+            $output[] = "                TextColumn::make('{$column}')\n                    ->label(__('{$label}')){$sortable}{$searchable},";
         }
 
-        return implode("\n", $output);
+        return implode("\n\n", $output);
     }
 
     protected function generateFormFields(array $columns, Model $model): string
     {
-        $output = [];
+        $fields = [];
         $excludeFromForm = ['id', 'created_at', 'updated_at', 'deleted_at', 'remember_token', 'email_verified_at'];
 
         foreach ($columns as $column) {
@@ -211,45 +216,50 @@ TEMPLATE;
             $label = Str::title(str_replace('_', ' ', $column));
             $field = $this->guessFieldType($column, $model);
 
-            $output[] = $field;
+            $fields[] = $field;
         }
 
-        return implode("\n\n", $output);
+        // Wrap each field in Row and Col
+        $rows = [];
+        foreach ($fields as $field) {
+            $rows[] = "                Row::make()->schema([\n                    Col::make(12)->schema([\n{$field}\n                    ]),\n                ]),";
+        }
+
+        return implode("\n\n", $rows);
     }
 
     protected function guessFieldType(string $column, Model $model): string
     {
         $label = Str::title(str_replace('_', ' ', $column));
-        $required = '->required()';
 
         // Password fields
         if (Str::contains($column, 'password')) {
-            return "            PasswordInput::make('{$column}')\n                ->label(__('{$label}'))\n                ->minLength(8),";
+            return "                        PasswordInput::make('{$column}')\n                            ->label(__('{$label}'))\n                            ->minLength(8),";
         }
 
         // Email fields
         if (Str::contains($column, 'email')) {
-            return "            TextInput::make('{$column}')\n                ->label(__('{$label}'))\n                ->email()\n                {$required},";
+            return "                        TextInput::make('{$column}')\n                            ->label(__('{$label}'))\n                            ->email()\n                            ->required(),";
         }
 
         // Text fields
         if (Str::endsWith($column, '_text') || Str::contains($column, 'description') || Str::contains($column, 'content') || Str::contains($column, 'body')) {
-            return "            Textarea::make('{$column}')\n                ->label(__('{$label}')),";
+            return "                        Textarea::make('{$column}')\n                            ->label(__('{$label}')),";
         }
 
         // Date/time fields
         if (Str::endsWith($column, '_at') || Str::contains($column, 'date')) {
-            return "            DateTimePicker::make('{$column}')\n                ->label(__('{$label}')),";
+            return "                        DateTimePicker::make('{$column}')\n                            ->label(__('{$label}')),";
         }
 
         // Numeric fields
         $columnType = $model->getConnection()->getSchemaBuilder()->getColumnType($model->getTable(), $column);
         if (in_array($columnType, ['integer', 'bigint', 'smallint', 'decimal', 'float', 'double'])) {
-            return "            Number::make('{$column}')\n                ->label(__('{$label}')),";
+            return "                        Number::make('{$column}')\n                            ->label(__('{$label}')),";
         }
 
         // Default to TextInput
-        return "            TextInput::make('{$column}')\n                ->label(__('{$label}')),";
+        return "                        TextInput::make('{$column}')\n                            ->label(__('{$label}')),";
     }
 
     protected function discoverModels(): array
@@ -335,9 +345,10 @@ TEMPLATE;
         \DB::table('ave_menu_items')->insert([
             'menu_id' => $menuId,
             'title' => $label,
+            'status' => true,
             'icon' => 'voyager-list',
-            'route' => "ave.resources.{$slug}.index",
             'resource_slug' => $slug,
+            'ability' => 'viewAny',
             'order' => $maxOrder + 1,
             'created_at' => now(),
             'updated_at' => now(),
