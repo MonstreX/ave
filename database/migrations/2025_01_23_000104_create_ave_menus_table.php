@@ -17,7 +17,7 @@ return new class extends Migration {
         });
 
         DB::table('ave_menus')->insert([
-            'name' => 'Main',
+            'name' => __('ave::seeders.menus.main_name'),
             'slug' => 'main',
             'is_default' => true,
             'created_at' => now(),

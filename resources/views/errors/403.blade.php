@@ -2,7 +2,7 @@
 
 @section('content')
     @php
-        $title = 'Access Denied';
-        $message = 'You don\'t have permission to access this resource.';
+        $title = __('ave::errors.403_title');
+        $message = __('ave::errors.403_message');
     @endphp
 @endsection

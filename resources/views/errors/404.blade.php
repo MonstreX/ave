@@ -2,7 +2,7 @@
 
 @section('content')
     @php
-        $title = 'Page Not Found';
-        $message = 'The page you\'re looking for doesn\'t exist or has been moved.';
+        $title = __('ave::errors.404_title');
+        $message = __('ave::errors.404_message');
     @endphp
 @endsection

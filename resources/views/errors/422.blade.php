@@ -2,7 +2,7 @@
 
 @section('content')
     @php
-        $title = 'Invalid Configuration';
-        $message = 'The resource configuration is invalid. Please check your Resource class definition.';
+        $title = __('ave::errors.422_title');
+        $message = __('ave::errors.422_message');
     @endphp
 @endsection

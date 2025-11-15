@@ -18,9 +18,9 @@ return new class extends Migration {
         });
 
         DB::table('ave_roles')->insert([
-            'name' => 'Administrator',
+            'name' => __('ave::seeders.roles.admin_name'),
             'slug' => 'admin',
-            'description' => 'Full access to Ave admin panel',
+            'description' => __('ave::seeders.roles.admin_description'),
             'is_default' => true,
             'created_at' => now(),
             'updated_at' => now(),

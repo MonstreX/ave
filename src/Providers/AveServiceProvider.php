@@ -99,6 +99,9 @@ class AveServiceProvider extends ServiceProvider
         // Load views
         $this->loadViewsFrom(__DIR__ . '/../../resources/views', 'ave');
 
+        // Load translations
+        $this->loadTranslationsFrom(__DIR__ . '/../../lang', 'ave');
+
         View::composer('ave::partials.sidebar', SidebarComposer::class);
 
         $this->ensureGuardConfigured();
@@ -405,6 +408,11 @@ class AveServiceProvider extends ServiceProvider
         $this->publishes([
             $packagePath . 'resources/views' => resource_path('views/vendor/ave'),
         ], 'ave-views');
+
+        // Publish translations
+        $this->publishes([
+            $packagePath . 'lang' => $this->app->langPath('vendor/ave'),
+        ], 'ave-lang');
 
         // Publish assets (dist folder)
         $assetMappings = PackageAssets::assets();
