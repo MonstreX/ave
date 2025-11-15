@@ -5,7 +5,6 @@ namespace Monstrex\Ave\Core;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Gate;
-use Monstrex\Ave\Admin\Access\AccessManager;
 use Monstrex\Ave\Core\Actions\Contracts\ActionInterface;
 use Monstrex\Ave\Core\Actions\Contracts\RowAction as RowActionContract;
 use Monstrex\Ave\Core\Actions\Contracts\BulkAction as BulkActionContract;
@@ -400,6 +399,15 @@ abstract class Resource implements Authorizable
     /**
      * Check if user can perform ability on this resource
      *
+     * Uses Laravel Gate for authorization, which integrates with Ave's ACL system
+     * via Gate::before() callback registered in AveServiceProvider.
+     *
+     * Supports multiple usage patterns:
+     * - $resource->can('create', $user) - check if user can create
+     * - $resource->can('update', $user, $model) - check if user can update specific model
+     * - Gate::allows('posts.create') - direct Gate call with "slug.ability" format
+     * - @can('create', $post) - Blade directive with model instance
+     *
      * @param string $ability Action name (viewAny, view, create, update, delete)
      * @param Authenticatable|null $user Current user
      * @param mixed $model Model instance for singular checks (view, update, delete)
@@ -407,23 +415,16 @@ abstract class Resource implements Authorizable
      */
     public function can(string $ability, ?Authenticatable $user, mixed $model = null): bool
     {
-        $accessManager = app()->bound(AccessManager::class)
-            ? app(AccessManager::class)
-            : null;
-
-        if ($accessManager && $accessManager->isEnabled()) {
-            return $accessManager->allows($user, static::getSlug(), $ability);
-        }
-
         if (!$user) {
             return false;
         }
 
-        if (!static::$policy) {
-            return false;
-        }
+        // Use Laravel Gate for all authorization checks
+        // Gate::before() will intercept and check via AccessManager if ACL is enabled
+        // Otherwise, it will fallback to Policy classes if defined
+        $arguments = $model ? [$model] : [static::$model];
 
-        return Gate::forUser($user)->allows($ability, $model ?? static::$model);
+        return Gate::forUser($user)->allows($ability, $arguments);
     }
 
     /**

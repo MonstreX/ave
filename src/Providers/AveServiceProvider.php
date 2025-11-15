@@ -4,6 +4,7 @@ namespace Monstrex\Ave\Providers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Monstrex\Ave\Core\Registry\ResourceRegistry;
@@ -101,6 +102,7 @@ class AveServiceProvider extends ServiceProvider
         View::composer('ave::partials.sidebar', SidebarComposer::class);
 
         $this->ensureGuardConfigured();
+        $this->registerGateIntegration();
         RouteRegistrar::create($this->app['router'])->register();
 
         // Register commands
@@ -127,6 +129,121 @@ class AveServiceProvider extends ServiceProvider
         if (! array_key_exists($guard, $guards)) {
             throw new RuntimeException(sprintf('Ave admin guard [%s] is not defined in auth.guards configuration.', $guard));
         }
+    }
+
+    /**
+     * Register Laravel Gate integration for Ave ACL system
+     *
+     * This enables canonical Laravel authorization (@can, authorize(), Gate::allows())
+     * while using Ave's permission matrix stored in database tables.
+     *
+     * @return void
+     */
+    protected function registerGateIntegration(): void
+    {
+        Gate::before(function ($user, $ability, $arguments) {
+            try {
+                // Skip if AccessManager is not available (e.g., during testing)
+                if (!$this->app->bound(AccessManager::class)) {
+                    return null;
+                }
+
+                $accessManager = $this->app->make(AccessManager::class);
+
+                // Skip if ACL is disabled
+                if (!$accessManager->isEnabled()) {
+                    return null; // Let other gates/policies handle
+                }
+
+                // Try to extract resource slug from arguments
+                $resourceSlug = $this->extractResourceSlug($ability, $arguments);
+
+                if (!$resourceSlug) {
+                    return null; // Not an Ave resource check, let other handlers process
+                }
+
+                // Check permission through AccessManager
+                return $accessManager->allows($user, $resourceSlug, $ability) ?: null;
+            } catch (\Throwable $e) {
+                // Silently fail and let other handlers process
+                // This handles cases where config is not available (e.g., unit tests)
+                return null;
+            }
+        });
+    }
+
+    /**
+     * Extract resource slug from Gate ability check
+     *
+     * Supports multiple formats:
+     * 1. Ability as "resource_slug.ability" (e.g., "posts.create")
+     * 2. Ability as simple name with model/resource in arguments
+     *
+     * @param string $ability
+     * @param array $arguments
+     * @return string|null
+     */
+    protected function extractResourceSlug(string $ability, array $arguments): ?string
+    {
+        // Format 1: "resource_slug.ability"
+        if (str_contains($ability, '.')) {
+            $parts = explode('.', $ability, 2);
+            return $parts[0] ?? null;
+        }
+
+        // Format 2: Extract from model class or resource instance in arguments
+        if (empty($arguments)) {
+            return null;
+        }
+
+        $firstArg = $arguments[0] ?? null;
+
+        // If it's a Resource instance
+        if (is_object($firstArg) && method_exists($firstArg, 'getSlug')) {
+            return $firstArg::getSlug();
+        }
+
+        // If it's an Eloquent model, try to find corresponding resource
+        if (is_object($firstArg) && $firstArg instanceof \Illuminate\Database\Eloquent\Model) {
+            $modelClass = get_class($firstArg);
+            return $this->findResourceSlugByModel($modelClass);
+        }
+
+        // If it's a model class name (string)
+        if (is_string($firstArg) && class_exists($firstArg)) {
+            return $this->findResourceSlugByModel($firstArg);
+        }
+
+        return null;
+    }
+
+    /**
+     * Find resource slug by model class
+     *
+     * @param string $modelClass
+     * @return string|null
+     */
+    protected function findResourceSlugByModel(string $modelClass): ?string
+    {
+        if (!$this->app->bound(ResourceManager::class)) {
+            return null;
+        }
+
+        $resourceManager = $this->app->make(ResourceManager::class);
+        $resources = $resourceManager->all();
+
+        foreach ($resources as $slug => $resourceClass) {
+            if (!class_exists($resourceClass)) {
+                continue;
+            }
+
+            $resource = new $resourceClass();
+            if (isset($resource::$model) && $resource::$model === $modelClass) {
+                return $slug;
+            }
+        }
+
+        return null;
     }
 
     /**
