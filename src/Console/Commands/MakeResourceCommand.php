@@ -142,8 +142,6 @@ use Monstrex\Ave\Core\Fields\TextInput;
 use Monstrex\Ave\Core\Fields\Textarea;
 use Monstrex\Ave\Core\Fields\Number;
 use Monstrex\Ave\Core\Fields\DateTimePicker;
-use Monstrex\Ave\Core\Components\Row;
-use Monstrex\Ave\Core\Components\Col;
 
 class Resource extends BaseResource
 {
@@ -216,16 +214,10 @@ TEMPLATE;
             $label = Str::title(str_replace('_', ' ', $column));
             $field = $this->guessFieldType($column, $model);
 
-            $fields[] = $field;
+                $fields[] = $field;
         }
 
-        // Wrap each field in Row and Col
-        $rows = [];
-        foreach ($fields as $field) {
-            $rows[] = "                Row::make()->schema([\n                    Col::make(12)->schema([\n{$field}\n                    ]),\n                ]),";
-        }
-
-        return implode("\n\n", $rows);
+        return implode("\n\n", $fields);
     }
 
     protected function guessFieldType(string $column, Model $model): string
@@ -234,32 +226,32 @@ TEMPLATE;
 
         // Password fields
         if (Str::contains($column, 'password')) {
-            return "                        PasswordInput::make('{$column}')\n                            ->label(__('{$label}'))\n                            ->minLength(8),";
+            return "                PasswordInput::make('{$column}')\n                    ->label(__('{$label}'))\n                    ->minLength(8),";
         }
 
         // Email fields
         if (Str::contains($column, 'email')) {
-            return "                        TextInput::make('{$column}')\n                            ->label(__('{$label}'))\n                            ->email()\n                            ->required(),";
+            return "                TextInput::make('{$column}')\n                    ->label(__('{$label}'))\n                    ->email()\n                    ->required(),";
         }
 
         // Text fields
         if (Str::endsWith($column, '_text') || Str::contains($column, 'description') || Str::contains($column, 'content') || Str::contains($column, 'body')) {
-            return "                        Textarea::make('{$column}')\n                            ->label(__('{$label}')),";
+            return "                Textarea::make('{$column}')\n                    ->label(__('{$label}')),";
         }
 
         // Date/time fields
         if (Str::endsWith($column, '_at') || Str::contains($column, 'date')) {
-            return "                        DateTimePicker::make('{$column}')\n                            ->label(__('{$label}')),";
+            return "                DateTimePicker::make('{$column}')\n                    ->label(__('{$label}')),";
         }
 
         // Numeric fields
         $columnType = $model->getConnection()->getSchemaBuilder()->getColumnType($model->getTable(), $column);
         if (in_array($columnType, ['integer', 'bigint', 'smallint', 'decimal', 'float', 'double'])) {
-            return "                        Number::make('{$column}')\n                            ->label(__('{$label}')),";
+            return "                Number::make('{$column}')\n                    ->label(__('{$label}')),";
         }
 
         // Default to TextInput
-        return "                        TextInput::make('{$column}')\n                            ->label(__('{$label}')),";
+        return "                TextInput::make('{$column}')\n                    ->label(__('{$label}')),";
     }
 
     protected function discoverModels(): array

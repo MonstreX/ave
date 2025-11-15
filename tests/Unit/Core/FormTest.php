@@ -224,7 +224,7 @@ class FormTest extends TestCase
     public function test_form_normalize_component_invalid_type(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessageMatches('/Unsupported form schema component/');
+        $this->expectExceptionMessageMatches('/Invalid schema component/');
 
         $form = Form::make();
         $form->schema(['invalid']);

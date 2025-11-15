@@ -11,6 +11,9 @@ class Form
     /** @var array<int,FormComponent> */
     protected array $layout = [];
 
+    /** @var array<int,FormField> */
+    protected array $fields = [];
+
     protected ?string $submitLabel = null;
     protected ?string $cancelUrl = null;
 
@@ -20,16 +23,37 @@ class Form
     }
 
     /**
-     * Define form schema using components and/or rows.
+     * Define form schema using components and/or fields.
      *
-     * @param array<int,mixed> $components
+     * Supports mixed content:
+     * - FormComponent instances (Div, Row, Col, Tabs, Panel, etc.)
+     * - FormField instances (TextInput, Textarea, Number, etc.)
+     *
+     * @param array<int,FormComponent|FormField> $components
      */
     public function schema(array $components): static
     {
         $this->layout = [];
+        $this->fields = [];
 
         foreach ($components as $component) {
-            $this->layout[] = $this->normalizeComponent($component);
+            // Handle FormField (direct fields)
+            if ($component instanceof FormField) {
+                $this->fields[] = $component;
+                continue;
+            }
+
+            // Handle FormComponent (layout containers)
+            if ($component instanceof FormComponent) {
+                $this->layout[] = $component;
+                continue;
+            }
+
+            throw new InvalidArgumentException(
+                sprintf('Invalid schema component: %s. Must be FormComponent or FormField.',
+                    is_object($component) ? get_class($component) : gettype($component)
+                )
+            );
         }
 
         return $this;
@@ -67,13 +91,13 @@ class Form
     }
 
     /**
-     * Get all fields (flattened from all components).
+     * Get all fields (direct fields + flattened from all components).
      *
      * @return array<int,FormField>
      */
     public function getAllFields(): array
     {
-        $fields = [];
+        $fields = $this->fields; // Start with direct fields
 
         foreach ($this->layout as $component) {
             $fields = array_merge($fields, $component->flattenFields());
@@ -134,24 +158,4 @@ class Form
         return $this->cancelUrl;
     }
 
-    /**
-     * Normalize component to FormComponent.
-     *
-     * Only accepts FormComponent instances (including Div, Tabs, Group, etc.).
-     * For other types, throws InvalidArgumentException.
-     *
-     * @param mixed $component
-     */
-    protected function normalizeComponent(mixed $component): FormComponent
-    {
-        if ($component instanceof FormComponent) {
-            return $component;
-        }
-
-        throw new InvalidArgumentException(
-            sprintf('Unsupported form schema component: %s. Only FormComponent instances are supported.',
-                is_object($component) ? get_class($component) : gettype($component)
-            )
-        );
-    }
 }
