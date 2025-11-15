@@ -34,14 +34,16 @@ php artisan ave:install
 The install command will automatically:
 - ✓ Publish configuration files
 - ✓ Publish compiled assets (CSS, JS, fonts, images)
-- ✓ Publish migrations
+- ✓ Publish and run migrations
 - ✓ Show you the next steps
 
 **Options:**
 ```bash
-php artisan ave:install --force              # Overwrite existing files
-php artisan ave:install --skip-migrations    # Skip publishing migrations
+php artisan ave:install --force        # Overwrite existing files
+php artisan ave:install --no-migrate   # Skip running migrations
 ```
+
+That's it! Visit `/admin` in your browser to access the admin panel.
 
 ### Manual Installation (Advanced)
 
@@ -97,27 +99,6 @@ This creates:
 - `ave_permissions` - Resource permissions
 - `ave_media` - Media files
 - Adds `locale` column to users table
-
-### Configure Authentication
-
-Update your `config/auth.php` to define the Ave admin guard. Add to the `guards` array:
-
-```php
-'guards' => [
-    // ... existing guards ...
-
-    'ave' => [
-        'driver' => 'session',
-        'provider' => 'users',
-    ],
-],
-```
-
-Then set the `AVE_AUTH_GUARD` in your `.env` file:
-
-```
-AVE_AUTH_GUARD=ave
-```
 
 ### Create Admin Resources
 

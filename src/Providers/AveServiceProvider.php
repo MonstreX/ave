@@ -105,7 +105,6 @@ class AveServiceProvider extends ServiceProvider
 
         View::composer('ave::partials.sidebar', SidebarComposer::class);
 
-        $this->ensureGuardConfigured();
         $this->registerGateIntegration();
         RouteRegistrar::create($this->app['router'])->register();
 
@@ -121,20 +120,6 @@ class AveServiceProvider extends ServiceProvider
         $this->discoverAndRegister();
     }
 
-    protected function ensureGuardConfigured(): void
-    {
-        $guard = config('ave.auth_guard');
-
-        if (! $guard) {
-            throw new RuntimeException('Ave admin guard is not configured. Set AVE_AUTH_GUARD in your environment or ave.auth_guard configuration.');
-        }
-
-        $guards = config('auth.guards', []);
-
-        if (! array_key_exists($guard, $guards)) {
-            throw new RuntimeException(sprintf('Ave admin guard [%s] is not defined in auth.guards configuration.', $guard));
-        }
-    }
 
     /**
      * Register Laravel Gate integration for Ave ACL system

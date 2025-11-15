@@ -8,8 +8,9 @@ return [
 
     /*
      * Authentication guard that should be used for Ave routes.
+     * Default: 'web' - uses standard Laravel authentication.
      */
-    'auth_guard' => env('AVE_AUTH_GUARD', 'web'),
+    'auth_guard' => 'web',
 
     /*
      * Middleware stack applied to Ave routes (in addition to the auth guard).
