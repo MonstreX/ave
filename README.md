@@ -4,15 +4,14 @@ A modern, lightweight admin panel package for Laravel with declarative component
 
 ## Features
 
-- <� **Modern UI** - Clean, responsive interface built with modern CSS and JavaScript
-- = **Role-Based Access Control** - Flexible permissions system with roles and groups
-- < **Multi-language Support** - Built-in English and Russian translations with easy extensibility
-- =� **Declarative Resources** - Define your admin panels with clean, intuitive PHP classes
-- =' **Flexible Components** - Rich set of form fields, columns, actions, and layouts
-- =� **Responsive Design** - Works seamlessly on desktop, tablet, and mobile devices
-- =� **Performance** - Optimized with caching and lazy loading
-- <� **Modal Support** - Create and edit records in modals without page reload
-- =� **Media Management** - Built-in file upload and management system
+- **Declarative Resources** - Define admin panels with clean, intuitive PHP classes
+- **Advanced ACL** - Granular permissions with roles, groups, and resource-level control
+- **Media Library** - Powerful file management with multiple upload strategies and image processing
+- **Fieldsets** - Reusable, composable field groups with conditional logic
+- **Modal CRUD** - Create and edit records in modals without page reload
+- **Hierarchical Data** - Built-in support for nested/tree structures (menus, categories)
+- **Rich Components** - Advanced fields (WYSIWYG, CodeMirror, BelongsTo with search, etc.)
+- **Performance** - Optimized with caching, lazy loading, and minimal queries
 
 ## Requirements
 
@@ -32,10 +31,10 @@ php artisan ave:install
 ```
 
 The install command will automatically:
-- ✓ Publish configuration files
-- ✓ Publish compiled assets (CSS, JS, fonts, images)
-- ✓ Publish and run migrations
-- ✓ Show you the next steps
+- Publish configuration files
+- Publish compiled assets (CSS, JS, fonts, images)
+- Publish and run migrations
+- Show you the next steps
 
 **Options:**
 ```bash
@@ -65,7 +64,6 @@ php artisan vendor:publish --tag=ave-config
 
 This creates `config/ave.php` where you can customize:
 - Route prefix (default: `admin`)
-- Authentication guard
 - User model and table
 - Access control settings
 - Cache configuration
@@ -257,33 +255,29 @@ php ../../../vendor/bin/phpunit
 
 Ave provides a rich set of components for building admin interfaces:
 
-### Form Fields
+### Advanced Fields
 
-- `TextInput` - Single-line text input
-- `TextArea` - Multi-line text input
-- `Select` - Dropdown selection
-- `MultiSelect` - Multiple selection
-- `Checkbox` - Boolean checkbox
-- `DatePicker` - Date selection
-- `MediaUpload` - File upload with preview
-- And more...
+- **`MediaUpload`** - Powerful file/image upload with drag-n-drop, preview, multiple files support
+- **`Fieldset`** - Reusable field groups with conditional visibility and nested structures
+- **`BelongsToSelect`** - Smart relation field with search, hierarchical data, and lazy loading
+- **`WysiwygEditor`** - Rich text editing with TinyMCE integration
+- **`CodeEditor`** - Syntax-highlighted code editing with CodeMirror
+- `TextInput`, `TextArea`, `Select`, `Checkbox`, `DatePicker` - Standard form inputs
+- `Toggle`, `Radio`, `Hidden` - Additional input types
 
 ### Table Columns
 
-- `Column` - Basic text column
-- `DateColumn` - Formatted date display
-- `BooleanColumn` - Visual boolean indicator
-- `ImageColumn` - Image thumbnail
+- `Column` - Basic text column with sorting and formatting
+- `ImageColumn` - Image thumbnail from media library
+- `BooleanColumn` - Visual status indicator
+- `DateColumn` - Formatted date/time display
 - `RelationColumn` - Display related model data
 
 ### Actions
 
-- `CreateAction` - Create new records
-- `CreateInModalAction` - Create in modal
-- `EditAction` - Edit records
-- `EditInModalAction` - Edit in modal
-- `DeleteAction` - Delete records
-- `CustomAction` - Define custom actions
+- `CreateInModalAction`, `EditInModalAction` - Modal-based CRUD without page reload
+- `DeleteAction` - Safe deletion with confirmation
+- `CustomAction` - Build your own actions with custom logic
 
 ## License
 
