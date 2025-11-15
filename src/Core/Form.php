@@ -75,19 +75,32 @@ class Form
     /**
      * Get normalized layout definition for rendering.
      *
+     * Includes both FormComponent instances and direct FormField instances.
+     * Direct fields are wrapped in a simple Div container for consistent rendering.
+     *
      * @return array<int,array<string,mixed>>
      */
     public function layout(): array
     {
-        return array_map(
-            static function (FormComponent $component): array {
-                return [
-                    'type' => 'component',
-                    'component' => $component,
-                ];
-            },
-            $this->layout
-        );
+        $result = [];
+
+        // Add direct fields first (if any) - wrap them in a Div for rendering
+        if (!empty($this->fields)) {
+            $result[] = [
+                'type' => 'component',
+                'component' => \Monstrex\Ave\Core\Components\Div::make()->schema($this->fields),
+            ];
+        }
+
+        // Add layout components
+        foreach ($this->layout as $component) {
+            $result[] = [
+                'type' => 'component',
+                'component' => $component,
+            ];
+        }
+
+        return $result;
     }
 
     /**
