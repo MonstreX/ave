@@ -5,11 +5,11 @@
 import { createModal, destroyModal } from '../ui/modals.js';
 import { showToast } from '../ui/toast.js';
 import { openPopupForm } from '../forms/popupForm.js';
+import { trans } from '../../utils/translations.js';
 
 const ACTION_SELECTOR = '[data-ave-action]';
 const csrfMeta = document.querySelector('meta[name="csrf-token"]');
 const CSRF_TOKEN = csrfMeta ? csrfMeta.content : '';
-const FALLBACK_VALIDATION_MESSAGE = 'Проверьте введённые данные и попробуйте снова.';
 
 function disableTrigger(trigger) {
     trigger.dataset.actionLoading = 'true';
@@ -57,7 +57,7 @@ function handleActionClick(event) {
     }
 
     if (actionType === 'bulk' && getSelectedIds().length === 0) {
-        showToast('warning', 'Выберите хотя бы одну запись.');
+        showToast('warning', trans('actions.no_selection'));
         return;
     }
 
@@ -80,11 +80,11 @@ function handleActionClick(event) {
 
     if (trigger.dataset.actionConfirm === 'true') {
         createModal({
-            title: config.label || 'Подтвердите действие',
-            body: confirmMessage || 'Вы уверены, что хотите выполнить действие?',
+            title: config.label || trans('actions.confirm'),
+            body: confirmMessage || trans('actions.confirm'),
             type: 'confirm',
             variant: trigger.dataset.variant || 'primary',
-            confirmText: config.label || 'Выполнить',
+            confirmText: config.label || trans('common.confirm'),
             onConfirm: () => run(),
         });
         return;
@@ -172,7 +172,7 @@ async function executeAction(trigger, endpoint, extraPayload = {}, meta = {}) {
         return;
     }
 
-    const message = data.message || 'Действие выполнено.';
+    const message = data.message || trans('actions.success');
     showToast('success', message);
 
     const redirect = data.redirect ?? null;
@@ -434,11 +434,11 @@ function toggleRowHighlight(checkbox) {
 function openFormModal(trigger, config, runCallback) {
     const formSchema = Array.isArray(config.form) ? config.form : [];
     const modal = createModal({
-        title: config.label || 'Параметры действия',
+        title: config.label || trans('actions.confirm'),
         body: renderActionForm(formSchema),
         type: 'form',
         variant: trigger.dataset.variant || 'primary',
-        confirmText: config.label || 'Выполнить',
+        confirmText: config.label || trans('common.confirm'),
         autoClose: false,
         onConfirm: async () => {
             const modalForm = modal.querySelector('[data-ave-action-form]');

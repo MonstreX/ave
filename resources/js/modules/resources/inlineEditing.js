@@ -1,4 +1,5 @@
 import { showToast } from '../ui/toast.js';
+import { trans } from '../../utils/translations.js';
 
 const csrfMeta = document.querySelector('meta[name="csrf-token"]');
 const CSRF_TOKEN = csrfMeta ? csrfMeta.content : '';
@@ -64,11 +65,11 @@ function handleToggleClick(event) {
                 dot.style.backgroundColor = color;
             }
 
-            showToast('success', 'Статус обновлён');
+            showToast('success', trans('inline.saved'));
         })
         .catch((error) => {
             console.error('Inline toggle failed', error);
-            showToast('danger', error.message || 'Не удалось обновить значение');
+            showToast('danger', error.message || trans('inline.error'));
         })
         .finally(() => toggleLoading(trigger, false));
 }
@@ -87,7 +88,7 @@ async function submitInline(endpoint, field, value) {
 
     if (!response.ok) {
         const data = await response.json().catch(() => ({}));
-        throw new Error(data.message || 'Ошибка запроса');
+        throw new Error(data.message || trans('common.error'));
     }
 
     return response.json();
