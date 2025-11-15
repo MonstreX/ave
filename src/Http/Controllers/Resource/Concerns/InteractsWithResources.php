@@ -72,9 +72,18 @@ trait InteractsWithResources
             return 'Validation failed. Please check the form for errors.';
         }
 
-        if (count($messages) > 3) {
-            $messages = array_slice($messages, 0, 3);
-            $messages[] = sprintf('... and %d more error(s)', count($errors) - 3);
+        // Use try-catch to handle cases where config is not available (e.g., unit tests)
+        $maxErrors = 3;
+        try {
+            $maxErrors = config('ave.validation.max_errors_display', 3);
+        } catch (\Throwable $e) {
+            // Config not available, use default
+        }
+
+        if (count($messages) > $maxErrors) {
+            $remaining = count($messages) - $maxErrors;
+            $messages = array_slice($messages, 0, $maxErrors);
+            $messages[] = sprintf('... and %d more error(s)', $remaining);
         }
 
         return implode("\n", $messages);

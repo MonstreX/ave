@@ -267,7 +267,7 @@ class ResourceControllerTest extends TestCase
         $request->setUserResolver(fn () => new FakeUser(1, 1));
 
         $this->expectException(ResourceException::class);
-        $this->expectExceptionMessage("Unauthorized");
+        $this->expectExceptionMessage("Bulk action 'update' denied for");
 
         $controller->runBulkAction($request, 'test-items', 'test-bulk');
     }

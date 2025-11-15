@@ -76,6 +76,15 @@ return [
         'show_per_page_selector' => (bool) env('AVE_PAGINATION_SHOW_SELECTOR', true),
     ],
 
+    /*
+     * Validation configuration.
+     */
+    'validation' => [
+        // Maximum number of validation errors to display in toast/flash messages.
+        // Remaining errors will be shown as "... and X more error(s)"
+        'max_errors_display' => (int) env('AVE_VALIDATION_MAX_ERRORS', 3),
+    ],
+
     'user_model' => env('AVE_USER_MODEL', config('auth.providers.users.model')),
     'user_table' => env('AVE_USER_TABLE', 'users'),
     'login_route' => 'login',

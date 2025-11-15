@@ -2,6 +2,8 @@
 
 namespace Monstrex\Ave\Core\Fields;
 
+use Monstrex\Ave\Contracts\ProvidesValidationAttributes;
+
 /**
  * Number Field
  *
@@ -21,7 +23,7 @@ namespace Monstrex\Ave\Core\Fields;
  *       ->step(1)
  *       ->required()
  */
-class Number extends AbstractField
+class Number extends AbstractField implements ProvidesValidationAttributes
 {
     /**
      * Minimum allowed value
@@ -72,6 +74,22 @@ class Number extends AbstractField
     {
         $this->step = $step;
         return $this;
+    }
+
+    /**
+     * Get validation attributes for this field.
+     *
+     * Returns validation-related properties that can be converted to Laravel rules
+     * by FieldValidationRuleExtractor.
+     *
+     * @return array<string,mixed>
+     */
+    public function getValidationAttributes(): array
+    {
+        return [
+            'min' => $this->min,
+            'max' => $this->max,
+        ];
     }
 
     /**

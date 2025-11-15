@@ -2,6 +2,8 @@
 
 namespace Monstrex\Ave\Core\Fields;
 
+use Monstrex\Ave\Contracts\ProvidesValidationAttributes;
+
 /**
  * TextInput Field
  *
@@ -34,7 +36,7 @@ namespace Monstrex\Ave\Core\Fields;
  * Example (With prefix):
  *   TextInput::make('price')->number()->prefix('$')
  */
-class TextInput extends AbstractField
+class TextInput extends AbstractField implements ProvidesValidationAttributes
 {
     /**
      * Maximum allowed length in characters
@@ -188,6 +190,23 @@ class TextInput extends AbstractField
     public function getSuffix(): ?string
     {
         return $this->suffixText;
+    }
+
+    /**
+     * Get validation attributes for this field.
+     *
+     * Returns validation-related properties that can be converted to Laravel rules
+     * by FieldValidationRuleExtractor.
+     *
+     * @return array<string,mixed>
+     */
+    public function getValidationAttributes(): array
+    {
+        return [
+            'min_length' => $this->minLength,
+            'max_length' => $this->maxLength,
+            'pattern' => $this->pattern,
+        ];
     }
 
     /**

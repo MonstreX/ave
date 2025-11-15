@@ -2,6 +2,8 @@
 
 namespace Monstrex\Ave\Core\Fields;
 
+use Monstrex\Ave\Contracts\ProvidesValidationAttributes;
+
 /**
  * Textarea Field
  *
@@ -19,7 +21,7 @@ namespace Monstrex\Ave\Core\Fields;
  *       ->maxLength(1000)
  *       ->required()
  */
-class Textarea extends AbstractField
+class Textarea extends AbstractField implements ProvidesValidationAttributes
 {
     /**
      * Number of visible rows in the textarea
@@ -53,6 +55,21 @@ class Textarea extends AbstractField
     {
         $this->maxLength = $length;
         return $this;
+    }
+
+    /**
+     * Get validation attributes for this field.
+     *
+     * Returns validation-related properties that can be converted to Laravel rules
+     * by FieldValidationRuleExtractor.
+     *
+     * @return array<string,mixed>
+     */
+    public function getValidationAttributes(): array
+    {
+        return [
+            'max_length' => $this->maxLength,
+        ];
     }
 
     /**

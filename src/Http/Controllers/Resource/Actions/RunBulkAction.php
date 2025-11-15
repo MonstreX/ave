@@ -63,7 +63,16 @@ class RunBulkAction extends AbstractResourceAction
         );
 
         if ($unauthorizedModels->isNotEmpty()) {
-            throw ResourceException::unauthorized($slug, $ability);
+            $keyName = $models->first()->getKeyName();
+            $unauthorizedIds = $unauthorizedModels->pluck($keyName)->all();
+
+            throw ResourceException::bulkActionUnauthorized(
+                $slug,
+                $ability,
+                $models->count(),
+                $unauthorizedModels->count(),
+                $unauthorizedIds
+            );
         }
 
         $context = ActionContext::bulk($resourceClass, $request->user(), $models, $requestedIds->all());

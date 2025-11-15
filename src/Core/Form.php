@@ -57,10 +57,6 @@ class Form
     {
         return array_map(
             static function (FormComponent $component): array {
-                if (method_exists($component, 'toLayoutArray')) {
-                    return $component->toLayoutArray();
-                }
-
                 return [
                     'type' => 'component',
                     'component' => $component,
