@@ -28,7 +28,7 @@
                         $total = $records->total();
                     @endphp
                     <div class="resource-note">
-                        Showing {{ $from }} to {{ $to }} of {{ $total }} results
+                        {{ __('ave::tables.showing_results', ['from' => $from, 'to' => $to, 'total' => $total]) }}
                     </div>
                 @endif
 
@@ -89,7 +89,7 @@
                             @endif
                         </th>
                     @endforeach
-                    <th class="text-right">Actions</th>
+                    <th class="text-right">{{ __('ave::tables.actions') }}</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -187,7 +187,7 @@
                 @empty
                     <tr>
                         <td colspan="{{ count($table->getColumns()) + 2 }}" class="text-center text-muted">
-                            No {{ strtolower($resource::getLabel()) }} found.
+                            {{ __('ave::tables.no_records', ['resource' => strtolower($resource::getLabel())]) }}
                         </td>
                     </tr>
                 @endforelse
@@ -202,7 +202,7 @@
                 $total = $records->total();
             @endphp
             <div class="resource-note">
-                Showing {{ $from }} to {{ $to }} of {{ $total }} results
+                {{ __('ave::tables.showing_results', ['from' => $from, 'to' => $to, 'total' => $total]) }}
             </div>
 
             {{ $records->links('ave::vendor.pagination.ave') }}

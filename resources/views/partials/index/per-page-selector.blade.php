@@ -7,7 +7,7 @@
 @if($showSelector && count($perPageOptions) > 1)
     <div class="per-page-selector">
         <label for="per-page-select-{{ $slug }}" class="per-page-label">
-            Show:
+            {{ __('ave::tables.show') }}
         </label>
         <select
             id="per-page-select-{{ $slug }}"
@@ -23,6 +23,6 @@
                 </option>
             @endforeach
         </select>
-        <span class="per-page-suffix">per page</span>
+        <span class="per-page-suffix">{{ __('ave::tables.per_page') }}</span>
     </div>
 @endif

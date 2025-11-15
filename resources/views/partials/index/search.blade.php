@@ -1,5 +1,5 @@
 @php
-    $placeholder = $table->getSearchPlaceholder() ?? 'Search...';
+    $placeholder = $table->getSearchPlaceholder() ?? __('ave::tables.search_placeholder');
 @endphp
 
 <form method="GET" class="resource-search-form">
