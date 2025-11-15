@@ -53,19 +53,55 @@ class HandleAveExceptions
 
         // Handle AJAX/API requests - return JSON
         if ($request->expectsJson() || $request->ajax()) {
-            return response()->json([
+            $response = [
                 'success' => false,
                 'message' => $message,
                 'code' => $statusCode,
-            ], $statusCode);
+            ];
+
+            // SECURITY: Only include exception details in debug mode AND non-production
+            // This prevents stack trace leaks if debug is accidentally enabled in production
+            if ($this->shouldShowDebugInfo()) {
+                $response['exception'] = [
+                    'message' => $e->getMessage(),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'trace' => $e->getTraceAsString(),
+                ];
+            }
+
+            return response()->json($response, $statusCode);
         }
 
         // Handle regular requests - return HTML error view
         return response()->view('ave::errors.' . $statusCode, [
             'code' => $statusCode,
             'message' => $message,
-            'exception' => config('app.debug') ? $e : null,
+            'exception' => $this->shouldShowDebugInfo() ? $e : null,
         ], $statusCode);
+    }
+
+    /**
+     * Determine if debug information should be shown.
+     *
+     * SECURITY: Only show debug info if BOTH conditions are true:
+     * 1. APP_DEBUG=true
+     * 2. APP_ENV is NOT production
+     *
+     * This prevents accidental stack trace leaks in production.
+     */
+    private function shouldShowDebugInfo(): bool
+    {
+        try {
+            $isDebug = config('app.debug', false);
+            $env = config('app.env', 'production');
+
+            // Never show debug info in production, even if debug is true
+            return $isDebug && $env !== 'production';
+        } catch (\Throwable $e) {
+            // If config fails, default to safe: no debug info
+            return false;
+        }
     }
 
     /**

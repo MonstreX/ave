@@ -85,6 +85,15 @@ return [
         'max_errors_display' => (int) env('AVE_VALIDATION_MAX_ERRORS', 3),
     ],
 
+    /*
+     * Field configuration.
+     */
+    'fields' => [
+        // Maximum number of items to load for hierarchical selects (BelongsToSelect with hierarchical())
+        // Prevents N+1 queries and memory issues with large datasets
+        'hierarchical_max_items' => (int) env('AVE_HIERARCHICAL_MAX_ITEMS', 1000),
+    ],
+
     'user_model' => env('AVE_USER_MODEL', config('auth.providers.users.model')),
     'user_table' => env('AVE_USER_TABLE', 'users'),
     'login_route' => 'login',

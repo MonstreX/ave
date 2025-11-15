@@ -11,21 +11,14 @@ class Media extends Model
 {
     protected $table = 'ave_media';
 
-    protected $fillable = [
-        'model_type',
-        'model_id',
-        'media_id',
-        'collection_id',
-        'collection_name',
-        'disk',
-        'path',
-        'conversions',
-        'file_name',
-        'mime_type',
-        'size',
-        'props',
-        'order',
-    ];
+    /**
+     * Guard against mass assignment vulnerabilities.
+     * All attributes are fillable except id and timestamps.
+     *
+     * Security: Using $guarded instead of $fillable prevents attacks where
+     * malicious input could modify critical fields (disk, path, model_type).
+     */
+    protected $guarded = ['id', 'created_at', 'updated_at'];
 
     protected ?FileService $fileService;
 

@@ -5,6 +5,7 @@ namespace Monstrex\Ave\Http\Controllers;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
 use Monstrex\Ave\Models\Media as MediaModel;
 use Monstrex\Ave\Services\MediaUploadService;
@@ -103,10 +104,25 @@ class MediaController extends Controller
 
     /**
      * Delete media by ID
+     *
+     * Authorization: Checks if user can update the model that owns this media
      */
     public function destroy(int $id): JsonResponse
     {
         try {
+            $media = MediaModel::findOrFail($id);
+
+            // Check authorization if media is attached to a model
+            if ($media->model_type && $media->model_id) {
+                $ownerModel = $media->model_type::find($media->model_id);
+                if ($ownerModel && !\Gate::allows('update', $ownerModel)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Unauthorized to delete this media',
+                    ], 403);
+                }
+            }
+
             $this->managementService->deleteMedia($id);
 
             return response()->json([
@@ -129,6 +145,8 @@ class MediaController extends Controller
 
     /**
      * Bulk delete media by IDs
+     *
+     * Authorization: Checks if user can update the models that own these media
      */
     public function bulkDestroy(Request $request): JsonResponse
     {
@@ -145,6 +163,26 @@ class MediaController extends Controller
                     'success' => false,
                     'message' => 'No IDs provided',
                 ], 400);
+            }
+
+            // Check authorization for each media item
+            $mediaItems = MediaModel::whereIn('id', $ids)->get();
+            $unauthorizedCount = 0;
+
+            foreach ($mediaItems as $media) {
+                if ($media->model_type && $media->model_id) {
+                    $ownerModel = $media->model_type::find($media->model_id);
+                    if ($ownerModel && !\Gate::allows('update', $ownerModel)) {
+                        $unauthorizedCount++;
+                    }
+                }
+            }
+
+            if ($unauthorizedCount > 0) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Unauthorized to delete {$unauthorizedCount} of {$mediaItems->count()} media item(s)",
+                ], 403);
             }
 
             $deleted = $this->managementService->bulkDelete($ids);

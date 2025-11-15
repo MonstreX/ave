@@ -187,8 +187,16 @@ class BelongsToSelect extends AbstractField implements HandlesPersistence
             $query = ($this->modifyQuery)($query);
         }
 
-        // Load all items and index by ID for quick lookup
-        $allItems = $query->orderBy('order')->get();
+        // Load items with limit to prevent performance issues
+        // Get max_items from config or use default 1000
+        $maxItems = 1000;
+        try {
+            $maxItems = config('ave.fields.hierarchical_max_items', 1000);
+        } catch (\Throwable $e) {
+            // Config not available (e.g., tests), use default
+        }
+
+        $allItems = $query->orderBy('order')->limit($maxItems)->get();
         $itemsById = $allItems->keyBy('id');
 
         // Build tree by finding root items and recursively adding children
