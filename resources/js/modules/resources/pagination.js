@@ -2,52 +2,29 @@
  * Pagination functionality: per-page selector and jump to page
  */
 
-const csrfMeta = document.querySelector('meta[name="csrf-token"]');
-const CSRF_TOKEN = csrfMeta ? csrfMeta.content : '';
-
 export default function initPagination() {
     initPerPageSelector();
     initJumpToPage();
 }
 
 /**
- * Per-page selector: save to session and reload
+ * Per-page selector: update query string and reload
  */
 function initPerPageSelector() {
     const selectors = document.querySelectorAll('.per-page-select');
 
     selectors.forEach(select => {
-        select.addEventListener('change', async function() {
+        select.addEventListener('change', function() {
             const perPage = parseInt(this.value, 10);
-            const endpoint = this.dataset.endpoint;
-
-            if (!endpoint) {
-                console.error('Per-page selector missing data-endpoint');
+            if (!perPage || perPage < 1) {
                 return;
             }
 
-            try {
-                const response = await fetch(endpoint, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': CSRF_TOKEN,
-                        'X-Requested-With': 'XMLHttpRequest',
-                    },
-                    body: JSON.stringify({ per_page: perPage }),
-                });
+            const url = new URL(window.location.href);
+            url.searchParams.set('per_page', perPage.toString());
+            url.searchParams.delete('page'); // reset pagination
 
-                if (!response.ok) {
-                    throw new Error('Failed to save per-page preference');
-                }
-
-                // Reload page to apply new per-page setting
-                window.location.reload();
-            } catch (error) {
-                console.error('Error saving per-page preference:', error);
-                // Reload anyway - preference might be in query parameter
-                window.location.reload();
-            }
+            window.location.href = url.toString();
         });
     });
 }

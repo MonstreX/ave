@@ -13,7 +13,6 @@
             id="per-page-select-{{ $slug }}"
             class="per-page-select"
             data-slug="{{ $slug }}"
-            data-endpoint="{{ route('ave.resource.set-per-page', ['slug' => $slug]) }}"
         >
             @foreach($perPageOptions as $option)
                 <option
