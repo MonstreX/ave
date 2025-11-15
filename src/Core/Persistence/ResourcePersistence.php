@@ -43,6 +43,8 @@ class ResourcePersistence implements Persistable
         return DB::transaction(function () use ($resourceClass, $form, $model, $data, $request, $context) {
             event(new ResourceUpdating($resourceClass, $model, $data));
 
+            $data = $resourceClass::beforeUpdate($model, $data, $request);
+
             $payload = $this->mergeFormData($form, $model, $data, $request, $context);
 
             $model->update($payload);
