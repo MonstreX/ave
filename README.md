@@ -4,15 +4,15 @@ A modern, lightweight admin panel package for Laravel with declarative component
 
 ## Features
 
-- <¨ **Modern UI** - Clean, responsive interface built with modern CSS and JavaScript
+- <ï¿½ **Modern UI** - Clean, responsive interface built with modern CSS and JavaScript
 - = **Role-Based Access Control** - Flexible permissions system with roles and groups
 - < **Multi-language Support** - Built-in English and Russian translations with easy extensibility
-- =Ý **Declarative Resources** - Define your admin panels with clean, intuitive PHP classes
+- =ï¿½ **Declarative Resources** - Define your admin panels with clean, intuitive PHP classes
 - =' **Flexible Components** - Rich set of form fields, columns, actions, and layouts
-- =ñ **Responsive Design** - Works seamlessly on desktop, tablet, and mobile devices
-- =€ **Performance** - Optimized with caching and lazy loading
-- <¯ **Modal Support** - Create and edit records in modals without page reload
-- =Á **Media Management** - Built-in file upload and management system
+- =ï¿½ **Responsive Design** - Works seamlessly on desktop, tablet, and mobile devices
+- =ï¿½ **Performance** - Optimized with caching and lazy loading
+- <ï¿½ **Modal Support** - Create and edit records in modals without page reload
+- =ï¿½ **Media Management** - Built-in file upload and management system
 
 ## Requirements
 
@@ -22,9 +22,32 @@ A modern, lightweight admin panel package for Laravel with declarative component
 
 ## Installation
 
-### Step 1: Install Package
+### Quick Installation (Recommended)
 
-Install the package via Composer:
+Install the package via Composer and run the install command:
+
+```bash
+composer require monstrex/ave
+php artisan ave:install
+```
+
+The install command will automatically:
+- âœ“ Publish configuration files
+- âœ“ Publish compiled assets (CSS, JS, fonts, images)
+- âœ“ Publish migrations
+- âœ“ Show you the next steps
+
+**Options:**
+```bash
+php artisan ave:install --force              # Overwrite existing files
+php artisan ave:install --skip-migrations    # Skip publishing migrations
+```
+
+### Manual Installation (Advanced)
+
+If you prefer manual control over the installation process:
+
+#### Step 1: Install Package
 
 ```bash
 composer require monstrex/ave
@@ -32,9 +55,7 @@ composer require monstrex/ave
 
 The service provider will be automatically registered via Laravel's package auto-discovery.
 
-### Step 2: Publish Configuration
-
-Publish the configuration file:
+#### Step 2: Publish Configuration
 
 ```bash
 php artisan vendor:publish --tag=ave-config
@@ -48,9 +69,7 @@ This creates `config/ave.php` where you can customize:
 - Cache configuration
 - And more...
 
-### Step 3: Publish Assets
-
-Publish the compiled CSS and JavaScript assets:
+#### Step 3: Publish Assets
 
 ```bash
 php artisan vendor:publish --tag=ave-assets --force
@@ -58,9 +77,13 @@ php artisan vendor:publish --tag=ave-assets --force
 
 Assets will be published to `public/vendor/ave/`.
 
-### Step 4: Run Migrations
+#### Step 4: Publish Migrations
 
-Run the package migrations to create necessary database tables:
+```bash
+php artisan vendor:publish --tag=ave-migrations
+```
+
+#### Step 5: Run Migrations
 
 ```bash
 php artisan migrate
@@ -75,7 +98,7 @@ This creates:
 - `ave_media` - Media files
 - Adds `locale` column to users table
 
-### Step 5: Configure Authentication
+### Configure Authentication
 
 Update your `config/auth.php` to define the Ave admin guard. Add to the `guards` array:
 
@@ -96,7 +119,7 @@ Then set the `AVE_AUTH_GUARD` in your `.env` file:
 AVE_AUTH_GUARD=ave
 ```
 
-### Step 6: Create Admin Resources
+### Create Admin Resources
 
 Create your first resource by creating a class in `app/Ave/Resources`:
 
