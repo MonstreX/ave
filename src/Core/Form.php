@@ -29,6 +29,8 @@ class Form
      * - FormComponent instances (Div, Row, Col, Tabs, Panel, etc.)
      * - FormField instances (TextInput, Textarea, Number, etc.)
      *
+     * Direct fields are automatically wrapped in a Div container for proper lifecycle management.
+     *
      * @param array<int,FormComponent|FormField> $components
      */
     public function schema(array $components): static
@@ -36,10 +38,12 @@ class Form
         $this->layout = [];
         $this->fields = [];
 
+        $directFields = [];
+
         foreach ($components as $component) {
             // Handle FormField (direct fields)
             if ($component instanceof FormField) {
-                $this->fields[] = $component;
+                $directFields[] = $component;
                 continue;
             }
 
@@ -53,6 +57,16 @@ class Form
                 sprintf('Invalid schema component: %s. Must be FormComponent or FormField.',
                     is_object($component) ? get_class($component) : gettype($component)
                 )
+            );
+        }
+
+        // Wrap direct fields in a Div container for proper lifecycle
+        if (!empty($directFields)) {
+            $this->fields = $directFields;
+            // Prepend the container to layout so it's processed during prepareForDisplay
+            array_unshift(
+                $this->layout,
+                \Monstrex\Ave\Core\Components\Div::make()->schema($directFields)
             );
         }
 
@@ -75,32 +89,22 @@ class Form
     /**
      * Get normalized layout definition for rendering.
      *
-     * Includes both FormComponent instances and direct FormField instances.
-     * Direct fields are wrapped in a simple Div container for consistent rendering.
+     * Returns all layout components. Direct fields are already wrapped in a Div
+     * container during schema() call, so they're part of $this->layout.
      *
      * @return array<int,array<string,mixed>>
      */
     public function layout(): array
     {
-        $result = [];
-
-        // Add direct fields first (if any) - wrap them in a Div for rendering
-        if (!empty($this->fields)) {
-            $result[] = [
-                'type' => 'component',
-                'component' => \Monstrex\Ave\Core\Components\Div::make()->schema($this->fields),
-            ];
-        }
-
-        // Add layout components
-        foreach ($this->layout as $component) {
-            $result[] = [
-                'type' => 'component',
-                'component' => $component,
-            ];
-        }
-
-        return $result;
+        return array_map(
+            static function (FormComponent $component): array {
+                return [
+                    'type' => 'component',
+                    'component' => $component,
+                ];
+            },
+            $this->layout
+        );
     }
 
     /**

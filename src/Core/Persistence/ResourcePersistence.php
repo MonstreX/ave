@@ -159,12 +159,18 @@ class ResourcePersistence implements Persistable
     protected function extractFieldFromError(string $message): string
     {
         // Try to extract column name from "Column 'field_name' cannot be null"
-        if (preg_match("/Column '([^']+)' cannot be null/", $message, $matches)) {
+        if (preg_match("/Column '([^']+)' cannot be null/i", $message, $matches)) {
             return $matches[1];
         }
 
-        // Try to extract from "Duplicate entry '...' for key '...'"
-        if (preg_match("/for key '([^']+)'/", $message, $matches)) {
+        // Try to extract from "Duplicate entry '...' for key 'table.field'"
+        if (preg_match("/for key '(?:[^.]+\.)?([^']+)'/i", $message, $matches)) {
+            // Remove common suffixes like _UNIQUE, _unique
+            return preg_replace('/_(unique|UNIQUE|idx|INDEX)$/', '', $matches[1]);
+        }
+
+        // Try to extract from "Cannot add or update a child row: ... FOREIGN KEY (`field_name`)"
+        if (preg_match("/FOREIGN KEY \(`([^`]+)`\)/i", $message, $matches)) {
             return $matches[1];
         }
 
