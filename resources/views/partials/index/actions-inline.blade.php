@@ -9,7 +9,7 @@
 <div class="resource-actions-inline">
     @if(!$hasGlobalActions && $resourceInstance->can('create', $currentUser))
         <a href="{{ route('ave.resource.create', array_merge(['slug' => $slug], request()->query())) }}" class="btn btn-success">
-            <i class="voyager-plus"></i> <span>Create {{ $resource::getSingularLabel() }}</span>
+            <i class="voyager-plus"></i> <span>{{ __('ave::actions.create') }} {{ $resource::getSingularLabel() }}</span>
         </a>
     @endif
 

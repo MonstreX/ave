@@ -84,7 +84,7 @@
                             <div class="fieldset-item-fields fieldset-card-fields" style="display: none;">
                                 {{-- Sidebar Header --}}
                                 <div class="fieldset-sidebar-header">
-                                    <h3>Edit Item</h3>
+                                    <h3>{{ __('ave::fieldset.edit_item') }}</h3>
                                     <button type="button" class="fieldset-sidebar-close" data-action="close-sidebar" title="Close">
                                         <svg class="icon" width="20" height="20" viewBox="0 0 16 16" fill="none">
                                             <path d="M2 2l12 12M14 2L2 14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
@@ -186,7 +186,7 @@
             <div class="fieldset-item-fields fieldset-card-fields" style="display: none;">
                 {{-- Sidebar Header --}}
                 <div class="fieldset-sidebar-header">
-                    <h3>Edit Item</h3>
+                    <h3>{{ __('ave::fieldset.edit_item') }}</h3>
                     <button type="button" class="fieldset-sidebar-close" data-action="close-sidebar" title="Close">
                         <svg class="icon" width="20" height="20" viewBox="0 0 16 16" fill="none">
                             <path d="M2 2l12 12M14 2L2 14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>

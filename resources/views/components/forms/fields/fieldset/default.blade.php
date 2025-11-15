@@ -48,11 +48,11 @@
 
             <div class="fieldset-actions-right">
                 @if(!empty($collapsible))
-                    <button type="button" class="btn btn-md btn-fieldset-action" data-action="collapse-all" title="Collapse All">
-                        <span>Collapse All</span>
+                    <button type="button" class="btn btn-md btn-fieldset-action" data-action="collapse-all" title="{{ __('ave::fieldset.collapse_all') }}">
+                        <span>{{ __('ave::fieldset.collapse_all') }}</span>
                     </button>
-                    <button type="button" class="btn btn-md btn-fieldset-action" data-action="expand-all" title="Expand All">
-                        <span>Expand All</span>
+                    <button type="button" class="btn btn-md btn-fieldset-action" data-action="expand-all" title="{{ __('ave::fieldset.expand_all') }}">
+                        <span>{{ __('ave::fieldset.expand_all') }}</span>
                     </button>
                 @endif
 
