@@ -160,7 +160,6 @@ class IndexAction extends AbstractResourceAction
     protected function resolvePerPage(Request $request, Table $table, string $slug): int
     {
         $perPage = $request->input('per_page');
-        $session = $request->hasSession() ? $request->session() : null;
 
         if ($perPage !== null) {
             $perPage = (int) $perPage;
@@ -168,19 +167,7 @@ class IndexAction extends AbstractResourceAction
                 throw new ResourceException("Invalid per_page value for resource '{$slug}'", 422);
             }
 
-            if ($session) {
-                $session->put("ave.resources.{$slug}.per_page", $perPage);
-            }
-
             return $perPage;
-        }
-
-        $sessionPerPage = $session?->get("ave.resources.{$slug}.per_page");
-        if ($sessionPerPage === null) {
-            $sessionPerPage = $session?->get("ave.per_page.{$slug}");
-        }
-        if ($sessionPerPage && in_array((int) $sessionPerPage, $table->getPerPageOptions(), true)) {
-            return (int) $sessionPerPage;
         }
 
         return $table->getPerPage();

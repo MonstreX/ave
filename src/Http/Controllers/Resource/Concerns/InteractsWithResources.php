@@ -28,6 +28,17 @@ trait InteractsWithResources
         return [$resourceClass, $resource];
     }
 
+    protected function resolveResourceClass(string $slug): string
+    {
+        $resourceClass = $this->resources->resource($slug);
+
+        if (!$resourceClass) {
+            throw ResourceException::notFound($slug);
+        }
+
+        return $resourceClass;
+    }
+
     protected function findModelOrFail(string $resourceClass, string $slug, string $id): mixed
     {
         $modelClass = $resourceClass::$model;

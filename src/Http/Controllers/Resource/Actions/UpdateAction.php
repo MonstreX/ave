@@ -9,25 +9,24 @@ use Monstrex\Ave\Core\FormContext;
 use Monstrex\Ave\Core\ResourceManager;
 use Monstrex\Ave\Core\Validation\FormValidator;
 use Monstrex\Ave\Core\Persistence\ResourcePersistence;
-use Monstrex\Ave\Support\Http\RequestDebugSanitizer;
 
 class UpdateAction extends AbstractResourceAction
 {
     public function __construct(
         ResourceManager $resources,
         protected FormValidator $validator,
-        protected ResourcePersistence $persistence,
-        protected RequestDebugSanitizer $requestSanitizer
+        protected ResourcePersistence $persistence
     ) {
         parent::__construct($resources);
     }
 
     public function __invoke(Request $request, string $slug, string $id)
     {
-        [$resourceClass] = $this->resolveAndAuthorize($slug, 'update', $request);
+        $resourceClass = $this->resolveResourceClass($slug);
 
         $form = $resourceClass::form($request);
         $model = $this->findModelOrFail($resourceClass, $slug, $id);
+        $this->resolveAndAuthorize($slug, 'update', $request, $model);
 
         $context = FormContext::forEdit($model, [], $request);
         $rules = $this->validator->rulesFromForm(
@@ -42,17 +41,6 @@ class UpdateAction extends AbstractResourceAction
         try {
             $data = $request->validate($rules);
         } catch (ValidationException $exception) {
-            $traceId = $this->logValidationFailure(
-                'update',
-                $resourceClass,
-                $slug,
-                $request,
-                $rules,
-                $form,
-                $model,
-                $exception->errors()
-            );
-
             $errorMessages = $this->formatValidationErrors($exception->errors());
 
             if ($request->expectsJson() || $request->ajax()) {
@@ -60,14 +48,12 @@ class UpdateAction extends AbstractResourceAction
                     'success' => false,
                     'message' => $errorMessages,
                     'errors' => $exception->errors(),
-                    'trace_id' => $traceId,
                 ], 422);
             }
 
             $request->session()->flash('toast', [
                 'type' => 'danger',
                 'message' => $errorMessages,
-                'trace_id' => $traceId,
             ]);
 
             throw $exception;
@@ -85,36 +71,5 @@ class UpdateAction extends AbstractResourceAction
         }
 
         return $this->redirectAfterSave($request, $slug, $model, 'edit');
-    }
-
-    protected function logValidationFailure(
-        string $stage,
-        string $resourceClass,
-        string $slug,
-        Request $request,
-        array $rules,
-        Form $form,
-        mixed $model,
-        array $errors = []
-    ): string {
-        $traceId = (string) \Illuminate\Support\Str::uuid();
-        $sensitiveKeys = array_map(
-            static fn ($field) => method_exists($field, 'key') ? $field->key() : '',
-            $form->getAllFields()
-        );
-
-        $sanitizedInput = $this->requestSanitizer->sanitize($request, $sensitiveKeys);
-
-        \Log::error("Resource validation failed on {$stage}", [
-            'trace_id' => $traceId,
-            'resource' => $resourceClass,
-            'slug' => $slug,
-            'model_id' => $model?->getKey(),
-            'errors' => $errors,
-            'input' => $sanitizedInput,
-            'rules' => array_keys($rules),
-        ]);
-
-        return $traceId;
     }
 }

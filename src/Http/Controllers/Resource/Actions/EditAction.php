@@ -18,10 +18,11 @@ class EditAction extends AbstractResourceAction
 
     public function __invoke(Request $request, string $slug, string $id)
     {
-        [$resourceClass] = $this->resolveAndAuthorize($slug, 'update', $request);
+        $resourceClass = $this->resolveResourceClass($slug);
 
-        $form = $resourceClass::form($request);
         $model = $this->findModelOrFail($resourceClass, $slug, $id);
+        $this->resolveAndAuthorize($slug, 'update', $request, $model);
+        $form = $resourceClass::form($request);
 
         return $this->renderer->form($resourceClass, $form, $model, $request);
     }

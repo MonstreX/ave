@@ -37,9 +37,6 @@ trait RegistersCrudRoutes
         $router->get('/resource/{slug}/form.json', [ResourceController::class, 'formJson'])
             ->name('ave.resource.form.json');
 
-        $router->post('/resource/{slug}/set-per-page', [ResourceController::class, 'setPerPage'])
-            ->name('ave.resource.set-per-page');
-
         $router->post('/resource/{slug}/reorder', [ResourceController::class, 'reorder'])
             ->name('ave.resource.reorder');
 

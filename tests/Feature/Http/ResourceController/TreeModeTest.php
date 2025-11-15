@@ -17,7 +17,6 @@ use Monstrex\Ave\Core\Validation\FormValidator;
 use Monstrex\Ave\Core\Persistence\ResourcePersistence;
 use Monstrex\Ave\Core\Rendering\ResourceRenderer;
 use Monstrex\Ave\Core\Sorting\SortableOrderService;
-use Monstrex\Ave\Support\Http\RequestDebugSanitizer;
 use Monstrex\Ave\Http\Controllers\Resource\Actions\IndexAction;
 use Monstrex\Ave\Http\Controllers\Resource\Actions\CreateAction;
 use Monstrex\Ave\Http\Controllers\Resource\Actions\StoreAction;
@@ -28,6 +27,14 @@ use Monstrex\Ave\Http\Controllers\Resource\Actions\ReorderAction;
 use Monstrex\Ave\Http\Controllers\Resource\Actions\UpdateGroupAction;
 use Monstrex\Ave\Http\Controllers\Resource\Actions\UpdateTreeAction;
 use Monstrex\Ave\Http\Controllers\Resource\Actions\InlineUpdateAction;
+use Monstrex\Ave\Http\Controllers\Resource\Actions\RunRowAction;
+use Monstrex\Ave\Http\Controllers\Resource\Actions\RunBulkAction;
+use Monstrex\Ave\Http\Controllers\Resource\Actions\RunGlobalAction;
+use Monstrex\Ave\Http\Controllers\Resource\Actions\RunFormAction;
+use Monstrex\Ave\Http\Controllers\Resource\Actions\TableJsonAction;
+use Monstrex\Ave\Http\Controllers\Resource\Actions\FormJsonAction;
+use Monstrex\Ave\Http\Controllers\Resource\Actions\GetModalFormAction;
+use Monstrex\Ave\Http\Controllers\Resource\Actions\GetModalFormCreateAction;
 use Monstrex\Ave\Exceptions\ResourceException;
 use Monstrex\Ave\Http\Controllers\ResourceController;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -77,7 +84,6 @@ class TreeModeTest extends TestCase
         $persistence = $this->createMock(ResourcePersistence::class);
 
         $sortingService = new SortableOrderService($this->capsule->getConnection());
-        $sanitizer = new RequestDebugSanitizer();
 
         $this->controller = new ResourceController(
             $this->resourceManager,
@@ -85,17 +91,24 @@ class TreeModeTest extends TestCase
             $validator,
             $persistence,
             $sortingService,
-            $sanitizer,
             new IndexAction($this->resourceManager, $this->renderer),
             new CreateAction($this->resourceManager, $this->renderer),
-            new StoreAction($this->resourceManager, $validator, $persistence, $sanitizer),
+            new StoreAction($this->resourceManager, $validator, $persistence),
             new EditAction($this->resourceManager, $this->renderer),
-            new UpdateAction($this->resourceManager, $validator, $persistence, $sanitizer),
+            new UpdateAction($this->resourceManager, $validator, $persistence),
             new DestroyAction($this->resourceManager, $persistence),
             new ReorderAction($this->resourceManager, $sortingService),
             new UpdateGroupAction($this->resourceManager),
             new UpdateTreeAction($this->resourceManager, $sortingService),
-            new InlineUpdateAction($this->resourceManager)
+            new InlineUpdateAction($this->resourceManager),
+            new RunRowAction($this->resourceManager),
+            new RunBulkAction($this->resourceManager),
+            new RunGlobalAction($this->resourceManager),
+            new RunFormAction($this->resourceManager),
+            new TableJsonAction($this->resourceManager),
+            new FormJsonAction($this->resourceManager),
+            new GetModalFormAction($this->resourceManager, $this->renderer),
+            new GetModalFormCreateAction($this->resourceManager, $this->renderer)
         );
     }
 

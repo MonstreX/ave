@@ -41,8 +41,15 @@ use Monstrex\Ave\Http\Controllers\Resource\Actions\UpdateAction;
 use Monstrex\Ave\Http\Controllers\Resource\Actions\UpdateGroupAction;
 use Monstrex\Ave\Http\Controllers\Resource\Actions\UpdateTreeAction;
 use Monstrex\Ave\Http\Controllers\Resource\Actions\InlineUpdateAction;
+use Monstrex\Ave\Http\Controllers\Resource\Actions\RunRowAction;
+use Monstrex\Ave\Http\Controllers\Resource\Actions\RunBulkAction;
+use Monstrex\Ave\Http\Controllers\Resource\Actions\RunGlobalAction;
+use Monstrex\Ave\Http\Controllers\Resource\Actions\RunFormAction;
+use Monstrex\Ave\Http\Controllers\Resource\Actions\TableJsonAction;
+use Monstrex\Ave\Http\Controllers\Resource\Actions\FormJsonAction;
+use Monstrex\Ave\Http\Controllers\Resource\Actions\GetModalFormAction;
+use Monstrex\Ave\Http\Controllers\Resource\Actions\GetModalFormCreateAction;
 use Monstrex\Ave\Http\Controllers\ResourceController;
-use Monstrex\Ave\Support\Http\RequestDebugSanitizer;
 use Illuminate\Support\MessageBag;
 use Illuminate\Support\ViewErrorBag;
 use Psr\Log\LoggerInterface;
@@ -211,7 +218,6 @@ class FieldsetPersistenceTest extends TestCase
         $validator = new FormValidator();
         $persistence = new ResourcePersistence();
         $sorting = new SortableOrderService($this->capsule->getConnection());
-        $sanitizer = new RequestDebugSanitizer();
 
         return new ResourceController(
             $resources,
@@ -219,17 +225,24 @@ class FieldsetPersistenceTest extends TestCase
             $validator,
             $persistence,
             $sorting,
-            $sanitizer,
             new IndexAction($resources, $renderer),
             new CreateAction($resources, $renderer),
-            new StoreAction($resources, $validator, $persistence, $sanitizer),
+            new StoreAction($resources, $validator, $persistence),
             new EditAction($resources, $renderer),
-            new UpdateAction($resources, $validator, $persistence, $sanitizer),
+            new UpdateAction($resources, $validator, $persistence),
             new DestroyAction($resources, $persistence),
             new ReorderAction($resources, $sorting),
             new UpdateGroupAction($resources),
             new UpdateTreeAction($resources, $sorting),
-            new InlineUpdateAction($resources)
+            new InlineUpdateAction($resources),
+            new RunRowAction($resources),
+            new RunBulkAction($resources),
+            new RunGlobalAction($resources),
+            new RunFormAction($resources),
+            new TableJsonAction($resources),
+            new FormJsonAction($resources),
+            new GetModalFormAction($resources, $renderer),
+            new GetModalFormCreateAction($resources, $renderer)
         );
     }
 

@@ -20,8 +20,6 @@ use Illuminate\Translation\ArrayLoader;
 use Illuminate\Translation\Translator;
 use Illuminate\Validation\Factory as ValidationFactory;
 use Illuminate\Validation\ValidationException;
-use Illuminate\Session\ArraySessionHandler;
-use Illuminate\Session\Store as SessionStore;
 use Monstrex\Ave\Core\Actions\Contracts\FormAction as FormActionContract;
 use Monstrex\Ave\Core\Actions\Contracts\GlobalAction as GlobalActionContract;
 use Monstrex\Ave\Core\Actions\Contracts\RowAction as RowActionContract;
@@ -42,7 +40,6 @@ use Monstrex\Ave\Core\Validation\FormValidator;
 use Monstrex\Ave\Core\Persistence\ResourcePersistence;
 use Monstrex\Ave\Core\Rendering\ResourceRenderer;
 use Monstrex\Ave\Core\Sorting\SortableOrderService;
-use Monstrex\Ave\Support\Http\RequestDebugSanitizer;
 use Monstrex\Ave\Http\Controllers\Resource\Actions\CreateAction;
 use Monstrex\Ave\Http\Controllers\Resource\Actions\DestroyAction;
 use Monstrex\Ave\Http\Controllers\Resource\Actions\EditAction;
@@ -53,6 +50,14 @@ use Monstrex\Ave\Http\Controllers\Resource\Actions\UpdateAction;
 use Monstrex\Ave\Http\Controllers\Resource\Actions\UpdateGroupAction;
 use Monstrex\Ave\Http\Controllers\Resource\Actions\UpdateTreeAction;
 use Monstrex\Ave\Http\Controllers\Resource\Actions\InlineUpdateAction;
+use Monstrex\Ave\Http\Controllers\Resource\Actions\RunRowAction;
+use Monstrex\Ave\Http\Controllers\Resource\Actions\RunBulkAction;
+use Monstrex\Ave\Http\Controllers\Resource\Actions\RunGlobalAction;
+use Monstrex\Ave\Http\Controllers\Resource\Actions\RunFormAction;
+use Monstrex\Ave\Http\Controllers\Resource\Actions\TableJsonAction;
+use Monstrex\Ave\Http\Controllers\Resource\Actions\FormJsonAction;
+use Monstrex\Ave\Http\Controllers\Resource\Actions\GetModalFormAction;
+use Monstrex\Ave\Http\Controllers\Resource\Actions\GetModalFormCreateAction;
 use Monstrex\Ave\Exceptions\ResourceException;
 use Monstrex\Ave\Http\Controllers\ResourceController;
 use PHPUnit\Framework\TestCase;
@@ -607,21 +612,6 @@ class ResourceControllerTest extends TestCase
         $controller->formJson($request, 'test-items');
     }
 
-    public function test_set_per_page_persists_preferences(): void
-    {
-        $controller = $this->makeController();
-        $request = Request::create('/admin/resource/test-items/set-per-page', 'POST', ['per_page' => 10]);
-        $session = new SessionStore('testing', new ArraySessionHandler(120));
-        $session->start();
-        $request->setLaravelSession($session);
-        $request->setUserResolver(fn () => new FakeUser(1, 1));
-
-        $response = $controller->setPerPage($request, 'test-items')->getData(true);
-        $this->assertSame('success', $response['status']);
-        $this->assertSame(10, $session->get('ave.resources.test-items.per_page'));
-        $this->assertSame(10, $session->get('ave.per_page.test-items'));
-    }
-
     public function test_index_uses_api_per_page_preference(): void
     {
         TestRecord::insert([
@@ -647,15 +637,27 @@ class ResourceControllerTest extends TestCase
             });
 
         $controller = $this->makeController($renderer);
-        $request = Request::create('/admin/resource/test-items', 'GET');
-        $session = new SessionStore('testing', new ArraySessionHandler(120));
-        $session->start();
-        $session->put('ave.per_page.test-items', 10);
-        $request->setLaravelSession($session);
+        $request = Request::create('/admin/resource/test-items?per_page=10', 'GET');
         $request->setUserResolver(fn () => new FakeUser(10, 1));
 
         $controller->index($request, 'test-items');
         $this->assertSame(10, $capturedPerPage);
+    }
+
+    public function test_index_rejects_invalid_per_page(): void
+    {
+        TestResource::setTableFactory(function () {
+            return Table::make()
+                ->columns([Column::make('title')])
+                ->perPageOptions([10, 25]);
+        });
+
+        $controller = $this->makeController();
+        $request = Request::create('/admin/resource/test-items?per_page=5', 'GET');
+        $request->setUserResolver(fn () => new FakeUser(10, 1));
+
+        $this->expectException(ResourceException::class);
+        $controller->index($request, 'test-items');
     }
 
     public function test_reorder_updates_order_for_items(): void
@@ -950,7 +952,6 @@ class ResourceControllerTest extends TestCase
 
         $resources = $this->resourceManagerStub();
         $sortingService = $this->sortingService();
-        $sanitizer = new RequestDebugSanitizer();
 
         return new ResourceController(
             $resources,
@@ -958,17 +959,24 @@ class ResourceControllerTest extends TestCase
             $validator,
             $persistence,
             $sortingService,
-            $sanitizer,
             new IndexAction($resources, $renderer),
             new CreateAction($resources, $renderer),
-            new StoreAction($resources, $validator, $persistence, $sanitizer),
+            new StoreAction($resources, $validator, $persistence),
             new EditAction($resources, $renderer),
-            new UpdateAction($resources, $validator, $persistence, $sanitizer),
+            new UpdateAction($resources, $validator, $persistence),
             new DestroyAction($resources, $persistence),
             new ReorderAction($resources, $sortingService),
             new UpdateGroupAction($resources),
             new UpdateTreeAction($resources, $sortingService),
-            new InlineUpdateAction($resources)
+            new InlineUpdateAction($resources),
+            new RunRowAction($resources),
+            new RunBulkAction($resources),
+            new RunGlobalAction($resources),
+            new RunFormAction($resources),
+            new TableJsonAction($resources),
+            new FormJsonAction($resources),
+            new GetModalFormAction($resources, $renderer),
+            new GetModalFormCreateAction($resources, $renderer)
         );
     }
 

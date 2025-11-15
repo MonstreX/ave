@@ -19,12 +19,13 @@ class DestroyAction extends AbstractResourceAction
 
     public function __invoke(Request $request, string $slug, string $id)
     {
-        [$resourceClass] = $this->resolveAndAuthorize($slug, 'delete', $request);
+        $resourceClass = $this->resolveResourceClass($slug);
 
         $model = $this->findModelOrFail($resourceClass, $slug, $id);
+        $this->resolveAndAuthorize($slug, 'delete', $request, $model);
         $this->persistence->delete($resourceClass, $model);
 
-        return redirect()->route('ave.resource.index', $slug)
+        return redirect()->route('ave.resource.index', ['slug' => $slug])
             ->with('status', __('Deleted successfully'));
     }
 }

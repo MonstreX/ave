@@ -16,14 +16,10 @@ class InlineUpdateAction extends AbstractResourceAction
 
     public function __invoke(Request $request, string $slug, string $id)
     {
-        $resourceClass = $this->resources->resource($slug);
-
-        if (!$resourceClass) {
-            throw ResourceException::notFound($slug);
-        }
+        $resourceClass = $this->resolveResourceClass($slug);
 
         $model = $this->findModelOrFail($resourceClass, $slug, $id);
-        [$resourceClass, $resource] = $this->resolveAndAuthorize($slug, 'update', $request, $model);
+        [, $resource] = $this->resolveAndAuthorize($slug, 'update', $request, $model);
 
         $field = (string) $request->input('field', '');
         if ($field === '') {
