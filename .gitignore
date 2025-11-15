@@ -1,6 +1,7 @@
 /vendor/
 /node_modules/
 /.phpunit.cache/
+/.claude/
 .env
 .env.backup
 .phpunit.result.cache
