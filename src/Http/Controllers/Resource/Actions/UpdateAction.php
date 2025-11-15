@@ -51,7 +51,7 @@ class UpdateAction extends AbstractResourceAction
         if ($request->expectsJson() || $request->ajax()) {
             return response()->json([
                 'success' => true,
-                'message' => __('Updated successfully'),
+                'message' => __('ave::common.updated_successfully'),
                 'reload' => true,
                 'data' => $model->fresh()->toArray(),
             ]);

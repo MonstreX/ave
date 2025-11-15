@@ -59,7 +59,7 @@ class StoreAction extends AbstractResourceAction
         if ($request->expectsJson() || $request->ajax()) {
             return response()->json([
                 'success' => true,
-                'message' => __('Created successfully'),
+                'message' => __('ave::common.created_successfully'),
                 'reload' => true,
                 'data' => $model->fresh()->toArray(),
             ]);

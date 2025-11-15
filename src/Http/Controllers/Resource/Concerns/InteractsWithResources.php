@@ -149,7 +149,7 @@ trait InteractsWithResources
     protected function redirectAfterSave(Request $request, string $slug, mixed $model, string $mode)
     {
         $intent = (string) $request->input('_ave_form_action', 'save');
-        $statusMessage = $mode === 'edit' ? __('Updated successfully') : __('Created successfully');
+        $statusMessage = $mode === 'edit' ? __('ave::common.updated_successfully') : __('ave::common.created_successfully');
 
         if ($intent === 'save-continue') {
             return redirect()

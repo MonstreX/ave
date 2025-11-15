@@ -1,3 +1,5 @@
+import { trans } from '../../utils/translations.js'
+
 let toastContainer = null;
 
 /**
@@ -10,23 +12,23 @@ export const showToast = (type = 'success', message = '', duration = 4000) => {
     if (!toastContainer) {
         toastContainer = document.getElementById('toast-container');
         if (!toastContainer) {
-            console.error('Toast container not found. Add <div id="toast-container"></div> to your layout.');
+            console.error(trans('toast.container_not_found'));
             return;
         }
     }
 
     const defaults = {
-        success: 'Action completed successfully.',
-        danger: 'Something went wrong. Please try again.',
-        warning: 'Please review your action.',
-        info: 'Here is some information.',
+        success: trans('toast.defaults.success'),
+        danger: trans('toast.defaults.error'),
+        warning: trans('toast.defaults.warning'),
+        info: trans('toast.defaults.info'),
     };
 
     const titles = {
-        success: 'Success',
-        danger: 'Error',
-        warning: 'Warning',
-        info: 'Info',
+        success: trans('toast.titles.success'),
+        danger: trans('toast.titles.error'),
+        warning: trans('toast.titles.warning'),
+        info: trans('toast.titles.info'),
     };
 
     const toast = document.createElement('div');
@@ -68,7 +70,7 @@ export default function initToastSystem() {
                 showToast(data.type, data.message);
             }
         } catch (e) {
-            console.error('Failed to parse toast data:', e);
+            console.error(trans('toast.parse_error'), e);
         }
     }
 

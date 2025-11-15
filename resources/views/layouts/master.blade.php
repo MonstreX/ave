@@ -6,6 +6,12 @@
     <meta name="csrf-token" content="{{ csrf_token() }}"/>
     <meta name="ave-route-prefix" content="{{ trim(config('ave.route_prefix', 'admin'), '/') }}"/>
 
+    <!-- Ave Translations -->
+    <script>
+        window.AveTranslations = {!! ave_js_translations_json() !!};
+        window.AveLocale = '{{ app()->getLocale() }}';
+    </script>
+
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,700" rel="stylesheet">
 
