@@ -10,7 +10,11 @@ class User extends Model
 {
     protected $table;
 
-    protected $guarded = [];
+    protected $fillable = [
+        'name',
+        'email',
+        'password',
+    ];
 
     public function __construct(array $attributes = [])
     {

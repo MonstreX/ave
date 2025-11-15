@@ -11,7 +11,21 @@ class Media extends Model
 {
     protected $table = 'ave_media';
 
-    protected $guarded = [];
+    protected $fillable = [
+        'model_type',
+        'model_id',
+        'media_id',
+        'collection_id',
+        'collection_name',
+        'disk',
+        'path',
+        'conversions',
+        'file_name',
+        'mime_type',
+        'size',
+        'props',
+        'order',
+    ];
 
     protected ?FileService $fileService;
 
