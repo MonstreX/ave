@@ -42,6 +42,7 @@ class AveServiceProvider extends ServiceProvider
      * @return void
      */
     public function register(): void
+    {
         $this->app->singleton(ResourceRegistry::class);
         $this->app->singleton(PageRegistry::class);
         $this->app->singleton(AdminResourceDiscovery::class);
