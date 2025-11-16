@@ -2,6 +2,8 @@
 
 namespace Monstrex\Ave\Http\Controllers\Resource\Actions;
 
+use Monstrex\Ave\Support\CleanJsonResponse;
+
 use Illuminate\Http\Request;
 use Monstrex\Ave\Core\FormContext;
 use Monstrex\Ave\Core\ResourceManager;
@@ -50,7 +52,7 @@ class GetModalFormCreateAction extends AbstractResourceAction
             'mode' => 'create',
         ])->render();
 
-        return response()->json([
+        return CleanJsonResponse::make([
             'success' => true,
             'formHtml' => $html,
             'currentData' => [],

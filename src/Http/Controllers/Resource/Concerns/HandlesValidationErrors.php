@@ -2,6 +2,8 @@
 
 namespace Monstrex\Ave\Http\Controllers\Resource\Concerns;
 
+use Monstrex\Ave\Support\CleanJsonResponse;
+
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
@@ -21,7 +23,7 @@ trait HandlesValidationErrors
         $errorMessages = $this->formatValidationErrors($exception->errors());
 
         if ($request->expectsJson() || $request->ajax()) {
-            return response()->json([
+            return CleanJsonResponse::make([
                 'success' => false,
                 'message' => $errorMessages,
                 'errors' => $exception->errors(),

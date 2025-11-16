@@ -2,6 +2,9 @@
 
 namespace Monstrex\Ave\Http\Middleware;
 
+use Monstrex\Ave\Support\CleanJsonResponse;
+use MonstrexAveSupportCleanJsonResponse;
+
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -70,7 +73,7 @@ class HandleAveExceptions
                 ];
             }
 
-            return response()->json($response, $statusCode);
+            return CleanJsonResponse::make($response, $statusCode);
         }
 
         // Handle regular requests - return HTML error view

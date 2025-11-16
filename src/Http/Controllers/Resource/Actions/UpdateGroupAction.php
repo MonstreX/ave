@@ -2,6 +2,8 @@
 
 namespace Monstrex\Ave\Http\Controllers\Resource\Actions;
 
+use Monstrex\Ave\Support\CleanJsonResponse;
+
 use Illuminate\Http\Request;
 use Monstrex\Ave\Core\ResourceManager;
 use Monstrex\Ave\Exceptions\ResourceException;
@@ -55,7 +57,7 @@ class UpdateGroupAction extends AbstractResourceAction
         $model->setAttribute($groupColumn, $validated['group_id']);
         $model->save();
 
-        return response()->json([
+        return CleanJsonResponse::make([
             'success' => true,
             'message' => 'Item moved to new group successfully',
             'old_group' => $oldGroupId,

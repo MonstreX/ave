@@ -2,6 +2,8 @@
 
 namespace Monstrex\Ave\Http\Controllers\Resource\Actions;
 
+use Monstrex\Ave\Support\CleanJsonResponse;
+
 use Illuminate\Http\Request;
 use Monstrex\Ave\Core\ResourceManager;
 use Monstrex\Ave\Core\Sorting\SortableOrderService;
@@ -47,7 +49,7 @@ class UpdateTreeAction extends AbstractResourceAction
             $slug
         );
 
-        return response()->json([
+        return CleanJsonResponse::make([
             'success' => true,
             'message' => 'Tree structure updated successfully',
         ]);
