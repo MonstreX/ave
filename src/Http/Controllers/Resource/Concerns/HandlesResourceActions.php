@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Monstrex\Ave\Core\Actions\Contracts\ActionInterface;
 use Monstrex\Ave\Core\Actions\Support\ActionContext;
 use Monstrex\Ave\Exceptions\ResourceException;
+use Monstrex\Ave\Support\CleanJsonResponse;
 
 trait HandlesResourceActions
 {
@@ -60,7 +61,7 @@ trait HandlesResourceActions
         }
 
         if ($request->expectsJson()) {
-            return response()->json($payload);
+            return CleanJsonResponse::make($payload);
         }
 
         return redirect()
@@ -76,7 +77,7 @@ trait HandlesResourceActions
         ];
 
         if ($request->expectsJson()) {
-            return response()->json($payload, 404);
+            return CleanJsonResponse::make($payload, 404);
         }
 
         abort(404, $payload['message']);
