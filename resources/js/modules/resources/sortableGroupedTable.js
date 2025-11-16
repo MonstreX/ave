@@ -1,5 +1,6 @@
 import Sortable from 'sortablejs'
 import { showToast } from '../ui/toast.js'
+import { trans } from '../../utils/translations.js'
 
 /**
  * Make an API request with CSRF token
@@ -89,11 +90,11 @@ function handleCrossGroupDrag(itemId, newTbody, oldTbody, newGroupId, oldGroupId
             }
         })
         .then(() => {
-            showToast('success', 'Item moved to new group successfully')
+            showToast('success', trans('sortable.item_moved'))
         })
         .catch(error => {
             console.error('Error updating groups:', error)
-            showToast('danger', 'Error updating item group')
+            showToast('danger', trans('sortable.item_move_error'))
             // Revert DOM change on error
             oldTbody.insertBefore(evt.item, oldTbody.children[evt.oldIndex])
         })
@@ -105,11 +106,11 @@ function handleCrossGroupDrag(itemId, newTbody, oldTbody, newGroupId, oldGroupId
 function handleSameGroupDrag(tbody, groupId, config) {
     saveGroupOrder(tbody, groupId, config.orderColumn, config.updateEndpoint)
         .then(() => {
-            showToast('success', 'Order updated successfully')
+            showToast('success', trans('sortable.order_updated'))
         })
         .catch(error => {
             console.error('Error saving order:', error)
-            showToast('danger', 'Error saving order')
+            showToast('danger', trans('sortable.order_error'))
         })
 }
 

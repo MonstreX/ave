@@ -5,6 +5,7 @@ import { aveEvents } from '../../core/EventBus.js';
 import { updateItemHeader } from './fieldset/headerUpdater.js';
 import { registerSortable } from './fieldset/sortableManager.js';
 import { ANIMATION_DURATIONS, ANIMATION_EASING } from './formConstants.js';
+import { trans } from '../../utils/translations.js';
 
 /**
  * Initialize FieldSet functionality
@@ -120,7 +121,7 @@ export default function initFieldSet(root = document) {
                 // Check max items limit
                 const currentCount = itemsContainer.querySelectorAll('.fieldset-item').length;
                 if (maxItems && currentCount >= maxItems) {
-                    alert(`Maximum ${maxItems} items allowed`);
+                    alert(trans('fieldset.max_items_reached', { count: maxItems }));
                     return;
                 }
 
@@ -174,20 +175,20 @@ export default function initFieldSet(root = document) {
             // Check min items limit
             const currentCount = itemsContainer.querySelectorAll('.fieldset-item').length;
             if (minItems > 0 && currentCount <= minItems) {
-                showAlert(`Minimum ${minItems} items required`, {
-                    title: 'Deletion Blocked',
+                showAlert(trans('fieldset.min_items_required', { count: minItems }), {
+                    title: trans('fieldset.deletion_blocked'),
                     variant: 'warning',
-                    confirmText: 'OK'
+                    confirmText: trans('fieldset.ok_button')
                 });
                 return;
             }
 
             // Confirm deletion
-            const confirmed = await confirm('Are you sure you want to delete this item?', {
-                title: 'Delete Item',
+            const confirmed = await confirm(trans('fieldset.confirm_delete'), {
+                title: trans('fieldset.delete_item'),
                 variant: 'error',
-                confirmText: 'Delete',
-                cancelText: 'Cancel'
+                confirmText: trans('fieldset.delete_button'),
+                cancelText: trans('fieldset.cancel_button')
             });
 
             if (!confirmed) return;

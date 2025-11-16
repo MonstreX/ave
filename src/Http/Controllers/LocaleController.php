@@ -37,7 +37,7 @@ class LocaleController extends Controller
 
         // Validate locale
         if (!in_array($locale, $availableLocales)) {
-            return redirect()->back()->with('error', 'Invalid locale selected');
+            return redirect()->back()->with('error', __('ave::errors.invalid_locale'));
         }
 
         // Update user locale

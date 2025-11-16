@@ -15,4 +15,7 @@ return [
 
     'back_to_dashboard' => 'Back to Dashboard',
     'go_back' => 'Go Back',
+
+    'invalid_locale' => 'Invalid locale selected',
+    'validation_failed' => 'Validation failed. Please check the form for errors.',
 ];

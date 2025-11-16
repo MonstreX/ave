@@ -11,4 +11,5 @@ return [
     'expand_all' => 'Развернуть всё',
     'collapse_all' => 'Свернуть всё',
     'total_items' => 'Всего: :count элементов',
+    'group' => 'Группа',
 ];

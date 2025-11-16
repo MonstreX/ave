@@ -56,7 +56,7 @@ trait InteractsWithResources
     protected function formatValidationErrors(array $errors): string
     {
         if (empty($errors)) {
-            return 'Validation failed. Please check the form for errors.';
+            return __('ave::errors.validation_failed');
         }
 
         $messages = [];
@@ -69,7 +69,7 @@ trait InteractsWithResources
         }
 
         if (empty($messages)) {
-            return 'Validation failed. Please check the form for errors.';
+            return __('ave::errors.validation_failed');
         }
 
         // Use try-catch to handle cases where config is not available (e.g., unit tests)

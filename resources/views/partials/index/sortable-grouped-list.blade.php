@@ -100,7 +100,7 @@
                         // Get group object via relation
                         $firstItem = $groupItems->first();
                         $group = $groupByRelation ? $firstItem->{$groupByRelation} : null;
-                        $groupName = $group ? ($group->name ?? $group->title ?? "Group {$groupId}") : "Group {$groupId}";
+                        $groupName = $group ? ($group->name ?? $group->title ?? __('ave::tables.group') . " {$groupId}") : __('ave::tables.group') . " {$groupId}";
                     @endphp
 
                     {{-- Group Header Row --}}

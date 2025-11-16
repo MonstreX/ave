@@ -3,6 +3,8 @@
  * Handles file uploads with preview and progress indication
  */
 
+import { trans } from '../../utils/translations.js';
+
 export default function initFileUpload(root = document) {
     const fileFields = root.querySelectorAll('[data-file-field]');
 
@@ -90,22 +92,24 @@ export default function initFileUpload(root = document) {
                             // Reset file input
                             fileInput.value = '';
                         } else {
-                            alert('Upload failed: ' + (response.message || 'Unknown error'));
+                            alert(trans('upload.upload_failed_with_error', {
+                                error: response.message || trans('media.upload_failed_unknown')
+                            }));
                         }
                     } catch (e) {
                         console.error('[Ave] Error parsing upload response:', e);
-                        alert('Error processing upload response');
+                        alert(trans('upload.upload_processing_error'));
                     }
                 } else {
                     console.error('[Ave] Upload failed with status:', xhr.status);
-                    alert('Upload failed with status: ' + xhr.status);
+                    alert(trans('upload.upload_failed_with_status', { status: xhr.status }));
                 }
             });
 
             xhr.addEventListener('error', () => {
                 progressDiv.style.display = 'none';
                 console.error('[Ave] Upload error occurred');
-                alert('Upload error occurred');
+                alert(trans('upload.upload_error'));
             });
 
             // Send request

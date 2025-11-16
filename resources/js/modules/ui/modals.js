@@ -1,4 +1,5 @@
 import { aveEvents } from '../../core/EventBus.js';
+import { trans } from '../../utils/translations.js';
 
 const openModal = (modal) => {
     if (!modal) {
@@ -172,13 +173,13 @@ export const createModal = (options) => {
 export const confirm = (message, options = {}) => {
     return new Promise((resolve) => {
         createModal({
-            title: options.title || 'Confirm',
+            title: options.title || trans('common.confirm'),
             body: message,
             bodyParams: options.bodyParams || null,
             type: 'confirm',
             variant: options.variant || 'default',
-            confirmText: options.confirmText || 'Yes',
-            cancelText: options.cancelText || 'No',
+            confirmText: options.confirmText || trans('common.yes'),
+            cancelText: options.cancelText || trans('common.cancel'),
             size: options.size || 'small',
             onConfirm: () => resolve(true),
             onCancel: () => resolve(false)
@@ -194,12 +195,12 @@ export const confirm = (message, options = {}) => {
  */
 export const alert = (message, options = {}) => {
     createModal({
-        title: options.title || 'Alert',
+        title: options.title || trans('common.alert'),
         body: message,
         bodyParams: options.bodyParams || null,
         type: 'alert',
         variant: options.variant || 'default',
-        confirmText: options.confirmText || 'OK',
+        confirmText: options.confirmText || trans('common.ok'),
         size: options.size || 'small'
     });
 };

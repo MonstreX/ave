@@ -1,6 +1,7 @@
 import { createModal, closeModal } from '../ui/modals.js';
 import { showToast } from '../ui/toast.js';
 import { aveEvents } from '../../core/EventBus.js';
+import { trans } from '../../utils/translations.js';
 
 /**
  * Universal Popup Form Handler
@@ -38,15 +39,15 @@ export function openPopupForm(options) {
         fetchParams = {},
         onSuccess = null,
         onError = null,
-        confirmText = 'Save',
-        cancelText = 'Cancel',
+        confirmText = trans('common.save'),
+        cancelText = trans('common.cancel'),
         size = 'default'
     } = options;
 
     // Show loading modal
     const loadingModal = createModal({
-        title: 'Loading...',
-        body: '<div class="spinner">Loading form...</div>',
+        title: trans('common.loading'),
+        body: `<div class="spinner">${trans('common.loading_form')}</div>`,
         type: 'alert',
         size: 'small',
     });
@@ -76,7 +77,7 @@ export function openPopupForm(options) {
         })
         .catch(error => {
             closeModal(loadingModal);
-            showToast('danger', 'Failed to load form: ' + error.message);
+            showToast('danger', trans('common.failed_to_load_form', { error: error.message }));
 
             if (onError) {
                 onError(error);
@@ -169,7 +170,7 @@ function savePopupForm(modalElement, saveUrl, onSuccess = null, onError = null) 
     })
     .then(data => {
         if (data.success) {
-            showToast('success', data.message || 'Saved successfully');
+            showToast('success', data.message || trans('common.saved_successfully'));
 
             if (onSuccess) {
                 onSuccess(data);
@@ -181,7 +182,7 @@ function savePopupForm(modalElement, saveUrl, onSuccess = null, onError = null) 
         }
     })
     .catch(error => {
-        showToast('danger', 'Failed to save: ' + error.message);
+        showToast('danger', trans('common.failed_to_save', { error: error.message }));
 
         if (onError) {
             onError(error);
@@ -206,8 +207,8 @@ export function createInlinePopupForm(options) {
         fields,
         data = {},
         onSave,
-        confirmText = 'Save',
-        cancelText = 'Cancel',
+        confirmText = trans('common.save'),
+        cancelText = trans('common.cancel'),
         size = 'default'
     } = options;
 

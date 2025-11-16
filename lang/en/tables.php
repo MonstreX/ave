@@ -11,4 +11,5 @@ return [
     'expand_all' => 'Expand All',
     'collapse_all' => 'Collapse All',
     'total_items' => 'Total: :count items',
+    'group' => 'Group',
 ];

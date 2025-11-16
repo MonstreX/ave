@@ -3,8 +3,8 @@
     $fieldInputName = $inputName ?? \Monstrex\Ave\Support\FormInputName::nameFromStatePath($fieldStatePath);
     $fieldInputId = $inputId ?? 'toggle_' . uniqid();
     $isChecked = $checked ?? ($value ?? false) ?? old($fieldStatePath);
-    $onLabel = $field->getOnLabel() ?? 'On';
-    $offLabel = $field->getOffLabel() ?? 'Off';
+    $onLabel = $field->getOnLabel() ?? __('ave::fields.toggle.on');
+    $offLabel = $field->getOffLabel() ?? __('ave::fields.toggle.off');
 @endphp
 
 <div class="form-field @if($hasError) has-error @endif" data-field-name="{{ $fieldStatePath }}">

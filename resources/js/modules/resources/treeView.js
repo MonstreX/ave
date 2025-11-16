@@ -4,6 +4,7 @@
 import Sortable from 'sortablejs';
 import { showToast } from '../ui/toast.js';
 import { ANIMATION_DURATIONS, ANIMATION_EASING } from '../forms/formConstants.js';
+import { trans } from '../../utils/translations.js';
 
 const csrfMeta = document.querySelector('meta[name="csrf-token"]');
 const CSRF_TOKEN = csrfMeta ? csrfMeta.content : '';
@@ -286,13 +287,13 @@ function saveTreeStructure(container, slug, parentColumn, orderColumn, updateEnd
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            showToast('success', data.message || 'Tree structure updated');
+            showToast('success', data.message || trans('tree.updated'));
         } else {
-            showToast('danger', data.message || 'Failed to update tree');
+            showToast('danger', data.message || trans('tree.update_failed'));
         }
     })
     .catch(error => {
         console.error('Tree update error:', error);
-        showToast('danger', 'Failed to update tree structure');
+        showToast('danger', trans('tree.structure_update_failed'));
     });
 }

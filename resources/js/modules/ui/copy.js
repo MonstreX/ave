@@ -1,4 +1,5 @@
 import { showToast } from './toast';
+import { trans } from '../../utils/translations.js';
 
 const fallbackCopy = (text) => {
     const tempInput = document.createElement('textarea');
@@ -36,13 +37,13 @@ export default function initCopyToClipboard() {
 
             try {
                 await navigator.clipboard.writeText(value);
-                    showToast('success', 'Copied to clipboard.');
+                    showToast('success', trans('common.copied_to_clipboard'));
             } catch (error) {
                 const copied = fallbackCopy(value);
                 if (copied) {
-                    showToast('success', 'Copied to clipboard.');
+                    showToast('success', trans('common.copied_to_clipboard'));
                 } else {
-                    showToast('danger', 'Copy failed. Please try again.');
+                    showToast('danger', trans('common.copy_failed'));
                 }
             }
         });

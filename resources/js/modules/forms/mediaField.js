@@ -4,6 +4,7 @@ import { confirm, createModal, destroyModal } from '../ui/modals.js';
 import { showToast } from '../ui/toast.js';
 import { aveEvents } from '../../core/EventBus.js';
 import { ANIMATION_DURATIONS, ANIMATION_EASING, HTTP_STATUS, FILE_SIZE } from './formConstants.js';
+import { trans } from '../../utils/translations.js';
 
 /**
  * Convert bytes to human-readable format
@@ -312,7 +313,7 @@ export default function initMediaFields(root = document) {
             // Check max files
             if (!multiple) {
                 if (filesArray.length > 1) {
-                    showToast('warning', 'You can only upload 1 file');
+                    showToast('warning', trans('media.only_one_file'));
                     return;
                 }
                 // Remove existing if single file mode - DELETE immediately from server
@@ -330,7 +331,7 @@ export default function initMediaFields(root = document) {
             } else if (maxFiles) {
                 const currentCount = grid.querySelectorAll('.media-item').length;
                 if (currentCount + filesArray.length > maxFiles) {
-                    showToast('warning', `Maximum ${maxFiles} files allowed`);
+                    showToast('warning', trans('media.max_files_reached', { count: maxFiles }));
                     return;
                 }
             }
@@ -338,7 +339,10 @@ export default function initMediaFields(root = document) {
             // Validate and upload files
             for (const file of filesArray) {
                 if (maxSize && file.size > maxSize * 1024) {
-                    showToast('warning', `File "${file.name}" is too large. Maximum size: ${(maxSize / 1024).toFixed(1)} MB`);
+                    showToast('warning', trans('media.file_too_large', {
+                        name: file.name,
+                        size: (maxSize / 1024).toFixed(1)
+                    }));
                     continue;
                 }
                 uploadFile(file);
@@ -412,15 +416,17 @@ export default function initMediaFields(root = document) {
                                 uploadedIds.push(media.id);
                             });
                             updateHiddenInputs();
-                            showToast('success', 'File uploaded successfully.');
+                            showToast('success', trans('media.upload_success'));
                         } else {
-                            showToast('danger', 'Upload failed: ' + (response.message || 'Unknown error'));
+                            showToast('danger', trans('media.upload_failed', {
+                                error: response.message || trans('media.upload_failed_unknown')
+                            }));
                         }
                     } catch (e) {
-                        showToast('danger', 'Upload failed: Invalid server response');
+                        showToast('danger', trans('media.upload_failed_response'));
                     }
                 } else {
-                    showToast('danger', 'Upload failed: ' + xhr.statusText);
+                    showToast('danger', trans('media.upload_failed', { error: xhr.statusText }));
                 }
 
                 // Reset progress
@@ -433,7 +439,7 @@ export default function initMediaFields(root = document) {
             });
 
             xhr.addEventListener('error', () => {
-                showToast('danger', 'Upload failed. Please try again.');
+                showToast('danger', trans('media.upload_failed_network'));
                 if (progressBar) {
                     progressBar.classList.remove('active');
                     progressBar.style.display = 'none';
@@ -564,12 +570,12 @@ export default function initMediaFields(root = document) {
         async function deleteMedia(mediaItem, mediaId) {
             const fileName = mediaItem?.querySelector('.media-filename')?.textContent || 'this file';
 
-            const confirmed = await confirm('You are going to remove:', {
-                title: 'Delete File',
+            const confirmed = await confirm(trans('media.confirm_remove'), {
+                title: trans('common.delete'),
                 variant: 'error',
                 bodyParams: [fileName],
-                confirmText: 'Delete',
-                cancelText: 'Cancel'
+                confirmText: trans('common.delete'),
+                cancelText: trans('common.cancel')
             });
 
             if (!confirmed) return;
@@ -579,7 +585,7 @@ export default function initMediaFields(root = document) {
                 mediaItem?.remove();
                 updateMediaNumbers();
                 updateHiddenInputs();
-                showToast('success', 'File removed successfully.');
+                showToast('success', trans('media.remove_success'));
                 return;
             }
 
@@ -609,14 +615,16 @@ export default function initMediaFields(root = document) {
                         deletedIds.push(numericId);
                     }
                     updateHiddenInputs();
-                    showToast('success', 'File deleted successfully.');
+                    showToast('success', trans('media.delete_success'));
                 } else {
-                    showToast('danger', 'Failed to delete file: ' + (data.message || 'Unknown error'));
+                    showToast('danger', trans('media.delete_failed', {
+                        error: data.message || trans('media.delete_failed_unknown')
+                    }));
                 }
             })
             .catch(error => {
                 console.error('Delete error:', error);
-                showToast('danger', 'Failed to delete file. Please try again.');
+                showToast('danger', trans('media.delete_failed_network'));
             });
         }
 
@@ -625,7 +633,7 @@ export default function initMediaFields(root = document) {
             const imgElement = mediaItem?.querySelector('img');
 
             if (!imgElement) {
-                showToast('danger', 'Could not load image for cropping');
+                showToast('danger', trans('media.crop_load_failed'));
                 return;
             }
 
@@ -669,8 +677,8 @@ export default function initMediaFields(root = document) {
                 title: `Crop: ${fileName}`,
                 body: cropModalBody,
                 type: 'form',
-                confirmText: 'Crop',
-                cancelText: 'Cancel',
+                confirmText: trans('media.crop_button'),
+                cancelText: trans('common.cancel'),
                 size: 'large',
                 autoClose: false,
                 onConfirm: (modalElement) => {
@@ -721,7 +729,7 @@ export default function initMediaFields(root = document) {
             const cropper = modalElement.cropper;
 
             if (!cropper) {
-                showToast('danger', 'Cropper not initialized');
+                showToast('danger', trans('media.cropper_not_initialized'));
                 return;
             }
 
@@ -731,7 +739,7 @@ export default function initMediaFields(root = document) {
 
             // Validate crop data
             if (cropData.width <= 0 || cropData.height <= 0) {
-                showToast('danger', 'Invalid crop area');
+                showToast('danger', trans('media.invalid_crop_area'));
                 return;
             }
 
@@ -807,14 +815,14 @@ export default function initMediaFields(root = document) {
                         }
                     }
 
-                    showToast('success', 'Image cropped successfully');
+                    showToast('success', trans('media.crop_success'));
                     destroyModal(modalElement);
                 } else {
                     throw new Error(data.message || 'Crop failed');
                 }
             })
             .catch(error => {
-                showToast('danger', 'Failed to crop image: ' + error.message);
+                showToast('danger', trans('media.crop_failed', { error: error.message }));
             });
         }
 
@@ -842,8 +850,8 @@ export default function initMediaFields(root = document) {
                 title: `Edit: ${fileName}`,
                 body: formFields,
                 type: 'form',
-                confirmText: 'Save',
-                cancelText: 'Cancel',
+                confirmText: trans('common.save'),
+                cancelText: trans('common.cancel'),
                 size: 'default',
                 autoClose: false,
                 onConfirm: (modalElement) => {
@@ -912,14 +920,14 @@ export default function initMediaFields(root = document) {
                     }
                     propsInput.value = JSON.stringify(data.media.props);
 
-                    showToast('success', data.message || 'Properties saved successfully');
+                    showToast('success', data.message || trans('media.properties_saved'));
                     destroyModal(modalElement);
                 } else {
                     throw new Error(data.message || 'Save failed');
                 }
             })
             .catch(error => {
-                showToast('danger', 'Failed to save: ' + error.message);
+                showToast('danger', trans('media.save_failed', { error: error.message }));
             });
         }
 
@@ -986,15 +994,15 @@ export default function initMediaFields(root = document) {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    showToast('success', 'Files reordered successfully.');
+                    showToast('success', trans('media.reorder_success'));
                 } else {
                     console.error('Order update failed:', data.message);
-                    showToast('danger', 'Failed to reorder files.');
+                    showToast('danger', trans('media.reorder_failed'));
                 }
             })
             .catch(error => {
                 console.error('Order update error:', error);
-                showToast('danger', 'Failed to reorder files.');
+                showToast('danger', trans('media.reorder_failed'));
             });
         }
 
@@ -1036,15 +1044,15 @@ export default function initMediaFields(root = document) {
             const selectedArray = Array.from(selectedMediaIds);
 
             if (selectedArray.length === 0) {
-                showToast('warning', 'No files selected');
+                showToast('warning', trans('media.no_files_selected'));
                 return;
             }
 
             const confirmed = await confirm(`You are going to remove ${selectedArray.length} file(s):`, {
-                title: 'Delete Files',
+                title: trans('common.delete'),
                 variant: 'error',
-                confirmText: 'Delete',
-                cancelText: 'Cancel'
+                confirmText: trans('common.delete'),
+                cancelText: trans('common.cancel')
             });
 
             if (!confirmed) return;
@@ -1096,13 +1104,13 @@ export default function initMediaFields(root = document) {
                     updateMediaNumbers();
                     updateHiddenInputs();
 
-                    showToast('success', `${data.deleted} file(s) deleted successfully.`);
+                    showToast('success', trans('media.bulk_delete_success', { count: data.deleted }));
                 } else {
                     throw new Error(data.message || 'Delete failed');
                 }
             })
             .catch(error => {
-                showToast('danger', 'Failed to delete files: ' + error.message);
+                showToast('danger', trans('media.bulk_delete_failed', { error: error.message }));
             });
         }
 

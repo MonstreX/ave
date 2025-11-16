@@ -3,6 +3,7 @@
  */
 import Sortable from 'sortablejs';
 import { showToast } from '../ui/toast.js';
+import { trans } from '../../utils/translations.js';
 
 const csrfMeta = document.querySelector('meta[name="csrf-token"]');
 const CSRF_TOKEN = csrfMeta ? csrfMeta.content : '';
@@ -84,15 +85,15 @@ function saveSortableOrder(tbody, slug, orderColumn, updateEndpoint) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            showToast('success', data.message || 'Order updated successfully');
+            showToast('success', data.message || trans('sortable.order_updated'));
         } else {
-            showToast('danger', data.message || 'Failed to update order');
+            showToast('danger', data.message || trans('sortable.order_update_failed'));
             window.location.reload();
         }
     })
     .catch(error => {
         console.error('Sortable table update error:', error);
-        showToast('danger', 'Failed to update table order');
+        showToast('danger', trans('sortable.table_order_failed'));
         setTimeout(() => window.location.reload(), 1500);
     });
 }
