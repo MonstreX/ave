@@ -43,6 +43,10 @@ class AveServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        // Suppress PHP warnings from dependencies (PHPUnit/Sebastian) to prevent JSON corruption
+        ini_set('display_errors', '0');
+        error_reporting(E_ALL);
+        
         // Register singletons
         $this->app->singleton(ResourceRegistry::class);
         $this->app->singleton(PageRegistry::class);

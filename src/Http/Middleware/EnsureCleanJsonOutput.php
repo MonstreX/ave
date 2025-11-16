@@ -10,34 +10,37 @@ class EnsureCleanJsonOutput
 {
     /**
      * Handle an incoming request.
-     * Cleans PHP warnings/notices from JSON responses caused by dependencies.
+     * Suppresses PHP warnings/notices for JSON responses.
      */
     public function handle(Request $request, Closure $next): Response
     {
-        ob_start();
+        // Set custom error handler to suppress warnings during request
+        $previousHandler = set_error_handler(function ($errno, $errstr, $errfile, $errline) use (&$previousHandler) {
+            // Only suppress warnings and notices, not errors
+            if ($errno === E_WARNING || $errno === E_NOTICE || $errno === E_USER_WARNING || $errno === E_USER_NOTICE) {
+                // Log to Laravel log instead of output
+                if (str_contains($errfile, 'sebastian') || str_contains($errfile, 'phpunit')) {
+                    // Silently ignore PHPUnit/Sebastian warnings
+                    return true;
+                }
+                
+                // Log other warnings
+                \Log::warning("PHP Warning suppressed: $errstr in $errfile:$errline");
+                return true;
+            }
+            
+            // Let other errors pass through to previous handler
+            if ($previousHandler) {
+                return call_user_func($previousHandler, $errno, $errstr, $errfile, $errline);
+            }
+            
+            return false;
+        });
 
         $response = $next($request);
 
-        $contentType = $response->headers->get('Content-Type', '');
-
-        if (str_contains($contentType, 'application/json')) {
-            $output = ob_get_clean();
-
-            // If there's garbage before JSON (PHP warnings/notices) - cut it out
-            if (!empty($output)) {
-                $jsonStart = strpos($output, '{');
-
-                if ($jsonStart !== false && $jsonStart > 0) {
-                    $cleanJson = substr($output, $jsonStart);
-                    $response->setContent($cleanJson);
-                } elseif ($jsonStart === false) {
-                    // No JSON found, keep output as is (might be error)
-                    $response->setContent($output);
-                }
-            }
-        } else {
-            ob_end_flush();
-        }
+        // Restore previous error handler
+        restore_error_handler();
 
         return $response;
     }
