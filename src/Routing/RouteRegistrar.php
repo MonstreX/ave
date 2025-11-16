@@ -12,6 +12,7 @@ use Monstrex\Ave\Http\Controllers\LocaleController;
 use Monstrex\Ave\Http\Controllers\MediaController;
 use Monstrex\Ave\Http\Middleware\HandleAveExceptions;
 use Monstrex\Ave\Http\Middleware\SetLocaleMiddleware;
+use Monstrex\Ave\Http\Middleware\EnsureCleanJsonOutput;
 use Monstrex\Ave\Routing\Concerns\RegistersCrudRoutes;
 
 class RouteRegistrar
@@ -167,6 +168,7 @@ class RouteRegistrar
 
         $middleware[] = $guard ? ('auth:' . $guard) : 'auth';
         $middleware[] = SetLocaleMiddleware::class;
+        $middleware[] = EnsureCleanJsonOutput::class;
 
         return $middleware;
     }
