@@ -26,6 +26,6 @@ class DestroyAction extends AbstractResourceAction
         $this->persistence->delete($resourceClass, $model, $request);
 
         return redirect()->route('ave.resource.index', ['slug' => $slug])
-            ->with('status', __('ave::common.deleted_successfully'));
+            ->with('status', 'Deleted successfully');
     }
 }

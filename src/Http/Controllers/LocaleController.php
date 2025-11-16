@@ -48,6 +48,6 @@ class LocaleController extends Controller
         // Apply locale immediately
         app()->setLocale($locale);
 
-        return redirect()->back()->with('success', __('ave::common.locale_changed'));
+        return redirect()->back()->with('success', 'Language changed successfully');
     }
 }
