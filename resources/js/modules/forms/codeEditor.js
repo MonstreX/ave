@@ -13,6 +13,7 @@ import 'ace-builds/src-noconflict/mode-json';
 import 'ace-builds/src-noconflict/mode-xml';
 import 'ace-builds/src-noconflict/theme-monokai';
 import 'ace-builds/src-noconflict/theme-chrome';
+import 'ace-builds/src-noconflict/theme-github';
 
 /**
  * Get Ace mode based on language name
@@ -43,7 +44,10 @@ function getAceTheme(theme) {
         case 'dark':
         case 'monokai':
             return 'ace/theme/monokai';
+        case 'github':
+            return 'ace/theme/github';
         case 'light':
+        case 'chrome':
         default:
             return 'ace/theme/chrome';
     }

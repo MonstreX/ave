@@ -86,12 +86,12 @@ class CodeEditor extends AbstractField
 
     /**
      * Set editor theme
-     * Supported: 'light', 'dark', 'monokai'
+     * Supported: 'light', 'dark', 'monokai', 'github', 'chrome'
      */
     public function theme(string $theme): static
     {
         // Accept any theme name - Ace will handle it or fall back to default
-        // Supported: light, dark, monokai (mapped in JavaScript)
+        // Supported: light, dark, monokai, github, chrome (mapped in JavaScript)
         $this->theme = $theme;
         return $this;
     }
