@@ -2,8 +2,6 @@
 
 namespace Monstrex\Ave\Http\Controllers\Resource\Actions;
 
-use Monstrex\Ave\Support\CleanJsonResponse;
-
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Monstrex\Ave\Core\Form;
@@ -51,7 +49,7 @@ class UpdateAction extends AbstractResourceAction
         $model = $this->persistence->update($resourceClass, $form, $model, $data, $request, $context);
 
         if ($request->expectsJson() || $request->ajax()) {
-            return CleanJsonResponse::make([
+            return response()->json([
                 'success' => true,
                 'message' => __('ave::common.updated_successfully'),
                 'reload' => true,

@@ -2,8 +2,6 @@
 
 namespace Monstrex\Ave\Http\Controllers\Resource\Actions;
 
-use Monstrex\Ave\Support\CleanJsonResponse;
-
 use Illuminate\Http\Request;
 use Monstrex\Ave\Core\ResourceManager;
 
@@ -18,6 +16,6 @@ class TableJsonAction extends AbstractResourceAction
     {
         [$resourceClass] = $this->resolveAndAuthorize($slug, 'viewAny', $request);
 
-        return CleanJsonResponse::make($resourceClass::table($request)->get());
+        return response()->json($resourceClass::table($request)->get());
     }
 }

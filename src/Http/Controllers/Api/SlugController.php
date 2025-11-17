@@ -2,9 +2,6 @@
 
 namespace Monstrex\Ave\Http\Controllers\Api;
 
-use Monstrex\Ave\Support\CleanJsonResponse;
-use MonstrexAveSupportCleanJsonResponse;
-
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Monstrex\Ave\Services\SlugService;
@@ -55,7 +52,7 @@ class SlugController extends Controller
 
         $slug = SlugService::make($text, $separator, $locale);
 
-        return CleanJsonResponse::make([
+        return response()->json([
             'slug' => $slug,
         ]);
     }

@@ -2,8 +2,6 @@
 
 namespace Monstrex\Ave\Http\Controllers;
 
-use Monstrex\Ave\Support\CleanJsonResponse;
-
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
@@ -57,7 +55,7 @@ class MediaController extends Controller
                     $request->input('pathPrefix') ? trim($request->input('pathPrefix')) : null
                 );
 
-                return CleanJsonResponse::make([
+                return response()->json([
                     'success' => true,
                     'data' => [
                         'url' => $media->url(),
@@ -77,7 +75,7 @@ class MediaController extends Controller
                 $request->input('pathPrefix') ? trim($request->input('pathPrefix')) : null
             );
 
-            return CleanJsonResponse::make([
+            return response()->json([
                 'success' => true,
                 'media' => $uploadedMedia,
                 'count' => count($uploadedMedia),
@@ -87,7 +85,7 @@ class MediaController extends Controller
             \Log::error('[MediaController] Validation error', [
                 'errors' => $e->validator->errors()->all(),
             ]);
-            return CleanJsonResponse::make([
+            return response()->json([
                 'success' => false,
                 'message' => 'Validation failed: ' . implode(', ', $e->validator->errors()->all()),
             ], 422);
@@ -97,7 +95,7 @@ class MediaController extends Controller
                 'trace' => $e->getTraceAsString(),
             ]);
 
-            return CleanJsonResponse::make([
+            return response()->json([
                 'success' => false,
                 'message' => 'Upload failed: ' . $e->getMessage(),
             ], 500);
@@ -118,7 +116,7 @@ class MediaController extends Controller
             if ($media->model_type && $media->model_id) {
                 $ownerModel = $media->model_type::find($media->model_id);
                 if ($ownerModel && !\Gate::allows('update', $ownerModel)) {
-                    return CleanJsonResponse::make([
+                    return response()->json([
                         'success' => false,
                         'message' => 'Unauthorized to delete this media',
                     ], 403);
@@ -127,18 +125,18 @@ class MediaController extends Controller
 
             $this->managementService->deleteMedia($id);
 
-            return CleanJsonResponse::make([
+            return response()->json([
                 'success' => true,
                 'message' => 'Media deleted successfully',
             ]);
 
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            return CleanJsonResponse::make([
+            return response()->json([
                 'success' => false,
                 'message' => 'Media not found',
             ], 404);
         } catch (\Exception $e) {
-            return CleanJsonResponse::make([
+            return response()->json([
                 'success' => false,
                 'message' => 'Delete failed: ' . $e->getMessage(),
             ], 500);
@@ -161,7 +159,7 @@ class MediaController extends Controller
             $ids = $request->input('ids', []);
 
             if (empty($ids)) {
-                return CleanJsonResponse::make([
+                return response()->json([
                     'success' => false,
                     'message' => 'No IDs provided',
                 ], 400);
@@ -181,7 +179,7 @@ class MediaController extends Controller
             }
 
             if ($unauthorizedCount > 0) {
-                return CleanJsonResponse::make([
+                return response()->json([
                     'success' => false,
                     'message' => "Unauthorized to delete {$unauthorizedCount} of {$mediaItems->count()} media item(s)",
                 ], 403);
@@ -189,19 +187,19 @@ class MediaController extends Controller
 
             $deleted = $this->managementService->bulkDelete($ids);
 
-            return CleanJsonResponse::make([
+            return response()->json([
                 'success' => true,
                 'message' => "{$deleted} file(s) deleted successfully",
                 'deleted' => $deleted,
             ]);
 
         } catch (ValidationException $e) {
-            return CleanJsonResponse::make([
+            return response()->json([
                 'success' => false,
                 'message' => 'Validation failed: ' . implode(', ', $e->validator->errors()->all()),
             ], 422);
         } catch (\Exception $e) {
-            return CleanJsonResponse::make([
+            return response()->json([
                 'success' => false,
                 'message' => 'Bulk delete failed: ' . $e->getMessage(),
             ], 500);
@@ -226,12 +224,12 @@ class MediaController extends Controller
                 $data['collection']
             );
 
-            return CleanJsonResponse::make([
+            return response()->json([
                 'success' => true,
                 'deleted' => $deleted,
             ]);
         } catch (\Exception $e) {
-            return CleanJsonResponse::make([
+            return response()->json([
                 'success' => false,
                 'message' => 'Delete failed: ' . $e->getMessage(),
             ], 500);
@@ -253,19 +251,19 @@ class MediaController extends Controller
             $mediaItems = $request->input('media', []);
             $updated = $this->managementService->reorder($mediaItems);
 
-            return CleanJsonResponse::make([
+            return response()->json([
                 'success' => true,
                 'message' => "Reordered {$updated} items",
                 'updated' => $updated,
             ]);
 
         } catch (ValidationException $e) {
-            return CleanJsonResponse::make([
+            return response()->json([
                 'success' => false,
                 'message' => 'Validation failed: ' . implode(', ', $e->validator->errors()->all()),
             ], 422);
         } catch (\Exception $e) {
-            return CleanJsonResponse::make([
+            return response()->json([
                 'success' => false,
                 'message' => 'Reorder failed: ' . $e->getMessage(),
             ], 500);
@@ -283,7 +281,7 @@ class MediaController extends Controller
 
             $media = $this->managementService->updateProperties($id, $props);
 
-            return CleanJsonResponse::make([
+            return response()->json([
                 'success' => true,
                 'message' => 'Properties updated successfully',
                 'media' => [
@@ -293,12 +291,12 @@ class MediaController extends Controller
             ]);
 
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            return CleanJsonResponse::make([
+            return response()->json([
                 'success' => false,
                 'message' => 'Media not found',
             ], 404);
         } catch (\Exception $e) {
-            return CleanJsonResponse::make([
+            return response()->json([
                 'success' => false,
                 'message' => 'Update failed: ' . $e->getMessage(),
             ], 500);
@@ -314,7 +312,7 @@ class MediaController extends Controller
             $media = MediaModel::findOrFail($id);
 
             if (!in_array($media->mime_type, ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'])) {
-                return CleanJsonResponse::make([
+                return response()->json([
                     'success' => false,
                     'message' => 'Only image files can be cropped',
                 ], 400);
@@ -339,19 +337,19 @@ class MediaController extends Controller
                 $data['aspectRatio'] ?? null
             );
 
-            return CleanJsonResponse::make([
+            return response()->json([
                 'success' => true,
                 'message' => 'Image cropped successfully',
                 'media' => $result,
             ]);
 
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            return CleanJsonResponse::make([
+            return response()->json([
                 'success' => false,
                 'message' => 'Media not found',
             ], 404);
         } catch (ValidationException $e) {
-            return CleanJsonResponse::make([
+            return response()->json([
                 'success' => false,
                 'message' => 'Validation failed: ' . implode(', ', $e->validator->errors()->all()),
             ], 422);
@@ -362,7 +360,7 @@ class MediaController extends Controller
                 'trace' => $e->getTraceAsString(),
             ]);
 
-            return CleanJsonResponse::make([
+            return response()->json([
                 'success' => false,
                 'message' => 'Crop failed: ' . $e->getMessage(),
             ], 500);
@@ -406,19 +404,19 @@ class MediaController extends Controller
                 $request->input('pathPrefix') ? trim($request->input('pathPrefix')) : null
             );
 
-            return CleanJsonResponse::make([
+            return response()->json([
                 'success' => true,
                 'path' => $path,
                 'message' => 'File uploaded successfully',
             ]);
 
         } catch (ValidationException $e) {
-            return CleanJsonResponse::make([
+            return response()->json([
                 'success' => false,
                 'message' => 'Validation failed: ' . implode(', ', $e->validator->errors()->all()),
             ], 422);
         } catch (\Exception $e) {
-            return CleanJsonResponse::make([
+            return response()->json([
                 'success' => false,
                 'message' => 'File upload failed: ' . $e->getMessage(),
             ], 500);

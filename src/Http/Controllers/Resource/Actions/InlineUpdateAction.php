@@ -2,8 +2,6 @@
 
 namespace Monstrex\Ave\Http\Controllers\Resource\Actions;
 
-use Monstrex\Ave\Support\CleanJsonResponse;
-
 use Illuminate\Http\Request;
 use Monstrex\Ave\Core\Columns\BooleanColumn;
 use Monstrex\Ave\Core\ResourceManager;
@@ -25,7 +23,7 @@ class InlineUpdateAction extends AbstractResourceAction
 
         $field = (string) $request->input('field', '');
         if ($field === '') {
-            return CleanJsonResponse::make([
+            return response()->json([
                 'status' => 'error',
                 'message' => 'Field is required.',
             ], 422);
@@ -35,7 +33,7 @@ class InlineUpdateAction extends AbstractResourceAction
         $column = $table->findInlineColumn($field);
 
         if (!$column) {
-            return CleanJsonResponse::make([
+            return response()->json([
                 'status' => 'error',
                 'message' => 'Field is not inline editable.',
             ], 422);
@@ -69,7 +67,7 @@ class InlineUpdateAction extends AbstractResourceAction
                 : (string) $column->getFalseValue();
         }
 
-        return CleanJsonResponse::make([
+        return response()->json([
             'status' => 'success',
             'field' => $field,
             'value' => $raw,

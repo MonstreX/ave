@@ -2,8 +2,6 @@
 
 namespace Monstrex\Ave\Http\Controllers\Resource\Actions;
 
-use Monstrex\Ave\Support\CleanJsonResponse;
-
 use Illuminate\Http\Request;
 use Monstrex\Ave\Core\ResourceManager;
 use Monstrex\Ave\Core\Table;
@@ -44,7 +42,7 @@ class ReorderAction extends AbstractResourceAction
             $slug
         );
 
-        return CleanJsonResponse::make([
+        return response()->json([
             'success' => true,
             'message' => 'Order updated successfully',
         ]);
