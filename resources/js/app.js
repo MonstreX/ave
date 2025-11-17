@@ -14,6 +14,7 @@ import initTreeView from './modules/resources/treeView.js';
 import initSortableTable from './modules/resources/sortableTable.js';
 import initSortableGroupedTable from './modules/resources/sortableGroupedTable.js';
 import initFormValidation from './modules/forms/formValidation.js';
+import { confirm, createModal, closeModal, destroyModal } from './modules/ui/modals.js';
 
 // Expose global event bus
 window.Ave = window.Ave || {};
@@ -44,6 +45,15 @@ document.addEventListener('DOMContentLoaded', () => {
     // Notify all listeners that DOM is ready and initialized
     // This allows dynamic content loaders to trigger reinitialization
     aveEvents.emit('dom:updated', document);
+
+    // Emit ave:loaded event with Ave object after full initialization
+    // This provides access to modal functions for other components
+    aveEvents.emit('ave:loaded', {
+        confirm,
+        createModal,
+        closeModal,
+        destroyModal
+    });
 });
 
 window.addEventListener('load', () => {
