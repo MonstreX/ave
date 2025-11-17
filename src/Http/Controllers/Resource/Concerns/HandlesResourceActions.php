@@ -28,7 +28,7 @@ trait HandlesResourceActions
         $payload = [
             'status' => 'success',
             'action' => $action->key(),
-            'message' => $action->label() . ' completed',
+            'message' => null,
             'result' => $result,
         ];
 
@@ -63,9 +63,7 @@ trait HandlesResourceActions
             return response()->json($payload);
         }
 
-        return redirect()
-            ->back()
-            ->with('status', $payload['message']);
+        return redirect()->back();
     }
 
     protected function actionNotFoundResponse(Request $request, string $action)
