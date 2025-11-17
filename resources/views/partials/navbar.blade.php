@@ -5,61 +5,31 @@
                 <span class="hamburger-inner"></span>
             </button>
             @php
-                $dashboardRoute = \Illuminate\Support\Facades\Route::has('ave.dashboard') ? route('ave.dashboard') : null;
-                $segments = [];
-                if ($dashboardRoute) {
-                    $currentPath = trim(parse_url(request()->url(), PHP_URL_PATH), '/');
-                    $dashboardPath = trim(parse_url($dashboardRoute, PHP_URL_PATH), '/');
-                    if ($dashboardPath !== '' && str_starts_with($currentPath, $dashboardPath)) {
-                        $relative = trim(substr($currentPath, strlen($dashboardPath)), '/');
-                    } else {
-                        $relative = $currentPath;
-                    }
-                    $segments = $relative === '' ? [] : explode('/', $relative);
-                    $segments = array_values(array_filter($segments, fn ($segment) => $segment !== ''));
-                    if (!empty($segments)) {
-                        $last = end($segments);
-                        if (in_array($last, ['edit', 'create'], true)) {
-                            array_pop($segments);
-                        }
-                    }
-                    $visibleSegments = array_values(array_filter($segments, fn ($segment) => $segment !== 'resource'));
-                }
+                $breadcrumbs = app(\Monstrex\Ave\Services\BreadcrumbService::class)->generate();
             @endphp
             @section('breadcrumbs')
             <ol class="ave-navbar__breadcrumb hidden-xs">
-                @if($dashboardRoute)
+                @forelse($breadcrumbs as $breadcrumb)
                     <li class="ave-navbar__breadcrumb-item">
-                        <a href="{{ $dashboardRoute }}" class="ave-navbar__breadcrumb-link"><i class="voyager-boat"></i> {{ __('ave::dashboard.title') }}</a>
-                    </li>
-                    @php
-                        $url = $dashboardRoute;
-                        $visibleCount = isset($visibleSegments) ? count($visibleSegments) : 0;
-                        $visibleIndex = 0;
-                    @endphp
-                    @foreach ($segments as $segment)
-                        @php $url .= '/' . $segment; @endphp
-                        @if ($segment === 'resource')
-                            @continue
-                        @endif
-                        @php
-                            $label = ucfirst(urldecode($segment));
-                            $isLastVisible = ($visibleIndex === $visibleCount - 1);
-                            $visibleIndex++;
-                        @endphp
-                        @if ($isLastVisible)
-                            <li class="ave-navbar__breadcrumb-item">{{ $label }}</li>
+                        @if($breadcrumb['url'] && !($breadcrumb['active'] ?? false))
+                            <a href="{{ $breadcrumb['url'] }}" class="ave-navbar__breadcrumb-link">
+                                @if($breadcrumb['icon'] ?? null)
+                                    <i class="{{ $breadcrumb['icon'] }}"></i>
+                                @endif
+                                {{ $breadcrumb['label'] }}
+                            </a>
                         @else
-                            <li class="ave-navbar__breadcrumb-item">
-                                <a href="{{ $url }}" class="ave-navbar__breadcrumb-link">{{ $label }}</a>
-                            </li>
+                            @if($breadcrumb['icon'] ?? null)
+                                <i class="{{ $breadcrumb['icon'] }}"></i>
+                            @endif
+                            {{ $breadcrumb['label'] }}
                         @endif
-                    @endforeach
-                @else
+                    </li>
+                @empty
                     <li class="ave-navbar__breadcrumb-item">
                         <a href="{{ url('/') }}" class="ave-navbar__breadcrumb-link"><i class="voyager-boat"></i> {{ config('app.name') }}</a>
                     </li>
-                @endif
+                @endforelse
             </ol>
             @show
         </div>

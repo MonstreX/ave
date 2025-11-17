@@ -24,6 +24,7 @@ use Monstrex\Ave\Routing\RouteRegistrar;
 use Monstrex\Ave\Admin\Access\AccessManager;
 use Monstrex\Ave\Media\MediaStorage;
 use Monstrex\Ave\Core\Media\MediaRepository;
+use Monstrex\Ave\Services\BreadcrumbService;
 use Monstrex\Ave\Exceptions\AveException;
 use Monstrex\Ave\Exceptions\ResourceException;
 use RuntimeException;
@@ -48,6 +49,7 @@ class AveServiceProvider extends ServiceProvider
         $this->app->singleton(AdminResourceDiscovery::class);
         $this->app->singleton(AdminPageDiscovery::class);
         $this->app->singleton(AccessManager::class);
+        $this->app->singleton(BreadcrumbService::class);
 
         $this->app->singleton(ResourceManager::class, function ($app) {
             return new ResourceManager(
