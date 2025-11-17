@@ -172,8 +172,10 @@ async function executeAction(trigger, endpoint, extraPayload = {}, meta = {}) {
         return;
     }
 
-    const message = data.message || trans('actions.success');
-    showToast('success', message);
+    // Only show toast if action explicitly provides a message
+    if (data.message) {
+        showToast('success', data.message);
+    }
 
     const redirect = data.redirect ?? null;
     if (redirect) {
