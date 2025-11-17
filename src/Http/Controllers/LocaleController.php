@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Session;
 
 class LocaleController extends Controller
 {
@@ -42,8 +43,10 @@ class LocaleController extends Controller
 
         // Update user locale
         $user = Auth::user();
-        $user->locale = $locale;
-        $user->save();
+        $user->update(['locale' => $locale]);
+
+        // Refresh the authenticated user in the guard
+        Auth::setUser($user);
 
         // Apply locale immediately
         app()->setLocale($locale);

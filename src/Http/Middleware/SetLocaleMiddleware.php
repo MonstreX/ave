@@ -18,7 +18,17 @@ class SetLocaleMiddleware
      */
     public function handle(Request $request, Closure $next)
     {
-        $locale = Auth::user()?->locale ?? config('app.locale', 'en');
+        // Get locale from authenticated user
+        if (Auth::check()) {
+            // Refresh user from database to get latest locale
+            $user = Auth::user();
+            if ($user && method_exists($user, 'refresh')) {
+                $user->refresh();
+            }
+            $locale = $user->locale ?? config('app.locale', 'en');
+        } else {
+            $locale = config('app.locale', 'en');
+        }
 
         App::setLocale($locale);
 
