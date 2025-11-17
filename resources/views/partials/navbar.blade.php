@@ -5,7 +5,8 @@
                 <span class="hamburger-inner"></span>
             </button>
             @php
-                $breadcrumbs = app(\Monstrex\Ave\Services\BreadcrumbService::class)->generate();
+                use Monstrex\Ave\Facades\Breadcrumb;
+                $breadcrumbs = Breadcrumb::generate();
             @endphp
             @section('breadcrumbs')
             <ol class="ave-navbar__breadcrumb hidden-xs">
