@@ -17,6 +17,7 @@ import initFormValidation from './modules/forms/formValidation.js';
 import { confirm, createModal, closeModal, destroyModal } from './modules/ui/modals.js';
 
 // Expose global event bus
+window.aveEvents = aveEvents;
 window.Ave = window.Ave || {};
 window.Ave.events = aveEvents;
 
