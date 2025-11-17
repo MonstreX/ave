@@ -450,21 +450,4 @@ class AveServiceProvider extends ServiceProvider
 
         return [$prefix, "{$prefix}/*"];
     }
-
-    protected function registerResponseMacros(): void
-    {
-        \Illuminate\Support\Facades\Response::macro("cleanJson", function (
-            mixed $data = [],
-            int $status = 200,
-            array $headers = [],
-            int $options = 0
-        ) {
-            return \Monstrex\Ave\Support\CleanJsonResponse::make(
-                $data,
-                $status,
-                $headers,
-                $options
-            );
-        });
-    }
 }
