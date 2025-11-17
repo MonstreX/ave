@@ -49,12 +49,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Emit ave:loaded event with Ave object after full initialization
     // This provides access to modal functions for other components
-    aveEvents.emit('ave:loaded', {
+    const AveApi = {
         confirm,
         createModal,
         closeModal,
         destroyModal
-    });
+    };
+    aveEvents.emit('ave:loaded', AveApi);
+
+    // Also expose on window for components that need it
+    window.Ave = window.Ave || {};
+    Object.assign(window.Ave, AveApi);
 });
 
 window.addEventListener('load', () => {
