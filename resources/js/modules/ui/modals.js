@@ -124,7 +124,7 @@ export const createModal = (options) => {
                 onConfirm(modal);
             }
             if (autoClose) {
-                cleanup();
+                setTimeout(() => cleanup(), 0);
             }
         });
     }
