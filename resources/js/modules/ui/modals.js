@@ -206,6 +206,13 @@ export const alert = (message, options = {}) => {
 };
 
 export default function initModals() {
+    // Expose modal functions to window for global access
+    window.Ave = window.Ave || {};
+    window.Ave.confirm = confirm;
+    window.Ave.createModal = createModal;
+    window.Ave.closeModal = closeModal;
+    window.Ave.destroyModal = destroyModal;
+
     document.querySelectorAll('[data-ave-modal-trigger]').forEach((trigger) => {
         const targetSelector = trigger.getAttribute('data-ave-modal-trigger');
         const targetModal = targetSelector ? document.querySelector(targetSelector) : null;
