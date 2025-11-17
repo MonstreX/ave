@@ -1,11 +1,11 @@
-<div class="panel panel-bordered">
-    <div class="panel-body">
-        <form id="ave-resource-form" action="{{ $action }}" method="POST" enctype="multipart/form-data" @if($isEdit) data-model-type="{{ get_class($model) }}" data-model-id="{{ $model->getKey() }}" @endif>
-            @csrf
-            @if($isEdit)
-                @method('PUT')
-            @endif
+<form id="ave-resource-form" action="{{ $action }}" method="POST" enctype="multipart/form-data" @if($isEdit) data-model-type="{{ get_class($model) }}" data-model-id="{{ $model->getKey() }}" @endif>
+    @csrf
+    @if($isEdit)
+        @method('PUT')
+    @endif
 
+    <div class="panel panel-bordered">
+        <div class="panel-body">
             @foreach($formLayout as $entry)
                 @php
                     $entryType = $entry['type'] ?? (isset($entry['columns']) ? 'row-legacy' : null);
@@ -27,11 +27,11 @@
                     </div>
                 @endif
             @endforeach
-
-            @include('ave::partials.form.actions', [
-                'formButtonActions' => $formButtonActions ?? [],
-                'ajaxFormActions' => $ajaxFormActions ?? [],
-            ])
-        </form>
+        </div>
     </div>
-</div>
+
+    @include('ave::partials.form.actions', [
+        'formButtonActions' => $formButtonActions ?? [],
+        'ajaxFormActions' => $ajaxFormActions ?? [],
+    ])
+</form>

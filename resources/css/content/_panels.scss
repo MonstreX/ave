@@ -220,3 +220,23 @@ input[type=file] {
     }
 }
 
+// ============================================
+// FORM ACTIONS - Outside of panel-body
+// ============================================
+
+.form-actions {
+    padding: 15px 20px;
+    background-color: #f5f5f5;
+    border-top: 1px solid #e4eaec;
+    border-bottom-left-radius: 3px;
+    border-bottom-right-radius: 3px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-bottom: 22px;
+
+    .btn {
+        margin: 0;
+    }
+}
+
