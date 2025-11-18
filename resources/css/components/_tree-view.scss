@@ -30,12 +30,11 @@
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    padding: 0.50rem;
+    padding: 0.35rem 0.55rem;
     background: #f7f7f7;
     border: 1px solid #cbcbcb;
     border-radius: 3px;
     transition: all 0.2s ease;
-    min-height: 3rem;
 
     &:hover {
         border-color: #3490dc;
