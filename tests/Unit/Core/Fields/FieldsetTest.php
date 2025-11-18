@@ -213,4 +213,29 @@ class FieldsetTest extends TestCase
         $this->assertInstanceOf(Number::class, $children[1]);
         $this->assertInstanceOf(Toggle::class, $children[2]);
     }
+
+    /** @test */
+    public function it_can_preserve_empty_items()
+    {
+        $fieldset = Fieldset::make('items')
+            ->minItems(1)
+            ->preserveEmptyItems()
+            ->schema([
+                TextInput::make('title'),
+                TextInput::make('description'),
+            ]);
+
+        $request = Request::create('/', 'POST', [
+            'items' => [
+                ['_id' => 0, 'title' => '', 'description' => ''],
+            ],
+        ]);
+
+        $context = FormContext::forCreate([], $request);
+        $result = $fieldset->prepareForSave($request->input('items'), $request, $context);
+
+        $this->assertCount(1, $result->value());
+        $this->assertArrayHasKey('title', $result->value()[0]);
+        $this->assertSame('', $result->value()[0]['title']);
+    }
 }

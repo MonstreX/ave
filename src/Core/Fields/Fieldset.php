@@ -37,6 +37,7 @@ class Fieldset extends AbstractField implements HandlesFormRequest, ProvidesVali
     protected bool $sortable = true;
     protected bool $collapsible = false;
     protected bool $collapsed = false;
+    protected bool $preserveEmptyItems = false;
 
     protected int $minItems = 0;
     protected ?int $maxItems = null;
@@ -368,7 +369,20 @@ class Fieldset extends AbstractField implements HandlesFormRequest, ProvidesVali
             'deleteButtonLabel' => $this->deleteButtonLabel,
             'headTitle' => $this->headTitle,
             'headPreview' => $this->headPreview,
+            'preserveEmptyItems' => $this->preserveEmptyItems,
         ]);
+    }
+
+    public function preserveEmptyItems(bool $preserve = true): static
+    {
+        $this->preserveEmptyItems = $preserve;
+
+        return $this;
+    }
+
+    public function preservesEmptyItems(): bool
+    {
+        return $this->preserveEmptyItems;
     }
 
     public function getItemFields(int $index): array

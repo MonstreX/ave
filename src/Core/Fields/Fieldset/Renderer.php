@@ -38,6 +38,17 @@ class Renderer
         }
         unset($itemData);
 
+        $minimumRequired = max(0, $fieldset->getMinItems() - count($items));
+        $nextIndex = count($normalized);
+
+        while ($minimumRequired > 0) {
+            $blank = ['_id' => $nextIndex];
+            $items[] = $this->itemFactory->makeFromData($nextIndex, $blank, $record, $context);
+            $normalized[] = $blank;
+            $nextIndex++;
+            $minimumRequired--;
+        }
+
         $templateFields = $this->itemFactory->makeTemplateFields();
 
         return new RenderResult($items, $templateFields);

@@ -3,6 +3,7 @@
 namespace Monstrex\Ave\Http\Controllers\Resource\Concerns;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 
 trait HandlesValidationErrors
@@ -19,6 +20,12 @@ trait HandlesValidationErrors
         Request $request
     ) {
         $errorMessages = $this->formatValidationErrors($exception->errors());
+
+        Log::warning('Resource form validation failed', [
+            'path' => $request->path(),
+            'route' => $request->route()?->getName(),
+            'errors' => $exception->errors(),
+        ]);
 
         if ($request->expectsJson() || $request->ajax()) {
             return response()->json([

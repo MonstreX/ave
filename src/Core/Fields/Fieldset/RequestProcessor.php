@@ -79,7 +79,7 @@ class RequestProcessor
                 $normalizedItem[$baseKey] = $normalizedValue;
             }
 
-            if (!$hasMeaningfulData) {
+            if (!$hasMeaningfulData && !$this->fieldset->preservesEmptyItems()) {
                 $this->logger->debug('Fieldset request item skipped (no meaningful data)', [
                     'fieldset' => $this->fieldset->getKey(),
                     'item_id' => $itemId,
