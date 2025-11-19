@@ -20,6 +20,7 @@ import initSlugFields from './slugFields.js';
 import initPasswordToggle from './passwordToggle.js';
 import initFormFields from './formFields.js';
 import initOptionCards from './optionCards.js';
+import initFieldsetCards from './fieldsetCards.js';
 
 let editorsModulePromise = null;
 
@@ -43,6 +44,7 @@ export function reinitFormComponents(container) {
     initPasswordToggle(container);
     initSlugFields(container);
     initMediaField(container);
+    initFieldsetCards(container);
 }
 
 /**
