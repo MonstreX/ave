@@ -4,6 +4,11 @@ import { showOverlay, hideOverlay } from '../ui/overlayManager.js';
 
 export default function initFieldsetCards(root = document) {
     root.querySelectorAll('[data-fieldset].fieldset-cards-view').forEach(container => {
+        // Skip if already initialized
+        if (container.dataset.cardsInitialized === 'true') {
+            return;
+        }
+
         const hasHeadFields = container.querySelector('[data-head-title-field], [data-head-preview-field]');
         if (!hasHeadFields) {
             return;
@@ -11,6 +16,9 @@ export default function initFieldsetCards(root = document) {
 
         const itemsContainer = container.querySelector('[data-fieldset-items]');
         const fieldName = container.dataset.fieldName;
+
+        // Mark as initialized
+        container.dataset.cardsInitialized = 'true';
 
         updateAllItemHeaders();
 
