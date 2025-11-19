@@ -234,6 +234,27 @@ input[type=file] {
     .btn {
         margin: 0;
     }
+
+    // Sticky variant - fixed to bottom of screen
+    &--sticky {
+        position: fixed;
+        bottom: 0;
+        left: var(--sidebar-width, 250px);
+        right: 0;
+        z-index: 1000;
+        margin: 0;
+        padding: 7px 7px;
+        background: #ffffff29;
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(10px);
+        box-shadow: 0 -2px 8px #00000014;
+        transition: transform .2s ease, opacity .2s ease;
+    }
+}
+
+// Add padding-bottom to page content when sticky actions are present
+body:has(.form-actions--sticky) .page-content {
+    padding-bottom: 80px; // Prevent content from being hidden under sticky actions
 }
 
 // ============================================

@@ -1,9 +1,10 @@
 @php
     $formButtonActions = $formButtonActions ?? [];
     $ajaxFormActions = $ajaxFormActions ?? [];
+    $stickyActions = $stickyActions ?? false;
 @endphp
 
-<div class="form-actions">
+<div class="form-actions {{ $stickyActions ? 'form-actions--sticky' : '' }}">
     @foreach($formButtonActions as $action)
         @if(($action['type'] ?? 'submit') === 'submit')
             <button type="submit"

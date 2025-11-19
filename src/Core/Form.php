@@ -16,6 +16,7 @@ class Form
 
     protected ?string $submitLabel = null;
     protected ?string $cancelUrl = null;
+    protected bool $stickyActions = false;
 
     public static function make(): static
     {
@@ -84,6 +85,23 @@ class Form
     {
         $this->cancelUrl = $url;
         return $this;
+    }
+
+    /**
+     * Enable sticky action buttons (fixed to bottom of screen)
+     */
+    public function stickyActions(bool $sticky = true): static
+    {
+        $this->stickyActions = $sticky;
+        return $this;
+    }
+
+    /**
+     * Check if sticky actions are enabled
+     */
+    public function hasStickyActions(): bool
+    {
+        return $this->stickyActions;
     }
 
     /**

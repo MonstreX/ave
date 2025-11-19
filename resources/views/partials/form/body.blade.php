@@ -33,5 +33,6 @@
     @include('ave::partials.form.actions', [
         'formButtonActions' => $formButtonActions ?? [],
         'ajaxFormActions' => $ajaxFormActions ?? [],
+        'stickyActions' => $stickyActions ?? false,
     ])
 </form>

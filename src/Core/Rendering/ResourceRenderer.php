@@ -98,6 +98,7 @@ class ResourceRenderer
             'request' => $request,
             'formButtonActions' => $buttonActions,
             'ajaxFormActions' => $ajaxActions,
+            'stickyActions' => $form->hasStickyActions(),
         ]);
     }
 
