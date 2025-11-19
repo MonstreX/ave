@@ -6,14 +6,11 @@ export default function initFieldsetCards(root = document) {
     root.querySelectorAll('[data-fieldset].fieldset-cards-view').forEach(container => {
         // Skip if already initialized
         if (container.dataset.cardsInitialized === 'true') {
-            console.log('FieldsetCards: Already initialized, skipping');
             return;
         }
 
         const itemsContainer = container.querySelector('[data-fieldset-items]');
         const fieldName = container.dataset.fieldName;
-
-        console.log('FieldsetCards: Initializing for', fieldName);
 
         // Mark as initialized
         container.dataset.cardsInitialized = 'true';
@@ -25,7 +22,6 @@ export default function initFieldsetCards(root = document) {
         container.addEventListener('mediaChanged', handleMediaChange, true);
 
         container.addEventListener('click', (e) => {
-            console.log('FieldsetCards: Click detected', e.target);
             const closeBtn = e.target.closest('[data-action="close-sidebar"]');
             if (closeBtn) {
                 const item = closeBtn.closest('[data-item-index]');
@@ -50,10 +46,8 @@ export default function initFieldsetCards(root = document) {
 
             const cardHeader = e.target.closest('.fieldset-card-header');
             if (cardHeader) {
-                console.log('FieldsetCards: Card header clicked');
                 const item = cardHeader.closest('[data-item-index]');
                 if (item) {
-                    console.log('FieldsetCards: Adding is-editing class to item', item);
                     item.classList.add('is-editing');
                     showOverlay();
                     const sortable = getSortable(fieldName);
