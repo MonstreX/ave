@@ -1,17 +1,3 @@
-@php
-function fm_format_size($bytes) {
-    if ($bytes >= 1073741824) {
-        return number_format($bytes / 1073741824, 2) . ' GB';
-    } elseif ($bytes >= 1048576) {
-        return number_format($bytes / 1048576, 2) . ' MB';
-    } elseif ($bytes >= 1024) {
-        return number_format($bytes / 1024, 2) . ' KB';
-    } else {
-        return $bytes . ' B';
-    }
-}
-@endphp
-
 @if(isset($data['error']))
     <div class="alert alert-danger">
         <i class="voyager-warning"></i> {{ $data['error'] }}
@@ -29,7 +15,7 @@ function fm_format_size($bytes) {
             </tr>
         </thead>
         <tbody>
-            @if($data['parent_path'] !== null || $data['current_path'])
+            @if($data['current_path'])
                 <tr class="fm-item fm-parent">
                     <td><i class="voyager-folder" style="color: #3498db; font-size: 20px;"></i></td>
                     <td>
@@ -84,7 +70,7 @@ function fm_format_size($bytes) {
                     </td>
                     <td>
                         @if($item['type'] === 'file')
-                            {{ fm_format_size($item['size']) }}
+                            {{ humanFileSize($item['size']) }}
                         @else
                             —
                         @endif

@@ -45,7 +45,7 @@ class FileManagerController extends Controller
      */
     public function read(Request $request): JsonResponse
     {
-        $path = $request->get('path', '');
+        $path = $request->get('path') ?? '';
         $data = $this->fileManager->read($path);
 
         if (isset($data['error'])) {
