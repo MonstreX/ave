@@ -13,7 +13,7 @@ class CacheMenuSeeder extends Seeder
      */
     public function run(): void
     {
-        $menu = Menu::where('slug', 'main')
+        $menu = Menu::where('key', 'admin')
             ->orWhere('is_default', true)
             ->first();
 

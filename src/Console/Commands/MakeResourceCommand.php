@@ -300,11 +300,11 @@ class MakeResourceCommand extends Command
         $slug = Str::plural(Str::kebab($resourceName));
         $label = Str::plural(Str::title(Str::snake($resourceName, ' ')));
 
-        // Get main menu
-        $menuId = \DB::table('ave_menus')->where('slug', 'main')->value('id');
+        // Get admin menu
+        $menuId = \DB::table('ave_menus')->where('key', 'admin')->value('id');
 
         if (!$menuId) {
-            $this->warn('Main menu not found. Skipping menu item creation.');
+            $this->warn('Admin menu not found. Skipping menu item creation.');
             return;
         }
 

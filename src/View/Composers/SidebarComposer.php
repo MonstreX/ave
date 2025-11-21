@@ -45,10 +45,10 @@ class SidebarComposer
 
     protected function buildMenuItems(?Authenticatable $user): array
     {
-        $menuSlug = config('ave.menu.default_slug', 'main');
+        $menuKey = config('ave.menu.default_key', 'admin');
 
         $menu = Menu::query()
-            ->where('slug', $menuSlug)
+            ->where('key', $menuKey)
             ->orWhere('is_default', true)
             ->orderByDesc('is_default')
             ->first();
