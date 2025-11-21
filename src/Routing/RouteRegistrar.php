@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use Monstrex\Ave\Http\Controllers\Api\SlugController;
 use Monstrex\Ave\Http\Controllers\AuthController;
 use Monstrex\Ave\Http\Controllers\CacheController;
+use Monstrex\Ave\Http\Controllers\FileManagerController;
 use Monstrex\Ave\Http\Controllers\LocaleController;
 use Monstrex\Ave\Http\Controllers\MediaController;
 use Monstrex\Ave\Http\Middleware\HandleAveExceptions;
@@ -78,6 +79,7 @@ class RouteRegistrar
                 $this->registerApiRoutes($router);
                 $this->registerLocaleRoutes($router);
                 $this->registerCacheRoutes($router);
+                $this->registerFileManagerRoutes($router);
 
                 $router->fallback(function () {
                     abort(404);
@@ -139,6 +141,37 @@ class RouteRegistrar
         $router->post('/cache/clear/{type}', [CacheController::class, 'clear'])
             ->name('ave.cache.clear')
             ->where('type', 'application|config|route|view|all');
+    }
+
+    protected function registerFileManagerRoutes(Router $router): void
+    {
+        if (! config('ave.file_manager.enabled', true)) {
+            return;
+        }
+
+        $router->get('/file-manager', [FileManagerController::class, 'index'])
+            ->name('ave.file-manager.index');
+
+        $router->get('/file-manager/list', [FileManagerController::class, 'list'])
+            ->name('ave.file-manager.list');
+
+        $router->get('/file-manager/read', [FileManagerController::class, 'read'])
+            ->name('ave.file-manager.read');
+
+        $router->post('/file-manager/save', [FileManagerController::class, 'save'])
+            ->name('ave.file-manager.save');
+
+        $router->post('/file-manager/directory', [FileManagerController::class, 'createDirectory'])
+            ->name('ave.file-manager.create-directory');
+
+        $router->post('/file-manager/upload', [FileManagerController::class, 'upload'])
+            ->name('ave.file-manager.upload');
+
+        $router->delete('/file-manager/delete', [FileManagerController::class, 'delete'])
+            ->name('ave.file-manager.delete');
+
+        $router->post('/file-manager/rename', [FileManagerController::class, 'rename'])
+            ->name('ave.file-manager.rename');
     }
 
     protected function prefix(): string

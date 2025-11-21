@@ -99,4 +99,15 @@ return [
     'user_table' => env('AVE_USER_TABLE', 'users'),
     'login_route' => 'login',
     'login_submit_route' => 'login.submit',
+
+    /*
+     * File Manager configuration.
+     */
+    'file_manager' => [
+        'enabled' => (bool) env('AVE_FILE_MANAGER_ENABLED', true),
+        'root_path' => env('AVE_FILE_MANAGER_ROOT', 'public'),
+        'editable_extensions' => ['txt', 'html', 'htm', 'css', 'js', 'json', 'xml', 'svg', 'htaccess', 'md'],
+        'forbidden_extensions' => ['php', 'phtml', 'phar', 'sh', 'bash', 'exe', 'bat'],
+        'max_upload_size' => (int) env('AVE_FILE_MANAGER_MAX_UPLOAD', 10240), // KB
+    ],
 ];

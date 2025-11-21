@@ -13,5 +13,6 @@ return [
         'cache_route' => 'Route Cache',
         'cache_view' => 'View Cache',
         'cache_all' => 'Clear All',
+        'file_manager' => 'File Manager',
     ],
 ];

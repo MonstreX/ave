@@ -16,6 +16,7 @@ import initSortableGroupedTable from './modules/resources/sortableGroupedTable.j
 import initFormValidation from './modules/forms/formValidation.js';
 import { confirm, createModal, closeModal, destroyModal } from './modules/ui/modals.js';
 import initCacheClear from './modules/cache/clearCache.js';
+import initFileManager from './modules/file-manager/fileManager.js';
 
 // Expose global event bus
 window.aveEvents = aveEvents;
@@ -44,6 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initTreeView();
     initSortableTable();
     initCacheClear();
+    initFileManager();
 
     // Notify all listeners that DOM is ready and initialized
     // This allows dynamic content loaders to trigger reinitialization

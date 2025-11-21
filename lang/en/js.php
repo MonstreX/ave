@@ -177,6 +177,24 @@ return [
         'error' => 'Error clearing cache',
     ],
 
+    // File Manager
+    'file_manager' => [
+        'error' => 'An error occurred',
+        'file_saved' => 'File saved',
+        'folder_created' => 'Folder created',
+        'file_uploaded' => 'File uploaded',
+        'deleted' => 'Deleted',
+        'renamed' => 'Renamed',
+        'confirm_delete' => 'Are you sure you want to delete this item?',
+        'folder_name' => 'Folder name',
+        'folder_name_placeholder' => 'Enter folder name',
+        'new_folder' => 'New folder',
+        'upload_file' => 'Upload file',
+        'upload' => 'Upload',
+        'rename' => 'Rename',
+        'new_name' => 'New name',
+    ],
+
     // Common
     'common' => [
         'loading' => 'Loading...',
@@ -204,6 +222,7 @@ return [
         'no' => 'No',
         'ok' => 'OK',
         'alert' => 'Alert',
+        'create' => 'Create',
         'copied_to_clipboard' => 'Copied to clipboard.',
         'copy_failed' => 'Copy failed. Please try again.',
     ],
