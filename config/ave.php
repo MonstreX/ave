@@ -65,7 +65,7 @@ return [
     ],
 
     'menu' => [
-        'default_slug' => env('AVE_MENU_DEFAULT', 'main'),
+        'default_key' => env('AVE_MENU_DEFAULT', 'admin'),
     ],
 
     /*
