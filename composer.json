@@ -6,8 +6,8 @@
     "keywords": ["laravel", "admin", "panel", "ave"],
     "authors": [
         {
-            "name": "Monstrex",
-            "email": "info@monstrex.dev"
+            "name": "MonstreX",
+            "email": "dev@monstrex.dev"
         }
     ],
     "require": {
