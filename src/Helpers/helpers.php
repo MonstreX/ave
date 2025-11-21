@@ -105,7 +105,7 @@ if (!function_exists('menu')) {
             $query->whereNull('parent_id')->orderBy('order');
         }, 'items.children' => function ($query) {
             $query->orderBy('order');
-        }])->where('name', $menuName)->orWhere('slug', $menuName)->first();
+        }])->where('name', $menuName)->orWhere('key', $menuName)->first();
 
         if (!$menu) {
             return '';
