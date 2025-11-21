@@ -205,7 +205,7 @@
                 {{ __('ave::tables.showing_results', ['from' => $from, 'to' => $to, 'total' => $total]) }}
             </div>
 
-            {{ $records->links('ave::vendor.pagination.ave') }}
+            {{ $records->links('ave::partials.pagination') }}
             @include('ave::partials.index.per-page-selector', [
                 'table' => $table,
                 'records' => $records,
