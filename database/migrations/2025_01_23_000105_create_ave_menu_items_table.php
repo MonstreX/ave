@@ -18,6 +18,7 @@ return new class extends Migration {
                 ->constrained('ave_menu_items')
                 ->cascadeOnDelete();
             $table->string('title');
+            $table->boolean('status')->default(true);
             $table->string('icon')->nullable();
             $table->string('route')->nullable();
             $table->string('url')->nullable();
@@ -30,7 +31,7 @@ return new class extends Migration {
             $table->timestamps();
         });
 
-        $menuId = DB::table('ave_menus')->where('slug', 'main')->value('id');
+        $menuId = DB::table('ave_menus')->where('key', 'admin')->value('id');
 
         if ($menuId) {
             $order = 1;

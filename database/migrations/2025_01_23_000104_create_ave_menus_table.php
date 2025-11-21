@@ -11,14 +11,14 @@ return new class extends Migration {
         Schema::create('ave_menus', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('slug')->unique();
+            $table->string('key')->unique();
             $table->boolean('is_default')->default(false);
             $table->timestamps();
         });
 
         DB::table('ave_menus')->insert([
             'name' => __('ave::seeders.menus.main_name'),
-            'slug' => 'main',
+            'key' => 'admin',
             'is_default' => true,
             'created_at' => now(),
             'updated_at' => now(),
