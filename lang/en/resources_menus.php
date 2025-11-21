@@ -6,14 +6,14 @@ return [
 
     'columns' => [
         'name' => 'Name',
-        'slug' => 'Slug',
+        'key' => 'Key',
         'is_default' => 'Default',
         'created_at' => 'Created',
     ],
 
     'fields' => [
         'name' => 'Menu name',
-        'slug' => 'Slug',
+        'key' => 'Key',
         'is_default' => 'Default menu',
     ],
 ];

@@ -48,8 +48,8 @@ class Resource extends BaseResource
             Column::make('name')
                 ->label(__('ave::resources_menus.columns.name'))
                 ->sortable(true),
-            Column::make('slug')
-                ->label(__('ave::resources_menus.columns.slug'))
+            Column::make('key')
+                ->label(__('ave::resources_menus.columns.key'))
                 ->sortable(true),
             Column::make('is_default')
                 ->label(__('ave::resources_menus.columns.is_default'))
@@ -70,8 +70,8 @@ class Resource extends BaseResource
                         ->required(),
                 ]),
                 Div::make('col-12 col-md-6')->schema([
-                    TextInput::make('slug')
-                        ->label(__('ave::resources_menus.fields.slug'))
+                    TextInput::make('key')
+                        ->label(__('ave::resources_menus.fields.key'))
                         ->required(),
                 ]),
             ]),
