@@ -89,3 +89,41 @@ if (!function_exists('ave_js_translations_json')) {
         return json_encode(ave_js_translations(), JSON_UNESCAPED_UNICODE);
     }
 }
+
+if (!function_exists('menu')) {
+    /**
+     * Display a menu by name with optional custom template
+     *
+     * @param string $menuName Menu name or slug
+     * @param string|null $template Custom blade template path (e.g., 'partials.menus.main')
+     * @param array $options Additional options passed to the view
+     * @return \Illuminate\Support\HtmlString|string
+     */
+    function menu(string $menuName, ?string $template = null, array $options = [])
+    {
+        $menu = \Monstrex\Ave\Models\Menu::with(['items' => function ($query) {
+            $query->whereNull('parent_id')->orderBy('order');
+        }, 'items.children' => function ($query) {
+            $query->orderBy('order');
+        }])->where('name', $menuName)->orWhere('slug', $menuName)->first();
+
+        if (!$menu) {
+            return '';
+        }
+
+        $items = $menu->items;
+
+        // Use custom template or default
+        $view = $template ?? 'ave::menu.default';
+
+        if (!view()->exists($view)) {
+            $view = 'ave::menu.default';
+        }
+
+        $options = (object) $options;
+
+        return new \Illuminate\Support\HtmlString(
+            view($view, ['items' => $items, 'options' => $options])->render()
+        );
+    }
+}
