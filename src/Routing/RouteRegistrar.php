@@ -8,6 +8,7 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
 use Monstrex\Ave\Http\Controllers\Api\SlugController;
 use Monstrex\Ave\Http\Controllers\AuthController;
+use Monstrex\Ave\Http\Controllers\CacheController;
 use Monstrex\Ave\Http\Controllers\LocaleController;
 use Monstrex\Ave\Http\Controllers\MediaController;
 use Monstrex\Ave\Http\Middleware\HandleAveExceptions;
@@ -76,6 +77,7 @@ class RouteRegistrar
                 $this->registerMediaRoutes($router);
                 $this->registerApiRoutes($router);
                 $this->registerLocaleRoutes($router);
+                $this->registerCacheRoutes($router);
 
                 $router->fallback(function () {
                     abort(404);
@@ -130,6 +132,13 @@ class RouteRegistrar
     {
         $router->post('/locale/switch', [LocaleController::class, 'switch'])
             ->name('ave.locale.switch');
+    }
+
+    protected function registerCacheRoutes(Router $router): void
+    {
+        $router->post('/cache/clear/{type}', [CacheController::class, 'clear'])
+            ->name('ave.cache.clear')
+            ->where('type', 'application|config|route|view|all');
     }
 
     protected function prefix(): string

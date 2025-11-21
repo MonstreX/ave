@@ -3,6 +3,7 @@
 namespace Monstrex\Ave\Console\Commands;
 
 use Illuminate\Console\Command;
+use Monstrex\Ave\Database\Seeders\CacheMenuSeeder;
 
 class InstallCommand extends Command
 {
@@ -48,6 +49,12 @@ class InstallCommand extends Command
             $this->call('migrate');
             $this->info('✓ Migrations completed');
         }
+
+        // Step 5: Seed menu items
+        $this->newLine();
+        $this->comment('Seeding menu items...');
+        $this->callSilent('db:seed', ['--class' => CacheMenuSeeder::class]);
+        $this->info('✓ Menu items seeded');
 
         $this->newLine();
         $this->info('Ave Admin Panel installed successfully!');

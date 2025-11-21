@@ -25,7 +25,8 @@
     },
     "autoload": {
         "psr-4": {
-            "Monstrex\\Ave\\": "src/"
+            "Monstrex\\Ave\\": "src/",
+            "Monstrex\\Ave\\Database\\Seeders\\": "database/seeders/"
         },
         "files": [
             "src/Helpers/helpers.php"

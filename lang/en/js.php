@@ -172,6 +172,11 @@ return [
         'max' => 'Value must be at most :max',
     ],
 
+    // Cache
+    'cache' => [
+        'error' => 'Error clearing cache',
+    ],
+
     // Common
     'common' => [
         'loading' => 'Loading...',

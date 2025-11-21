@@ -15,6 +15,7 @@ import initSortableTable from './modules/resources/sortableTable.js';
 import initSortableGroupedTable from './modules/resources/sortableGroupedTable.js';
 import initFormValidation from './modules/forms/formValidation.js';
 import { confirm, createModal, closeModal, destroyModal } from './modules/ui/modals.js';
+import initCacheClear from './modules/cache/clearCache.js';
 
 // Expose global event bus
 window.aveEvents = aveEvents;
@@ -42,6 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initSortableGroupedTable();
     initTreeView();
     initSortableTable();
+    initCacheClear();
 
     // Notify all listeners that DOM is ready and initialized
     // This allows dynamic content loaders to trigger reinitialization
