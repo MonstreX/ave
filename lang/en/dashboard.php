@@ -43,6 +43,7 @@ return [
     'server_os' => 'Operating System',
     'server_ip' => 'Server IP',
     'disk_usage' => 'Disk Usage',
+    'disk_free' => 'free',
 
     // Cache Info
     'cache_info' => 'Cache Information',

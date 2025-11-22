@@ -80,6 +80,7 @@ class RouteRegistrar
                 $this->registerLocaleRoutes($router);
                 $this->registerCacheRoutes($router);
                 $this->registerFileManagerRoutes($router);
+                $this->registerStorageLinkRoutes($router);
 
                 $router->fallback(function () {
                     abort(404);
@@ -172,6 +173,32 @@ class RouteRegistrar
 
         $router->post('/file-manager/rename', [FileManagerController::class, 'rename'])
             ->name('ave.file-manager.rename');
+    }
+
+    protected function registerStorageLinkRoutes(Router $router): void
+    {
+        $router->post('/storage-link/create', function () {
+            try {
+                \Illuminate\Support\Facades\Artisan::call('storage:link');
+
+                if (file_exists(public_path('storage'))) {
+                    return response()->json([
+                        'success' => true,
+                        'message' => __('ave::storage_link.success'),
+                    ]);
+                }
+
+                return response()->json([
+                    'success' => false,
+                    'message' => __('ave::storage_link.error_create_failed'),
+                ], 422);
+            } catch (\Exception $e) {
+                return response()->json([
+                    'success' => false,
+                    'message' => __('ave::storage_link.error_exception', ['error' => $e->getMessage()]),
+                ], 422);
+            }
+        })->name('ave.storage-link.create');
     }
 
     protected function prefix(): string

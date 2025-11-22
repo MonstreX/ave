@@ -172,10 +172,17 @@
                     $diskFree = disk_free_space('/');
                     $diskTotal = disk_total_space('/');
                     $diskUsedPercent = $diskTotal > 0 ? round((($diskTotal - $diskFree) / $diskTotal) * 100, 1) : 0;
+
+                    // Format disk free space
+                    if ($diskFree >= 1073741824) {
+                        $diskFreeFormatted = round($diskFree / 1073741824, 2) . ' GB';
+                    } else {
+                        $diskFreeFormatted = round($diskFree / 1048576, 2) . ' MB';
+                    }
                 @endphp
                 <div class="info-row">
                     <span class="info-label">{{ __('ave::dashboard.disk_usage') }}:</span>
-                    <span class="info-value">{{ $diskUsedPercent }}%</span>
+                    <span class="info-value">{{ $diskUsedPercent }}% ({{ __('ave::dashboard.disk_free') }}: {{ $diskFreeFormatted }})</span>
                     @if ($diskUsedPercent > 90)
                         <span class="badge badge-danger">{{ __('ave::dashboard.critical') }}</span>
                     @elseif ($diskUsedPercent > 75)
@@ -190,7 +197,7 @@
         {{-- Cache Information --}}
         <div class="info-card">
             <div class="info-card-header">
-                <i class="voyager-refresh"></i>
+                <i class="voyager-bolt"></i>
                 <h3>{{ __('ave::dashboard.cache_info') }}</h3>
             </div>
             <div class="info-card-body">

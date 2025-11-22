@@ -38,6 +38,18 @@
     </script>
 @endif
 
+@if(!file_exists(public_path('storage')))
+    <script type="application/json" id="ave-storage-link-data">
+        {
+            "missing": true,
+            "createUrl": "{{ route('ave.storage-link.create') }}",
+            "title": "{{ __('ave::storage_link.title') }}",
+            "message": "{{ __('ave::storage_link.message') }}",
+            "createButton": "{{ __('ave::storage_link.create_button') }}"
+        }
+    </script>
+@endif
+
 <div id="ave-loader">
     <img src="{{ asset('vendor/ave/assets/images/logo-icon-light.png') }}" alt="Ave Loader">
 </div>

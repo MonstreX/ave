@@ -56,7 +56,7 @@
         }
 
         .info-card-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--primary-color, #22a7f0);
             color: #fff;
             padding: 15px 20px;
             display: flex;
@@ -71,31 +71,6 @@
                 margin: 0;
                 font-size: 16px;
                 font-weight: 600;
-            }
-
-            // Different gradients for each card type
-            &:has(i.voyager-code) {
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            }
-
-            &:has(i.voyager-rocket) {
-                background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            }
-
-            &:has(i.voyager-helm) {
-                background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            }
-
-            &:has(i.voyager-data) {
-                background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-            }
-
-            &:has(i.voyager-world) {
-                background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-            }
-
-            &:has(i.voyager-refresh) {
-                background: linear-gradient(135deg, #30cfd0 0%, #330867 100%);
             }
         }
 

@@ -43,6 +43,7 @@ return [
     'server_os' => 'Операционная система',
     'server_ip' => 'IP сервера',
     'disk_usage' => 'Использование диска',
+    'disk_free' => 'свободно',
 
     // Cache Info
     'cache_info' => 'Информация о кеше',
