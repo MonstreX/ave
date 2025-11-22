@@ -34,15 +34,7 @@ class InstallCommand extends Command
         ]);
         $this->info('✓ Assets published');
 
-        // Step 3: Publish migrations
-        $this->comment('Publishing migrations...');
-        $this->callSilent('vendor:publish', [
-            '--tag' => 'ave-migrations',
-            '--force' => $this->option('force'),
-        ]);
-        $this->info('✓ Migrations published');
-
-        // Step 4: Run migrations
+        // Step 3: Run migrations
         if (!$this->option('no-migrate')) {
             $this->newLine();
             $this->comment('Running migrations...');
@@ -50,7 +42,7 @@ class InstallCommand extends Command
             $this->info('✓ Migrations completed');
         }
 
-        // Step 5: Seed menu items
+        // Step 4: Seed menu items
         $this->newLine();
         $this->comment('Seeding menu items...');
         $this->callSilent('db:seed', ['--class' => CacheMenuSeeder::class]);
@@ -75,8 +67,9 @@ class InstallCommand extends Command
         $this->info('2. Visit /admin in your browser');
         $this->newLine();
 
-        $this->comment('Optional: Publish views and translations for customization:');
+        $this->comment('Optional: Publish assets for customization:');
         $this->line('  php artisan vendor:publish --tag=ave-views');
         $this->line('  php artisan vendor:publish --tag=ave-lang');
+        $this->line('  php artisan vendor:publish --tag=ave-migrations  # If you need to customize migrations');
     }
 }
