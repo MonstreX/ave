@@ -135,9 +135,9 @@ class InstallCommand extends Command
     protected function createFileManagerPermissions(): void
     {
         $permissions = [
-            ['resource_slug' => 'file-manager', 'ability' => 'viewAny', 'name' => 'View File Manager', 'description' => 'Access to file manager'],
-            ['resource_slug' => 'file-manager', 'ability' => 'create', 'name' => 'Create Files', 'description' => 'Upload, create and edit files'],
-            ['resource_slug' => 'file-manager', 'ability' => 'delete', 'name' => 'Delete Files', 'description' => 'Delete and rename files'],
+            ['resource_slug' => 'file-manager', 'ability' => 'viewAny', 'name' => 'View File Manager', 'description' => 'Access to file manager', 'group' => 'system'],
+            ['resource_slug' => 'file-manager', 'ability' => 'create', 'name' => 'Create Files', 'description' => 'Upload, create and edit files', 'group' => 'system'],
+            ['resource_slug' => 'file-manager', 'ability' => 'delete', 'name' => 'Delete Files', 'description' => 'Delete and rename files', 'group' => 'system'],
         ];
 
         $adminRole = Role::where('slug', 'admin')->first();
@@ -151,6 +151,7 @@ class InstallCommand extends Command
                 [
                     'name' => $permissionData['name'],
                     'description' => $permissionData['description'],
+                    'group' => $permissionData['group'],
                 ]
             );
 
