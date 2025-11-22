@@ -135,9 +135,9 @@ class InstallCommand extends Command
     protected function createFileManagerPermissions(): void
     {
         $permissions = [
-            ['resource_slug' => 'file-manager', 'ability' => 'viewAny', 'name' => 'View File Manager', 'description' => 'Access to file manager', 'group' => 'system'],
-            ['resource_slug' => 'file-manager', 'ability' => 'create', 'name' => 'Create Files', 'description' => 'Upload, create and edit files', 'group' => 'system'],
-            ['resource_slug' => 'file-manager', 'ability' => 'delete', 'name' => 'Delete Files', 'description' => 'Delete and rename files', 'group' => 'system'],
+            ['resource_slug' => 'file-manager', 'ability' => 'viewAny', 'name' => __('ave::file_manager.permissions.view'), 'description' => __('ave::file_manager.permissions.view_description'), 'group' => 'system'],
+            ['resource_slug' => 'file-manager', 'ability' => 'create', 'name' => __('ave::file_manager.permissions.create'), 'description' => __('ave::file_manager.permissions.create_description'), 'group' => 'system'],
+            ['resource_slug' => 'file-manager', 'ability' => 'delete', 'name' => __('ave::file_manager.permissions.delete'), 'description' => __('ave::file_manager.permissions.delete_description'), 'group' => 'system'],
         ];
 
         $adminRole = Role::where('slug', 'admin')->first();

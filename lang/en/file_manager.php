@@ -27,4 +27,14 @@ return [
     'renamed' => 'Renamed successfully',
     'error' => 'An error occurred',
     'confirm_delete' => 'Are you sure you want to delete this item?',
+
+    // Permissions
+    'permissions' => [
+        'view' => 'View File Manager',
+        'view_description' => 'Access to file manager',
+        'create' => 'Create Files',
+        'create_description' => 'Upload, create and edit files',
+        'delete' => 'Delete Files',
+        'delete_description' => 'Delete and rename files',
+    ],
 ];
