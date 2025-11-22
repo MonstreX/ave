@@ -3,7 +3,8 @@
 namespace Monstrex\Ave\Console\Commands;
 
 use Illuminate\Console\Command;
-use Monstrex\Ave\Database\Seeders\CacheMenuSeeder;
+use Illuminate\Support\Facades\DB;
+use Monstrex\Ave\Models\Permission;
 use Monstrex\Ave\Models\Role;
 use Monstrex\Ave\Models\User;
 
@@ -44,11 +45,11 @@ class InstallCommand extends Command
             $this->info('✓ Migrations completed');
         }
 
-        // Step 4: Seed menu items
+        // Step 4: Create File Manager permissions
         $this->newLine();
-        $this->comment('Seeding menu items...');
-        $this->callSilent('db:seed', ['--class' => CacheMenuSeeder::class]);
-        $this->info('✓ Menu items seeded');
+        $this->comment('Creating File Manager permissions...');
+        $this->createFileManagerPermissions();
+        $this->info('✓ File Manager permissions created');
 
         // Step 5: Create admin user
         $this->newLine();
@@ -121,6 +122,43 @@ class InstallCommand extends Command
 
         $this->info('✓ Admin user created');
         return true;
+    }
+
+    protected function createFileManagerPermissions(): void
+    {
+        $permissions = [
+            ['resource_slug' => 'file-manager', 'ability' => 'viewAny', 'name' => 'View File Manager', 'description' => 'Access to file manager'],
+            ['resource_slug' => 'file-manager', 'ability' => 'create', 'name' => 'Create Files', 'description' => 'Upload, create and edit files'],
+            ['resource_slug' => 'file-manager', 'ability' => 'delete', 'name' => 'Delete Files', 'description' => 'Delete and rename files'],
+        ];
+
+        $adminRole = Role::where('slug', 'admin')->first();
+
+        foreach ($permissions as $permissionData) {
+            $permission = Permission::firstOrCreate(
+                [
+                    'resource_slug' => $permissionData['resource_slug'],
+                    'ability' => $permissionData['ability'],
+                ],
+                [
+                    'name' => $permissionData['name'],
+                    'description' => $permissionData['description'],
+                ]
+            );
+
+            // Attach to admin role if not already attached
+            if ($adminRole && !DB::table('ave_permission_role')
+                    ->where('role_id', $adminRole->id)
+                    ->where('permission_id', $permission->id)
+                    ->exists()) {
+                DB::table('ave_permission_role')->insert([
+                    'role_id' => $adminRole->id,
+                    'permission_id' => $permission->id,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
+        }
     }
 
     protected function showNextSteps(): void
