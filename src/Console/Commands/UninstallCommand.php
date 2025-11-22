@@ -139,30 +139,45 @@ class UninstallCommand extends Command
             return;
         }
 
-        // Order matters: drop tables with foreign keys first
-        $orderedTables = [
-            'ave_menu_items',
-            'ave_permission_role',
-            'ave_role_user',
-            'ave_menus',
-            'ave_permissions',
-            'ave_roles',
-        ];
-
-        foreach ($orderedTables as $table) {
-            if (in_array($table, $tables, true)) {
-                $this->dropTable($table);
-            }
+        if (!$this->isDryRun) {
+            // Disable foreign key checks to allow dropping in any order
+            $this->disableForeignKeyChecks();
         }
 
-        // Drop any remaining Ave tables
         foreach ($tables as $table) {
-            if (!in_array($table, $orderedTables, true)) {
-                $this->dropTable($table);
-            }
+            $this->dropTable($table);
+        }
+
+        if (!$this->isDryRun) {
+            // Re-enable foreign key checks
+            $this->enableForeignKeyChecks();
         }
 
         $this->info('✓ Database tables dropped');
+    }
+
+    protected function disableForeignKeyChecks(): void
+    {
+        $driver = DB::getDriverName();
+
+        match ($driver) {
+            'mysql' => DB::statement('SET FOREIGN_KEY_CHECKS=0'),
+            'pgsql' => DB::statement('SET CONSTRAINTS ALL DEFERRED'),
+            'sqlite' => DB::statement('PRAGMA foreign_keys = OFF'),
+            default => null,
+        };
+    }
+
+    protected function enableForeignKeyChecks(): void
+    {
+        $driver = DB::getDriverName();
+
+        match ($driver) {
+            'mysql' => DB::statement('SET FOREIGN_KEY_CHECKS=1'),
+            'pgsql' => DB::statement('SET CONSTRAINTS ALL IMMEDIATE'),
+            'sqlite' => DB::statement('PRAGMA foreign_keys = ON'),
+            default => null,
+        };
     }
 
     protected function dropTable(string $table): void
