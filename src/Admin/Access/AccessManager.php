@@ -77,6 +77,13 @@ class AccessManager
                 $this->attachToDefaultRoles($permission->id);
             }
         }
+
+        // Sync: Remove permissions that are no longer defined for this resource
+        $expectedAbilities = array_keys($definitions);
+        Permission::query()
+            ->where('resource_slug', $resourceSlug)
+            ->whereNotIn('ability', $expectedAbilities)
+            ->delete();
     }
 
     protected function attachToDefaultRoles(int $permissionId): void
