@@ -5,6 +5,7 @@ return [
     'singular' => 'Permission',
 
     'columns' => [
+        'resource' => 'Resource',
         'resource_slug' => 'Resource',
         'ability' => 'Ability',
         'name' => 'Name',
