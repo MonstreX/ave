@@ -2,6 +2,11 @@
 
 return [
     /*
+     * Ave package version.
+     */
+    'version' => '0.7.0',
+
+    /*
      * Route prefix for all Ave admin endpoints.
      */
     'route_prefix' => env('AVE_ROUTE_PREFIX', 'admin'),
