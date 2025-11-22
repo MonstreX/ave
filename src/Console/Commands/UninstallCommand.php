@@ -83,6 +83,10 @@ class UninstallCommand extends Command
         $this->warn('⚠️  WARNING: This will completely remove Ave Admin Panel from your application.');
         $this->newLine();
 
+        $currentDatabase = DB::getDatabaseName();
+        $this->comment("Current database: {$currentDatabase}");
+        $this->newLine();
+
         $tables = $this->getAveTables();
         $configExists = File::exists(config_path('ave.php'));
         $assetsExist = File::exists(public_path('vendor/ave'));
@@ -92,7 +96,7 @@ class UninstallCommand extends Command
         $this->newLine();
 
         if (!empty($tables)) {
-            $this->line('  ✗ Database tables: ' . implode(', ', $tables));
+            $this->line('  ✗ Database tables (' . count($tables) . '): ' . implode(', ', $tables));
         } else {
             $this->line('  ⊙ No Ave tables found');
         }
@@ -298,13 +302,21 @@ class UninstallCommand extends Command
 
     protected function getAveTables(): array
     {
+        $currentDatabase = DB::getDatabaseName();
         $allTables = Schema::getTableListing();
 
-        return array_filter($allTables, function ($table) {
+        return array_filter($allTables, function ($table) use ($currentDatabase) {
             // Handle tables with database prefix (e.g., "database.ave_menus")
-            $tableName = str_contains($table, '.')
-                ? explode('.', $table)[1]
-                : $table;
+            if (str_contains($table, '.')) {
+                [$database, $tableName] = explode('.', $table);
+
+                // Only include tables from current database
+                if ($database !== $currentDatabase) {
+                    return false;
+                }
+            } else {
+                $tableName = $table;
+            }
 
             return str_starts_with($tableName, 'ave_');
         });
