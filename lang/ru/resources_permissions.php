@@ -5,6 +5,7 @@ return [
     'singular' => 'Разрешение',
 
     'columns' => [
+        'resource' => 'Ресурс',
         'resource_slug' => 'Ресурс',
         'ability' => 'Действие',
         'name' => 'Название',

@@ -125,8 +125,10 @@ class PermissionMatrix extends FormComponent
                     $section = 'system';
                 } elseif ($resourceClass === null && Str::startsWith($slug, 'system')) {
                     $section = 'system';
+                } elseif ($slug === 'file-manager') {
+                    $section = 'system';
                 }
-            } elseif (Str::startsWith($slug, 'system')) {
+            } elseif (Str::startsWith($slug, 'system') || $slug === 'file-manager') {
                 $section = 'system';
             }
 
