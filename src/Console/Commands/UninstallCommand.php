@@ -37,15 +37,15 @@ class UninstallCommand extends Command
         $this->info('Starting Ave Admin Panel uninstallation...');
         $this->newLine();
 
-        // Step 1: Drop database tables
-        $this->dropDatabaseTables();
-
-        // Step 2: Delete admin users (optional)
+        // Step 1: Delete admin users BEFORE dropping tables (optional)
         if (!$this->option('keep-users')) {
             $this->deleteAdminUsers();
         } else {
             $this->comment('⊙ Skipping admin users deletion (--keep-users)');
         }
+
+        // Step 2: Drop database tables
+        $this->dropDatabaseTables();
 
         // Step 3: Delete published config
         if (!$this->option('keep-config')) {
@@ -207,11 +207,6 @@ class UninstallCommand extends Command
 
         if ($count === 0) {
             $this->info('⊙ No admin users to delete');
-            return;
-        }
-
-        if (!Schema::hasTable('ave_role_user') || !Schema::hasTable('ave_roles')) {
-            $this->info('⊙ Cannot delete admin users (tables already dropped)');
             return;
         }
 
