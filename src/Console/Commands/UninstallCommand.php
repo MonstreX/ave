@@ -47,21 +47,24 @@ class UninstallCommand extends Command
         // Step 2: Drop database tables
         $this->dropDatabaseTables();
 
-        // Step 3: Delete published config
+        // Step 3: Clean migration records
+        $this->cleanMigrationRecords();
+
+        // Step 4: Delete published config
         if (!$this->option('keep-config')) {
             $this->deletePublishedConfig();
         } else {
             $this->comment('⊙ Skipping config deletion (--keep-config)');
         }
 
-        // Step 4: Delete published assets
+        // Step 5: Delete published assets
         if (!$this->option('keep-assets')) {
             $this->deletePublishedAssets();
         } else {
             $this->comment('⊙ Skipping assets deletion (--keep-assets)');
         }
 
-        // Step 5: Clear Ave cache
+        // Step 6: Clear Ave cache
         $this->clearAveCache();
 
         $this->newLine();
@@ -158,6 +161,33 @@ class UninstallCommand extends Command
         }
 
         $this->info('✓ Database tables dropped');
+    }
+
+    protected function cleanMigrationRecords(): void
+    {
+        $this->comment('Cleaning migration records...');
+
+        if (!Schema::hasTable('migrations')) {
+            $this->info('⊙ Migrations table not found');
+            return;
+        }
+
+        if ($this->isDryRun) {
+            $count = DB::table('migrations')
+                ->where('migration', 'like', '%_create_ave_%')
+                ->orWhere('migration', 'like', '%_create_site_%')
+                ->count();
+
+            $this->line("  [DRY RUN] Would delete {$count} migration record(s)");
+            return;
+        }
+
+        $deleted = DB::table('migrations')
+            ->where('migration', 'like', '%_create_ave_%')
+            ->orWhere('migration', 'like', '%_create_site_%')
+            ->delete();
+
+        $this->info("✓ Deleted {$deleted} migration record(s)");
     }
 
     protected function disableForeignKeyChecks(): void
