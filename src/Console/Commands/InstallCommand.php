@@ -4,6 +4,8 @@ namespace Monstrex\Ave\Console\Commands;
 
 use Illuminate\Console\Command;
 use Monstrex\Ave\Database\Seeders\CacheMenuSeeder;
+use Monstrex\Ave\Models\Role;
+use Monstrex\Ave\Models\User;
 
 class InstallCommand extends Command
 {
@@ -48,6 +50,14 @@ class InstallCommand extends Command
         $this->callSilent('db:seed', ['--class' => CacheMenuSeeder::class]);
         $this->info('✓ Menu items seeded');
 
+        // Step 5: Create admin user
+        $this->newLine();
+        $this->comment('Creating admin user...');
+
+        if (!$this->createAdminUser()) {
+            return self::FAILURE;
+        }
+
         $this->newLine();
         $this->info('Ave Admin Panel installed successfully!');
         $this->newLine();
@@ -56,6 +66,61 @@ class InstallCommand extends Command
         $this->showNextSteps();
 
         return self::SUCCESS;
+    }
+
+    protected function createAdminUser(): bool
+    {
+        $name = $this->ask('Enter admin name', 'admin');
+        $email = $this->ask('Enter admin email', 'admin@email.com');
+        $password = $this->secret('Enter admin password');
+        $passwordConfirmation = $this->secret('Confirm password');
+
+        if ($password !== $passwordConfirmation) {
+            $this->error('✗ Passwords do not match!');
+            return false;
+        }
+
+        if (empty($password)) {
+            $this->error('✗ Password cannot be empty!');
+            return false;
+        }
+
+        // Get user model from config
+        $userModel = config('ave.user_model', User::class);
+
+        // Check if user exists
+        $existingUser = $userModel::where('email', $email)->first();
+
+        if ($existingUser) {
+            $this->warn('User with this email already exists.');
+            if (!$this->confirm('Do you want to assign admin role to existing user?', true)) {
+                $this->info('✓ Admin user creation skipped');
+                return true;
+            }
+            $user = $existingUser;
+        } else {
+            // Create new user
+            $user = $userModel::create([
+                'name' => $name,
+                'email' => $email,
+                'password' => $password, // Auto-hashed by setPasswordAttribute
+            ]);
+        }
+
+        // Attach admin role
+        $adminRole = Role::where('slug', 'admin')->first();
+
+        if (!$adminRole) {
+            $this->error('✗ Admin role not found! Please run migrations first.');
+            return false;
+        }
+
+        if (!$user->roles()->where('slug', 'admin')->exists()) {
+            $user->roles()->attach($adminRole->id);
+        }
+
+        $this->info('✓ Admin user created');
+        return true;
     }
 
     protected function showNextSteps(): void
