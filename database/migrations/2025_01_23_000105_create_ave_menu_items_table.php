@@ -36,63 +36,93 @@ return new class extends Migration {
         if ($menuId) {
             $order = 1;
 
+            // Dashboard
             DB::table('ave_menu_items')->insert([
                 'menu_id' => $menuId,
-                'title' => 'Dashboard',
-                'icon' => 'voyager-boat',
+                'title' => __('ave::seeders.menus.dashboard'),
+                'icon' => 'voyager-dashboard',
                 'route' => 'ave.dashboard',
                 'order' => $order++,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
 
-            $resources = [
-                ['Articles', 'voyager-news', 'articles'],
-                ['Categories', 'voyager-folder', 'categories'],
-                ['Tags', 'voyager-tag', 'tags'],
-            ];
-
-            foreach ($resources as [$title, $icon, $slug]) {
-                DB::table('ave_menu_items')->insert([
-                    'menu_id' => $menuId,
-                    'title' => $title,
-                    'icon' => $icon,
-                    'resource_slug' => $slug,
-                    'ability' => 'viewAny',
-                    'order' => $order++,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]);
-            }
-
-            $systemId = DB::table('ave_menu_items')->insertGetId([
+            // File Manager
+            DB::table('ave_menu_items')->insert([
                 'menu_id' => $menuId,
-                'title' => 'System',
-                'icon' => 'voyager-lock',
+                'title' => __('ave::seeders.menus.file_manager'),
+                'icon' => 'voyager-folder',
+                'route' => 'ave.file-manager.index',
+                'permission_key' => 'file-manager.viewAny',
                 'order' => $order++,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
 
-            $systemChildren = [
-                ['Users', 'voyager-person', 'users'],
-                ['Roles', 'voyager-lock', 'roles'],
-                ['Permissions', 'voyager-key', 'permissions'],
-                ['Menus', 'voyager-list', 'menus'],
-                ['Menu Items', 'voyager-list', 'menu-items'],
+            // Settings parent
+            $settingsId = DB::table('ave_menu_items')->insertGetId([
+                'menu_id' => $menuId,
+                'title' => __('ave::seeders.menus.settings'),
+                'icon' => 'voyager-settings',
+                'order' => $order++,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            // Settings children
+            $settingsChildren = [
+                [__('ave::seeders.menus.menus'), 'voyager-list', 'menus'],
+                [__('ave::seeders.menus.users'), 'voyager-person', 'users'],
+                [__('ave::seeders.menus.roles'), 'voyager-lock', 'roles'],
+                [__('ave::seeders.menus.permissions'), 'voyager-key', 'permissions'],
             ];
 
             $childOrder = 1;
 
-            foreach ($systemChildren as [$title, $icon, $slug]) {
+            foreach ($settingsChildren as [$title, $icon, $slug]) {
                 DB::table('ave_menu_items')->insert([
                     'menu_id' => $menuId,
-                    'parent_id' => $systemId,
+                    'parent_id' => $settingsId,
                     'title' => $title,
                     'icon' => $icon,
                     'resource_slug' => $slug,
                     'ability' => 'viewAny',
                     'order' => $childOrder++,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
+
+            // Cache Clear parent
+            $cacheId = DB::table('ave_menu_items')->insertGetId([
+                'menu_id' => $menuId,
+                'parent_id' => $settingsId,
+                'title' => __('ave::seeders.menus.clear_cache'),
+                'icon' => 'voyager-bolt',
+                'order' => $childOrder++,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            // Cache types
+            $cacheTypes = [
+                ['cache_application', 'voyager-data'],
+                ['cache_config', 'voyager-settings'],
+                ['cache_route', 'voyager-compass'],
+                ['cache_view', 'voyager-browser'],
+                ['cache_all', 'voyager-trash'],
+            ];
+
+            $cacheOrder = 1;
+
+            foreach ($cacheTypes as [$key, $icon]) {
+                DB::table('ave_menu_items')->insert([
+                    'menu_id' => $menuId,
+                    'parent_id' => $cacheId,
+                    'title' => __('ave::seeders.menus.' . $key),
+                    'icon' => $icon,
+                    'url' => '#cache-clear-' . str_replace('cache_', '', $key),
+                    'order' => $cacheOrder++,
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);
