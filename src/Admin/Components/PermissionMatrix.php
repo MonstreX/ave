@@ -13,6 +13,13 @@ use Monstrex\Ave\Core\ResourceManager;
 
 class PermissionMatrix extends FormComponent
 {
+    /**
+     * System permission slugs that should appear in System Resources section.
+     */
+    protected array $systemPermissionSlugs = [
+        'file-manager',
+    ];
+
     protected ?Collection $groups = null;
     protected array $sectionedGroups = [
         'user' => [],
@@ -125,10 +132,10 @@ class PermissionMatrix extends FormComponent
                     $section = 'system';
                 } elseif ($resourceClass === null && Str::startsWith($slug, 'system')) {
                     $section = 'system';
-                } elseif ($slug === 'file-manager') {
+                } elseif (in_array($slug, $this->systemPermissionSlugs, true)) {
                     $section = 'system';
                 }
-            } elseif (Str::startsWith($slug, 'system') || $slug === 'file-manager') {
+            } elseif (Str::startsWith($slug, 'system') || in_array($slug, $this->systemPermissionSlugs, true)) {
                 $section = 'system';
             }
 
