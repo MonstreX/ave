@@ -116,8 +116,16 @@ class InstallCommand extends Command
             return false;
         }
 
-        if (!$user->roles()->where('slug', 'admin')->exists()) {
-            $user->roles()->attach($adminRole->id);
+        if (!DB::table('ave_role_user')
+                ->where('user_id', $user->id)
+                ->where('role_id', $adminRole->id)
+                ->exists()) {
+            DB::table('ave_role_user')->insert([
+                'user_id' => $user->id,
+                'role_id' => $adminRole->id,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
         }
 
         $this->info('✓ Admin user created');

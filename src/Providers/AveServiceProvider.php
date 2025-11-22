@@ -17,6 +17,7 @@ use Monstrex\Ave\Core\Persistence\ResourcePersistence;
 use Monstrex\Ave\Core\Discovery\AdminResourceDiscovery;
 use Monstrex\Ave\Core\Discovery\AdminPageDiscovery;
 use Monstrex\Ave\Console\Commands\InstallCommand;
+use Monstrex\Ave\Console\Commands\UninstallCommand;
 use Monstrex\Ave\Console\Commands\MakeResourceCommand;
 use Monstrex\Ave\View\Composers\SidebarComposer;
 use Monstrex\Ave\Support\PackageAssets;
@@ -112,6 +113,7 @@ class AveServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->commands([
                 InstallCommand::class,
+                UninstallCommand::class,
                 MakeResourceCommand::class,
             ]);
         }

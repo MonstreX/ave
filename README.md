@@ -37,6 +37,34 @@ php artisan ave:install --force        # Overwrite existing files
 php artisan ave:install --no-migrate   # Skip migrations
 ```
 
+## Uninstallation
+
+To completely remove Ave Admin Panel from your application:
+
+```bash
+php artisan ave:uninstall
+```
+
+This will:
+- Drop all Ave database tables
+- Delete published config and assets
+- Remove admin users (optional)
+- Clear Ave cache entries
+
+**Options:**
+```bash
+php artisan ave:uninstall --dry-run        # Preview what would be deleted
+php artisan ave:uninstall --force          # Skip confirmation
+php artisan ave:uninstall --keep-users     # Don't delete admin users
+php artisan ave:uninstall --keep-config    # Keep published config
+php artisan ave:uninstall --keep-assets    # Keep published assets
+```
+
+**Note:** After uninstalling, remove the package from composer:
+```bash
+composer remove monstrex/ave
+```
+
 ## Quick Start
 
 Create a resource in `app/Ave/Resources`:
