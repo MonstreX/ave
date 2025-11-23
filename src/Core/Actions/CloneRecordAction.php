@@ -12,7 +12,7 @@ class CloneRecordAction extends BaseAction implements RowAction
 {
     protected string $key = 'clone';
     protected ?string $icon = 'voyager-documentation';
-    protected string $color = 'secondary';
+    protected string $color = 'warning';
     protected ?string $ability = 'update';
 
     public function label(): string
