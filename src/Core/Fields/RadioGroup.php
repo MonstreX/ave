@@ -124,8 +124,11 @@ class RadioGroup extends AbstractField
      */
     public function extract(mixed $raw): mixed
     {
-        // Radio buttons return the selected value as-is
-        // Empty string or null means no selection
-        return $raw ?: null;
+        // Treat null and empty string as no selection, but keep valid "0" values
+        if ($raw === null || $raw === '') {
+            return null;
+        }
+
+        return $raw;
     }
 }

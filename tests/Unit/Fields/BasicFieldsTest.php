@@ -418,6 +418,8 @@ class BasicFieldsTest extends TestCase
 
         $this->assertSame('active', $field->extract('active'));
         $this->assertSame('draft', $field->extract('draft'));
+        $this->assertSame('0', $field->extract('0'));
+        $this->assertSame(0, $field->extract(0));
         $this->assertNull($field->extract(''));
         $this->assertNull($field->extract(null));
     }
