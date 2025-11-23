@@ -17,14 +17,14 @@ use Monstrex\Ave\Services\SlugService;
  *
  * Example Request:
  *   {
- *     "text": "Привет мир",
+ *     "text": "Hello World",
  *     "separator": "-",
- *     "locale": "ru"
+ *     "locale": "en"
  *   }
  *
  * Example Response:
  *   {
- *     "slug": "privet-mir"
+ *     "slug": "hello-world"
  *   }
  */
 class SlugController extends Controller

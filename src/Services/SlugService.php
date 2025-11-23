@@ -12,8 +12,8 @@ use Illuminate\Support\Str;
  * transliteration and normalization.
  *
  * Example:
- *   SlugService::make('Привет мир', '-', 'ru')
- *   // Returns: 'privet-mir'
+ *   SlugService::make('Hello World', '-', 'en')
+ *   // Returns: 'hello-world'
  */
 class SlugService
 {

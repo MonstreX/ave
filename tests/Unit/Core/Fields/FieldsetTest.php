@@ -118,9 +118,9 @@ class FieldsetTest extends TestCase
 
         $request = Request::create('/', 'POST', [
             'items' => [
-                ['title' => 'First'],  // Нет _id
+                ['title' => 'First'],  // Missing _id
                 ['_id' => 5, 'title' => 'Second'],
-                ['title' => 'Third'],  // Нет _id
+                ['title' => 'Third'],  // Missing _id
             ]
         ]);
 
@@ -129,7 +129,7 @@ class FieldsetTest extends TestCase
 
         $items = $request->input('items');
 
-        // Проверяем что все items имеют _id
+        // Ensure each item receives an _id
         foreach ($items as $item) {
             $this->assertArrayHasKey('_id', $item);
             $this->assertIsInt($item['_id']);

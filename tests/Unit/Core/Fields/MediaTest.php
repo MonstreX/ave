@@ -16,7 +16,7 @@ class MediaTest extends TestCase
     {
         parent::setUp();
 
-        // Mock MediaRepository для тестов
+        // Mock MediaRepository for tests
         $this->app->instance(MediaRepository::class, Mockery::mock(MediaRepository::class));
     }
 
@@ -167,7 +167,7 @@ class MediaTest extends TestCase
             ->statePath('gallery');
 
         $request = Request::create('/', 'POST');
-        // Симулируем метаданные загрузки
+        // Simulate upload metadata
         $request->merge([
             '_ave_media_gallery' => json_encode([
                 'uploaded' => ['file1.jpg', 'file2.jpg'],
@@ -180,7 +180,7 @@ class MediaTest extends TestCase
         $context = FormContext::forCreate([], $request);
         $result = $media->prepareForSave(null, $request, $context);
 
-        // Проверяем что возвращается FieldPersistenceResult
+        // Ensure FieldPersistenceResult is returned
         $this->assertInstanceOf(\Monstrex\Ave\Core\Fields\FieldPersistenceResult::class, $result);
         $this->assertIsArray($result->deferredActions());
     }
@@ -202,7 +202,7 @@ class MediaTest extends TestCase
                 'uploaded' => [],
                 'order' => [],
                 'props' => [],
-                'deleted' => [1, 2], // Удаляем 2 файла
+                'deleted' => [1, 2], // Delete two files
             ])
         ]);
 
@@ -213,7 +213,7 @@ class MediaTest extends TestCase
         $context = FormContext::forEdit($model, [], $request);
         $result = $media->prepareForSave(null, $request, $context);
 
-        // Проверяем что результат валидный
+        // Ensure the result is valid
         $this->assertInstanceOf(\Monstrex\Ave\Core\Fields\FieldPersistenceResult::class, $result);
     }
 
@@ -223,7 +223,7 @@ class MediaTest extends TestCase
         $media = Media::make('photo')
             ->statePath('items.0.photo');
 
-        // Делаем поле вложенным
+        // Make the field nested
         $nestedMedia = $media->nestWithin('items', '0');
 
         $model = Mockery::mock(Model::class);
@@ -238,9 +238,9 @@ class MediaTest extends TestCase
             $context
         );
 
-        // Проверяем что метод возвращает массив
+        // Ensure the method returns an array
         $this->assertIsArray($cleanupActions);
-        // Cleanup actions могут быть пустыми если коллекции нет
+        // Cleanup actions may be empty if the collection does not exist
     }
 
     /** @test */
@@ -262,7 +262,7 @@ class MediaTest extends TestCase
     }
 
     /**
-     * Helper для доступа к private методам
+     * Helper to access private methods
      */
     protected function invokePrivateMethod($object, $methodName, ...$args)
     {

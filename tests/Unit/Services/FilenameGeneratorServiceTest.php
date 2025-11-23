@@ -32,7 +32,7 @@ class FilenameGeneratorServiceTest extends TestCase
 
         // Should be transliterated and lowercased
         $this->assertStringEndsWith('.pdf', $result);
-        $this->assertStringContainsString('moy', $result); // 'мой' transliterates to 'moy'
+        $this->assertStringContainsString('moy', $result); // ensure Cyrillic characters transliterate to Latin
         // Result should be slug format with hyphens, not spaces
         $this->assertFalse(strpos($result, ' '));
     }
