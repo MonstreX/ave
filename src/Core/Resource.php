@@ -33,6 +33,16 @@ abstract class Resource implements Authorizable
     public static array $searchable = [];
     public static array $sortable = [];
     public static array $relationMap = [];
+    /**
+     * Cloneable field definition.
+     *
+     * Example:
+     *  [
+     *      'title' => ' (copy)',
+     *      'slug' => '-copy',
+     *      'status', // shorthand for status => null
+     *  ]
+     */
     public static array $cloneable = [];
 
     /** @var array<string> Relations to eager load on index */
@@ -114,14 +124,6 @@ abstract class Resource implements Authorizable
     public static function cloneableFields(): array
     {
         return static::$cloneable ?? [];
-    }
-
-    /**
-     * Mutate clone attributes before saving.
-     */
-    public static function mutateCloneAttributes(Model $original, array $attributes): array
-    {
-        return $attributes;
     }
 
     /**

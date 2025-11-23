@@ -74,18 +74,11 @@ class CloneItemResource extends Resource
 {
     public static ?string $model = CloneItem::class;
 
-    public static function cloneableFields(): array
-    {
-        return ['title', 'slug', 'status'];
-    }
-
-    public static function mutateCloneAttributes(Model $original, array $attributes): array
-    {
-        $attributes['title'] = ($attributes['title'] ?? $original->title) . ' (copy)';
-        $attributes['slug'] = ($attributes['slug'] ?? $original->slug) . '-copy';
-
-        return $attributes;
-    }
+    public static array $cloneable = [
+        'title' => ' (copy)',
+        'slug' => '-copy',
+        'status',
+    ];
 }
 
 class CloneActionUser implements \Illuminate\Contracts\Auth\Authenticatable
