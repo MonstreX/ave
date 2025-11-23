@@ -4,6 +4,7 @@ namespace Monstrex\Ave\Console\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
+use Monstrex\Ave\Database\Seeders\AveDatabaseSeeder;
 use Monstrex\Ave\Models\Permission;
 use Monstrex\Ave\Models\Role;
 use Monstrex\Ave\Models\User;
@@ -45,13 +46,19 @@ class InstallCommand extends Command
             $this->info('✓ Migrations completed');
         }
 
-        // Step 4: Create File Manager permissions
+        // Step 4: Seed baseline data
+        $this->newLine();
+        $this->comment('Seeding default data...');
+        $this->call(AveDatabaseSeeder::class);
+        $this->info('✓ Default data seeded');
+
+        // Step 5: Create File Manager permissions
         $this->newLine();
         $this->comment('Creating File Manager permissions...');
         $this->createFileManagerPermissions();
         $this->info('✓ File Manager permissions created');
 
-        // Step 5: Create admin user
+        // Step 6: Create admin user
         $this->newLine();
         $this->comment('Creating admin user...');
 

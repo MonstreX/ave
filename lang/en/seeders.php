@@ -14,6 +14,7 @@ return [
         'users' => 'Users',
         'roles' => 'Roles',
         'permissions' => 'Permissions',
+        'icons' => 'Icon Library',
         'clear_cache' => 'Clear Cache',
         'cache_application' => 'Application Cache',
         'cache_config' => 'Config Cache',

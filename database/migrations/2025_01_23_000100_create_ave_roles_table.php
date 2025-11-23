@@ -2,7 +2,6 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration {
@@ -17,14 +16,6 @@ return new class extends Migration {
             $table->timestamps();
         });
 
-        DB::table('ave_roles')->insert([
-            'name' => __('ave::seeders.roles.admin_name'),
-            'slug' => 'admin',
-            'description' => __('ave::seeders.roles.admin_description'),
-            'is_default' => true,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
     }
 
     public function down(): void
