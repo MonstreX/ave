@@ -18,83 +18,182 @@ class AveMenuItemsTableSeeder extends Seeder
 
         $order = 1;
 
-        $this->updateOrCreateItem($menu->id, null, __('ave::seeders.menus.dashboard'), [
-            'icon' => 'voyager-dashboard',
+        $this->upsertMenuItem([
+            'menu_id' => $menu->id,
+            'parent_id' => null,
             'route' => 'ave.dashboard',
+        ], [
+            'title' => __('ave::seeders.menus.dashboard'),
+            'icon' => 'voyager-dashboard',
+            'status' => 1,
+            'url' => null,
+            'target' => '_self',
             'order' => $order++,
+            'permission_key' => null,
+            'resource_slug' => null,
+            'ability' => null,
         ]);
 
-        $this->updateOrCreateItem($menu->id, null, __('ave::seeders.menus.file_manager'), [
-            'icon' => 'voyager-folder',
+        $this->upsertMenuItem([
+            'menu_id' => $menu->id,
+            'parent_id' => null,
             'route' => 'ave.file-manager.index',
-            'permission_key' => 'file-manager.viewAny',
+        ], [
+            'title' => __('ave::seeders.menus.file_manager'),
+            'icon' => 'voyager-folder',
+            'status' => 1,
+            'url' => null,
+            'target' => '_self',
             'order' => $order++,
+            'permission_key' => 'file-manager.viewAny',
+            'resource_slug' => null,
+            'ability' => null,
         ]);
 
-        $settings = $this->updateOrCreateItem($menu->id, null, __('ave::seeders.menus.settings'), [
+        $settings = $this->upsertMenuItem([
+            'menu_id' => $menu->id,
+            'parent_id' => null,
+            'route' => null,
+            'url' => null,
+            'resource_slug' => null,
             'icon' => 'voyager-settings',
+        ], [
+            'title' => __('ave::seeders.menus.settings'),
+            'status' => 1,
+            'target' => '_self',
             'order' => $order++,
+            'permission_key' => null,
+            'ability' => null,
         ]);
 
         $childOrder = 1;
         $settingsChildren = [
-            [__('ave::seeders.menus.menus'), 'voyager-list', 'menus'],
-            [__('ave::seeders.menus.users'), 'voyager-person', 'users'],
-            [__('ave::seeders.menus.roles'), 'voyager-lock', 'roles'],
-            [__('ave::seeders.menus.permissions'), 'voyager-key', 'permissions'],
+            [
+                'slug' => 'menus',
+                'icon' => 'voyager-list',
+                'title' => __('ave::seeders.menus.menus'),
+            ],
+            [
+                'slug' => 'users',
+                'icon' => 'voyager-person',
+                'title' => __('ave::seeders.menus.users'),
+            ],
+            [
+                'slug' => 'roles',
+                'icon' => 'voyager-lock',
+                'title' => __('ave::seeders.menus.roles'),
+            ],
+            [
+                'slug' => 'permissions',
+                'icon' => 'voyager-key',
+                'title' => __('ave::seeders.menus.permissions'),
+            ],
         ];
 
-        foreach ($settingsChildren as [$title, $icon, $slug]) {
-            $this->updateOrCreateItem($menu->id, $settings->id, $title, [
-                'icon' => $icon,
-                'resource_slug' => $slug,
-                'ability' => 'viewAny',
+        foreach ($settingsChildren as $child) {
+            $this->upsertMenuItem([
+                'menu_id' => $menu->id,
+                'parent_id' => $settings->id,
+                'resource_slug' => $child['slug'],
+            ], [
+                'title' => $child['title'],
+                'icon' => $child['icon'],
+                'status' => 1,
+                'route' => null,
+                'url' => null,
+                'target' => '_self',
                 'order' => $childOrder++,
+                'permission_key' => null,
+                'ability' => 'viewAny',
             ]);
         }
 
         $prefix = trim((string) config('ave.route_prefix', 'admin'), '/');
         $prefix = $prefix === '' ? 'admin' : $prefix;
+        $compassUrl = '/' . $prefix . '/page/icons';
 
-        $this->updateOrCreateItem($menu->id, $settings->id, __('ave::seeders.menus.icons'), [
+        $this->upsertMenuItem([
+            'menu_id' => $menu->id,
+            'parent_id' => $settings->id,
+            'url' => $compassUrl,
+        ], [
+            'title' => __('ave::seeders.menus.icons'),
             'icon' => 'voyager-compass',
-            'url' => '/' . $prefix . '/page/icons',
+            'status' => 1,
+            'route' => null,
+            'resource_slug' => null,
+            'target' => '_self',
             'order' => $childOrder++,
+            'permission_key' => null,
+            'ability' => null,
         ]);
 
-        $cache = $this->updateOrCreateItem($menu->id, $settings->id, __('ave::seeders.menus.clear_cache'), [
+        $cache = $this->upsertMenuItem([
+            'menu_id' => $menu->id,
+            'parent_id' => $settings->id,
+            'resource_slug' => null,
+            'route' => null,
+            'url' => null,
             'icon' => 'voyager-bolt',
+        ], [
+            'title' => __('ave::seeders.menus.clear_cache'),
+            'status' => 1,
+            'target' => '_self',
             'order' => $childOrder++,
+            'permission_key' => null,
+            'ability' => null,
         ]);
 
         $cacheTypes = [
-            ['cache_application', 'voyager-data'],
-            ['cache_config', 'voyager-settings'],
-            ['cache_route', 'voyager-compass'],
-            ['cache_view', 'voyager-browser'],
-            ['cache_all', 'voyager-trash'],
+            ['key' => 'cache_application', 'icon' => 'voyager-data'],
+            ['key' => 'cache_config', 'icon' => 'voyager-settings'],
+            ['key' => 'cache_route', 'icon' => 'voyager-compass'],
+            ['key' => 'cache_view', 'icon' => 'voyager-browser'],
+            ['key' => 'cache_all', 'icon' => 'voyager-trash'],
         ];
 
         $cacheOrder = 1;
 
-        foreach ($cacheTypes as [$key, $icon]) {
-            $this->updateOrCreateItem($menu->id, $cache->id, __('ave::seeders.menus.' . $key), [
-                'icon' => $icon,
-                'url' => '#cache-clear-' . str_replace('cache_', '', $key),
+        foreach ($cacheTypes as $cacheItem) {
+            $anchor = '#cache-clear-' . str_replace('cache_', '', $cacheItem['key']);
+
+            $this->upsertMenuItem([
+                'menu_id' => $menu->id,
+                'parent_id' => $cache->id,
+                'url' => $anchor,
+            ], [
+                'title' => __('ave::seeders.menus.' . $cacheItem['key']),
+                'icon' => $cacheItem['icon'],
+                'status' => 1,
+                'route' => null,
+                'resource_slug' => null,
+                'target' => '_self',
                 'order' => $cacheOrder++,
+                'permission_key' => null,
+                'ability' => null,
             ]);
         }
     }
 
-    protected function updateOrCreateItem(int $menuId, ?int $parentId, string $title, array $attributes): MenuItem
+    protected function upsertMenuItem(array $criteria, array $attributes): MenuItem
     {
+        if (!isset($criteria['menu_id'])) {
+            throw new \InvalidArgumentException('menu_id is required for menu item criteria.');
+        }
+
+        $criteria = array_merge([
+            'parent_id' => null,
+            'route' => null,
+            'url' => null,
+            'resource_slug' => null,
+        ], $criteria);
+
         return MenuItem::updateOrCreate(
-            [
-                'menu_id' => $menuId,
-                'parent_id' => $parentId,
-                'title' => $title,
-            ],
-            $attributes
+            $criteria,
+            array_merge(
+                ['menu_id' => $criteria['menu_id']],
+                $attributes
+            )
         );
     }
 }
