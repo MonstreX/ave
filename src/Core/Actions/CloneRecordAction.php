@@ -11,7 +11,7 @@ use Illuminate\Support\Arr;
 class CloneRecordAction extends BaseAction implements RowAction
 {
     protected string $key = 'clone';
-    protected ?string $icon = 'voyager-paste';
+    protected ?string $icon = 'voyager-documentation';
     protected string $color = 'secondary';
     protected ?string $ability = 'update';
 
