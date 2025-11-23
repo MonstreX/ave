@@ -111,7 +111,11 @@ class BreadcrumbService
     protected function generateFromSegments(array $segments, string $dashboardRoute): Collection
     {
         $breadcrumbs = collect();
-        $visibleSegments = array_values(array_filter($segments, fn($segment) => $segment !== 'resource'));
+        $skipSegments = ['resource', 'page'];
+        $visibleSegments = array_values(array_filter(
+            $segments,
+            fn ($segment) => ! in_array($segment, $skipSegments, true)
+        ));
         $visibleCount = count($visibleSegments);
 
         $url = $dashboardRoute;
@@ -120,7 +124,7 @@ class BreadcrumbService
         foreach ($segments as $segment) {
             $url .= '/' . $segment;
 
-            if ($segment === 'resource') {
+            if (in_array($segment, $skipSegments, true)) {
                 continue;
             }
 
