@@ -79,12 +79,11 @@
 }
 
 .table-link {
-    color: var(--ave-color-primary-darker);
-    text-decoration: underline;
+    color: var(--ave-color-link);
     cursor: pointer;
 
     &:hover {
-        color: var(--ave-color-primary-darker);
+        color: var(--ave-color-link-hover);
         text-decoration-thickness: 2px;
     }
 }
