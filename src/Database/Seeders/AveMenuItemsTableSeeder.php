@@ -4,6 +4,7 @@ namespace Monstrex\Ave\Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Monstrex\Ave\Models\MenuItem;
 
 class AveMenuItemsTableSeeder extends Seeder
 {
@@ -15,41 +16,24 @@ class AveMenuItemsTableSeeder extends Seeder
             return;
         }
 
-        if (DB::table('ave_menu_items')->where('menu_id', $menu->id)->exists()) {
-            return;
-        }
-
-        $now = now();
         $order = 1;
 
-        DB::table('ave_menu_items')->insert([
-            'menu_id' => $menu->id,
-            'title' => __('ave::seeders.menus.dashboard'),
+        $this->updateOrCreateItem($menu->id, null, __('ave::seeders.menus.dashboard'), [
             'icon' => 'voyager-dashboard',
             'route' => 'ave.dashboard',
             'order' => $order++,
-            'created_at' => $now,
-            'updated_at' => $now,
         ]);
 
-        DB::table('ave_menu_items')->insert([
-            'menu_id' => $menu->id,
-            'title' => __('ave::seeders.menus.file_manager'),
+        $this->updateOrCreateItem($menu->id, null, __('ave::seeders.menus.file_manager'), [
             'icon' => 'voyager-folder',
             'route' => 'ave.file-manager.index',
             'permission_key' => 'file-manager.viewAny',
             'order' => $order++,
-            'created_at' => $now,
-            'updated_at' => $now,
         ]);
 
-        $settingsId = DB::table('ave_menu_items')->insertGetId([
-            'menu_id' => $menu->id,
-            'title' => __('ave::seeders.menus.settings'),
+        $settings = $this->updateOrCreateItem($menu->id, null, __('ave::seeders.menus.settings'), [
             'icon' => 'voyager-settings',
             'order' => $order++,
-            'created_at' => $now,
-            'updated_at' => $now,
         ]);
 
         $childOrder = 1;
@@ -61,41 +45,26 @@ class AveMenuItemsTableSeeder extends Seeder
         ];
 
         foreach ($settingsChildren as [$title, $icon, $slug]) {
-            DB::table('ave_menu_items')->insert([
-                'menu_id' => $menu->id,
-                'parent_id' => $settingsId,
-                'title' => $title,
+            $this->updateOrCreateItem($menu->id, $settings->id, $title, [
                 'icon' => $icon,
                 'resource_slug' => $slug,
                 'ability' => 'viewAny',
                 'order' => $childOrder++,
-                'created_at' => $now,
-                'updated_at' => $now,
             ]);
         }
 
         $prefix = trim((string) config('ave.route_prefix', 'admin'), '/');
         $prefix = $prefix === '' ? 'admin' : $prefix;
 
-        DB::table('ave_menu_items')->insert([
-            'menu_id' => $menu->id,
-            'parent_id' => $settingsId,
-            'title' => __('ave::seeders.menus.icons'),
+        $this->updateOrCreateItem($menu->id, $settings->id, __('ave::seeders.menus.icons'), [
             'icon' => 'voyager-compass',
             'url' => '/' . $prefix . '/page/icons',
             'order' => $childOrder++,
-            'created_at' => $now,
-            'updated_at' => $now,
         ]);
 
-        $cacheId = DB::table('ave_menu_items')->insertGetId([
-            'menu_id' => $menu->id,
-            'parent_id' => $settingsId,
-            'title' => __('ave::seeders.menus.clear_cache'),
+        $cache = $this->updateOrCreateItem($menu->id, $settings->id, __('ave::seeders.menus.clear_cache'), [
             'icon' => 'voyager-bolt',
             'order' => $childOrder++,
-            'created_at' => $now,
-            'updated_at' => $now,
         ]);
 
         $cacheTypes = [
@@ -109,16 +78,23 @@ class AveMenuItemsTableSeeder extends Seeder
         $cacheOrder = 1;
 
         foreach ($cacheTypes as [$key, $icon]) {
-            DB::table('ave_menu_items')->insert([
-                'menu_id' => $menu->id,
-                'parent_id' => $cacheId,
-                'title' => __('ave::seeders.menus.' . $key),
+            $this->updateOrCreateItem($menu->id, $cache->id, __('ave::seeders.menus.' . $key), [
                 'icon' => $icon,
                 'url' => '#cache-clear-' . str_replace('cache_', '', $key),
                 'order' => $cacheOrder++,
-                'created_at' => $now,
-                'updated_at' => $now,
             ]);
         }
+    }
+
+    protected function updateOrCreateItem(int $menuId, ?int $parentId, string $title, array $attributes): MenuItem
+    {
+        return MenuItem::updateOrCreate(
+            [
+                'menu_id' => $menuId,
+                'parent_id' => $parentId,
+                'title' => $title,
+            ],
+            $attributes
+        );
     }
 }

@@ -64,6 +64,7 @@
 @use './content/breadcrumbs';
 @use './content/resource-pages';
 @use './content/media';
+@use './content/icon-library';
 
 // Utilities (helpers and overlays)
 @use './utilities/animations';
@@ -74,4 +75,3 @@
 @use './utilities/modal';
 
 @include meta.load-css('jodit/es2021/jodit.min.css');
-
