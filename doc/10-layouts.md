@@ -86,11 +86,11 @@ Groups are sometimes used inside Fieldset items to visually separate sections.
 
 ## Sticky Form Actions
 
-`Form::stickyActions()` pins the Save/Cancel buttons to the bottom of the viewport. This is especially helpful when your form uses Tabs or Fieldsets and becomes very tall.
+Sticky action bar теперь активна по умолчанию и фиксирует кнопки внизу экрана. В редких случаях, когда нужна классическая статичная панель, вызовите `stickyActions(false)` (или `disableStickyActions()`) на форме.
 
 ```php
 Form::make()
-    ->stickyActions()
+    ->stickyActions(false)
     ->schema([...]);
 ```
 

@@ -101,7 +101,7 @@ public static function table($ctx): Table
 2. **Use layout components** from [Layouts](10-layouts.md) to keep forms readable. Even a simple `Row` with `Col::make(6)` improves pacing significantly.
 3. **Apply validation at the field level** (`required()`, `rules()`, `minLength()`, etc.) so users get immediate feedback.
 4. **Reuse helper components**: Fieldset for repeatable data, Media for uploads, BelongsToSelect for relationships.
-5. **Turn on `stickyActions()`** for tall forms so the Save button stays visible.
+5. **Sticky action bar включена по умолчанию** — при необходимости отключайте её через `->stickyActions(false)` или `->disableStickyActions()`.
 6. **Provide help text** for anything non-trivial.
 
 ### Example block
@@ -110,7 +110,7 @@ public static function table($ctx): Table
 public static function form($ctx): Form
 {
     return Form::make()
-        ->stickyActions()
+        ->stickyActions(false)
         ->schema([
             Tabs::make()->schema([
                 Tab::make('Basic')->schema([

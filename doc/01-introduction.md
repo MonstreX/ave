@@ -104,7 +104,6 @@ Follow these steps the first time you add a resource:
    public static function form($ctx): Form
    {
        return Form::make()
-           ->stickyActions()
            ->schema([
                Tabs::make()->schema([
                    Tab::make('Basic')->schema([

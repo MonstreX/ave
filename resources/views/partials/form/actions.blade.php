@@ -1,7 +1,7 @@
 @php
     $formButtonActions = $formButtonActions ?? [];
     $ajaxFormActions = $ajaxFormActions ?? [];
-    $stickyActions = $stickyActions ?? false;
+    $stickyActions = $stickyActions ?? true;
 @endphp
 
 <div class="form-actions {{ $stickyActions ? 'form-actions--sticky' : '' }}">

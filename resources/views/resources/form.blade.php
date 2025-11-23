@@ -14,7 +14,7 @@
     @include('ave::partials.form.toolbar', [
         'formButtonActions' => $formButtonActions,
         'ajaxFormActions' => $ajaxFormActions,
-        'stickyActions' => $stickyActions ?? false,
+        'stickyActions' => $stickyActions ?? true,
     ])
 @endsection
 
@@ -23,7 +23,7 @@
         @include('ave::partials.form.body', [
             'formButtonActions' => $formButtonActions,
             'ajaxFormActions' => $ajaxFormActions,
-            'stickyActions' => $stickyActions ?? false,
+            'stickyActions' => $stickyActions ?? true,
         ])
     </div>
 @endsection
