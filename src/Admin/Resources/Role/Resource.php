@@ -46,6 +46,7 @@ class Resource extends BaseResource
             Column::make('name')
                 ->label(__('ave::resources_roles.columns.name'))
                 ->searchable(true)
+                ->linkAction('edit')
                 ->sortable(true),
             Column::make('slug')
                 ->label(__('ave::resources_roles.columns.slug'))

@@ -45,6 +45,7 @@ class Resource extends BaseResource
             Column::make('name')
                 ->label(__('ave::resources_users.columns.name'))
                 ->sortable(true)
+                ->linkAction('edit')
                 ->searchable(true),
             Column::make('email')
                 ->label(__('ave::resources_users.columns.email'))

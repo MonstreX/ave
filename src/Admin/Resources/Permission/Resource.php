@@ -41,6 +41,7 @@ class Resource extends BaseResource
             Column::make('resource_slug')
                 ->label(__('ave::resources_permissions.columns.resource'))
                 ->sortable(true)
+                ->linkAction('edit')
                 ->searchable(true),
             Column::make('ability')
                 ->label(__('ave::resources_permissions.columns.ability'))
