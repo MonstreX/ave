@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'title' => 'Icon Library',
+    'title' => 'Compass',
     'description' => 'Complete list of Voyager icon classes bundled with Ave.',
     'css_heading' => 'CSS Classes',
     'css_help' => 'Use these class names inside buttons, menu items or resources.',

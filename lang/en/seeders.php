@@ -14,7 +14,7 @@ return [
         'users' => 'Users',
         'roles' => 'Roles',
         'permissions' => 'Permissions',
-        'icons' => 'Icon Library',
+        'icons' => 'Compass',
         'clear_cache' => 'Clear Cache',
         'cache_application' => 'Application Cache',
         'cache_config' => 'Config Cache',

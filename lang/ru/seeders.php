@@ -14,7 +14,7 @@ return [
         'users' => 'Пользователи',
         'roles' => 'Роли',
         'permissions' => 'Разрешения',
-        'icons' => 'Справочник иконок',
+        'icons' => 'Компас',
         'clear_cache' => 'Очистка кеша',
         'cache_application' => 'Кеш приложения',
         'cache_config' => 'Кеш конфигурации',

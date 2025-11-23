@@ -6,7 +6,7 @@ use Monstrex\Ave\Core\Page;
 
 class IconLibraryPage extends Page
 {
-    public static ?string $label = 'Icon Library';
+    public static ?string $label = 'Compass';
     public static ?string $icon = 'voyager-compass';
     public static ?string $slug = 'icons';
 
