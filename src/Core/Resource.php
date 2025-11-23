@@ -254,8 +254,8 @@ abstract class Resource implements Authorizable
     protected static function defaultRowActions(): array
     {
         return [
-            \Monstrex\Ave\Core\Actions\EditAction::class,
             \Monstrex\Ave\Core\Actions\CloneRecordAction::class,
+            \Monstrex\Ave\Core\Actions\EditAction::class,
             \Monstrex\Ave\Core\Actions\DeleteAction::class,
         ];
     }
