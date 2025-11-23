@@ -46,7 +46,7 @@
 
         &.css-mapping {
             li {
-                width: 210px;
+                display: flex;
             }
 
             .icon {
@@ -64,8 +64,9 @@
 
             input {
                 margin-top: 5px;
-                padding: 8px;
-                height: 40px;
+                padding: 4px 8px;
+                height: 35px;
+                font-size: 14px;
             }
         }
 
