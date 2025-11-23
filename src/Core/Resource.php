@@ -33,6 +33,7 @@ abstract class Resource implements Authorizable
     public static array $searchable = [];
     public static array $sortable = [];
     public static array $relationMap = [];
+    public static array $cloneable = [];
 
     /** @var array<string> Relations to eager load on index */
     public static array $with = [];
@@ -103,6 +104,32 @@ abstract class Resource implements Authorizable
     public static function beforeUpdate(Model $model, array $data, \Illuminate\Http\Request $request): array
     {
         return $data;
+    }
+
+    /**
+     * Fields that should be cloned by CloneRecordAction.
+     *
+     * @return array<int,string>
+     */
+    public static function cloneableFields(): array
+    {
+        return static::$cloneable ?? [];
+    }
+
+    /**
+     * Mutate clone attributes before saving.
+     */
+    public static function mutateCloneAttributes(Model $original, array $attributes): array
+    {
+        return $attributes;
+    }
+
+    /**
+     * Hook called after the clone has been persisted.
+     */
+    public static function afterClone(Model $original, Model $clone): void
+    {
+        // Override in resource if needed
     }
 
     /**
@@ -228,6 +255,7 @@ abstract class Resource implements Authorizable
     {
         return [
             \Monstrex\Ave\Core\Actions\EditAction::class,
+            \Monstrex\Ave\Core\Actions\CloneRecordAction::class,
             \Monstrex\Ave\Core\Actions\DeleteAction::class,
         ];
     }

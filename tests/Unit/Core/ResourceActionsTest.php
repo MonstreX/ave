@@ -21,6 +21,7 @@ class ResourceActionsTest extends TestCase
         $this->assertContains('edit', $keys);
         $this->assertContains('delete', $keys);
         $this->assertContains('sample-row', $keys);
+        $this->assertContains('clone', $keys);
     }
 
     public function test_bulk_actions_include_default_delete(): void
