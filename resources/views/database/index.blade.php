@@ -79,7 +79,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     bodyParams: [tableName],
                     confirmText: '{{ __('ave::database.delete_table_confirm') }}',
                     cancelText: '{{ __('ave::common.cancel') }}',
-                    variant: 'warning'
+                    variant: 'danger'
                 }
             );
 
