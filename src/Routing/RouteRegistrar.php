@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use Monstrex\Ave\Http\Controllers\Api\SlugController;
 use Monstrex\Ave\Http\Controllers\AuthController;
 use Monstrex\Ave\Http\Controllers\CacheController;
+use Monstrex\Ave\Http\Controllers\DatabaseController;
 use Monstrex\Ave\Http\Controllers\FileManagerController;
 use Monstrex\Ave\Http\Controllers\LocaleController;
 use Monstrex\Ave\Http\Controllers\MediaController;
@@ -80,6 +81,7 @@ class RouteRegistrar
                 $this->registerLocaleRoutes($router);
                 $this->registerCacheRoutes($router);
                 $this->registerFileManagerRoutes($router);
+                $this->registerDatabaseRoutes($router);
                 $this->registerStorageLinkRoutes($router);
 
                 $router->fallback(function () {
@@ -173,6 +175,34 @@ class RouteRegistrar
 
         $router->post('/file-manager/rename', [FileManagerController::class, 'rename'])
             ->name('ave.file-manager.rename');
+    }
+
+    protected function registerDatabaseRoutes(Router $router): void
+    {
+        if (! config('ave.database.enabled', true)) {
+            return;
+        }
+
+        $router->get('/database', [DatabaseController::class, 'index'])
+            ->name('ave.database.index');
+
+        $router->get('/database/create', [DatabaseController::class, 'create'])
+            ->name('ave.database.create');
+
+        $router->post('/database', [DatabaseController::class, 'store'])
+            ->name('ave.database.store');
+
+        $router->get('/database/{table}/edit', [DatabaseController::class, 'edit'])
+            ->name('ave.database.edit');
+
+        $router->put('/database/{table}', [DatabaseController::class, 'update'])
+            ->name('ave.database.update');
+
+        $router->get('/database/{table}', [DatabaseController::class, 'show'])
+            ->name('ave.database.show');
+
+        $router->delete('/database/{table}', [DatabaseController::class, 'destroy'])
+            ->name('ave.database.destroy');
     }
 
     protected function registerStorageLinkRoutes(Router $router): void

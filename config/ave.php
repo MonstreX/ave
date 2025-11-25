@@ -115,4 +115,23 @@ return [
         'forbidden_extensions' => ['php', 'phtml', 'phar', 'sh', 'bash', 'exe', 'bat'],
         'max_upload_size' => (int) env('AVE_FILE_MANAGER_MAX_UPLOAD', 10240), // KB
     ],
+
+    /*
+     * Database Manager configuration.
+     */
+    'database' => [
+        'enabled' => (bool) env('AVE_DATABASE_ENABLED', true),
+        // Tables to hide from database manager list
+        'hidden_tables' => [
+            'migrations',
+            'password_resets',
+            'password_reset_tokens',
+            'personal_access_tokens',
+            'sessions',
+            'cache',
+            'cache_locks',
+            'jobs',
+            'failed_jobs',
+        ],
+    ],
 ];
