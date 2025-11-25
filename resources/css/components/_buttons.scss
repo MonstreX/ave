@@ -169,4 +169,21 @@
     cursor: pointer;
 }
 
+// Square button (icon only)
+.btn-square {
+    width: 30px;
+    height: 30px;
+    padding: 0 !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: auto;
+
+    i {
+        margin: 0;
+        font-size: 14px;
+        top: 0;
+    }
+}
+
 

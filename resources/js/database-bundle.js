@@ -353,7 +353,7 @@ class DatabaseTableEditor {
         // 9. Delete button
         const tdDelete = document.createElement('td')
         const btnDelete = document.createElement('div')
-        btnDelete.className = 'btn btn-danger btn-sm delete-row'
+        btnDelete.className = 'btn btn-danger btn-sm btn-square delete-row'
         btnDelete.innerHTML = '<i class="voyager-trash"></i>'
         btnDelete.addEventListener('click', () => this.removeColumn(index))
         tdDelete.appendChild(btnDelete)

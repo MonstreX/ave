@@ -56,6 +56,7 @@ return [
     // Error messages
     'edit_table_not_exist' => 'Table does not exist',
     'delete_table_question' => 'Are you sure you want to delete table :table?',
+    'delete_table_question_text' => 'Are you sure you want to delete table',
     'delete_table_confirm' => 'Yes, Delete Table',
     'column_already_exists' => 'Column :column already exists',
     'table_has_index' => 'Table already has a primary key',

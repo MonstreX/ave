@@ -56,6 +56,7 @@ return [
     // Сообщения об ошибках
     'edit_table_not_exist' => 'Таблица не существует',
     'delete_table_question' => 'Вы уверены, что хотите удалить таблицу :table?',
+    'delete_table_question_text' => 'Вы уверены, что хотите удалить таблицу',
     'delete_table_confirm' => 'Да, удалить таблицу',
     'column_already_exists' => 'Колонка :column уже существует',
     'table_has_index' => 'У таблицы уже есть первичный ключ',
