@@ -170,8 +170,16 @@ class DatabaseTableEditor {
 
         // Convert column.key to column.index for compatibility
         const tableData = config.oldTable || config.table
+        console.log('=== INDEX CONVERSION DEBUG ===')
+        console.log('tableData:', tableData)
         if (tableData && tableData.columns) {
-            tableData.columns.forEach(column => {
+            console.log('Processing columns:', tableData.columns.length)
+            tableData.columns.forEach((column, idx) => {
+                console.log(`Column ${idx} (${column.name}):`, {
+                    key: column.key,
+                    index: column.index,
+                    indexes: column.indexes
+                })
                 if (column.key && !column.index) {
                     // Convert "pri" -> "primary", "uni" -> "unique", "ind" -> "index"
                     const keyMap = {
@@ -180,9 +188,12 @@ class DatabaseTableEditor {
                         'ind': 'index'
                     }
                     column.index = keyMap[column.key] || null
+                    console.log(`  -> Converted key "${column.key}" to index "${column.index}"`)
                 }
             })
         }
+        console.log('=== END INDEX CONVERSION ===')
+        console.log('Final tableData:', tableData)
 
         this.state = new Reactive({
             table: tableData,
@@ -338,7 +349,7 @@ class DatabaseTableEditor {
         // 9. Delete button
         const tdDelete = document.createElement('td')
         const btnDelete = document.createElement('div')
-        btnDelete.className = 'btn btn-danger delete-row'
+        btnDelete.className = 'btn btn-danger btn-sm delete-row'
         btnDelete.innerHTML = '<i class="voyager-trash"></i>'
         btnDelete.addEventListener('click', () => this.removeColumn(index))
         tdDelete.appendChild(btnDelete)
@@ -456,6 +467,12 @@ class DatabaseTableEditor {
     }
 
     createIndexSelectSimple(column, columnIndex) {
+        console.log(`createIndexSelectSimple for column ${columnIndex}:`, {
+            name: column.name,
+            index: column.index,
+            key: column.key
+        })
+
         const select = document.createElement('select')
         select.className = 'form-control'
 
@@ -471,10 +488,12 @@ class DatabaseTableEditor {
             option.value = opt.value
             option.textContent = opt.label
             option.selected = column.index === opt.value
+            console.log(`  Option ${opt.value}: selected=${option.selected} (column.index="${column.index}")`)
             select.appendChild(option)
         })
 
         select.addEventListener('change', (e) => {
+            console.log(`Index changed for column ${columnIndex} to: ${e.target.value}`)
             this.updateColumn(columnIndex, 'index', e.target.value)
         })
 
