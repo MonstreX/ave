@@ -56,7 +56,7 @@ abstract class Column
             $column['scale'] = 0;
         }
 
-        $options = array_diff_key($column, array_flip(['name', 'composite', 'oldName', 'null', 'extra', 'type', 'charset', 'collation']));
+        $options = array_diff_key($column, array_flip(['name', 'composite', 'oldName', 'null', 'extra', 'type', 'charset', 'collation', 'field', 'key', 'index', 'indexes']));
 
         return new DoctrineColumn($name, $type, $options);
     }

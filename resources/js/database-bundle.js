@@ -230,11 +230,18 @@ class DatabaseTableEditor {
                 return false
             }
 
-            console.log('Submitting table data:', this.state.state.table)
+            console.log('=== SUBMITTING TABLE ===')
+            console.log('Table data:', this.state.state.table)
+            console.log('Columns with indexes:', this.state.state.table.columns.map(col => ({
+                name: col.name,
+                index: col.index,
+                key: col.key
+            })))
             const tableJson = JSON.stringify(this.state.state.table)
-            console.log('Table JSON:', tableJson)
+            console.log('Table JSON length:', tableJson.length)
             document.getElementById('table-data').value = tableJson
             window.dbConfig.table = this.state.state.table
+            console.log('Form will submit now')
         })
     }
 

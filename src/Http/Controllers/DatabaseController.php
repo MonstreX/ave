@@ -119,6 +119,20 @@ class DatabaseController extends Controller
 
         try {
             $tableData = json_decode($request->table, true);
+
+            \Log::info('=== DATABASE UPDATE REQUEST ===');
+            \Log::info('Table name: ' . $table);
+            \Log::info('Request table field length: ' . strlen($request->table));
+            \Log::info('Decoded columns count: ' . count($tableData['columns'] ?? []));
+            if (isset($tableData['columns'])) {
+                foreach ($tableData['columns'] as $col) {
+                    \Log::info('Column: ' . $col['name'], [
+                        'index' => $col['index'] ?? 'not set',
+                        'key' => $col['key'] ?? 'not set'
+                    ]);
+                }
+            }
+
             DatabaseUpdater::update($tableData);
 
             // TODO: Dispatch TableUpdated event
@@ -128,6 +142,8 @@ class DatabaseController extends Controller
                 ->route('ave.database.index')
                 ->with('success', __('ave::database.success_update_table', ['table' => $tableData['name']]));
         } catch (Exception $e) {
+            \Log::error('Database update failed: ' . $e->getMessage());
+            \Log::error('Stack trace: ' . $e->getTraceAsString());
             return back()
                 ->with('error', $e->getMessage())
                 ->withInput();
