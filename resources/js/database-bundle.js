@@ -168,20 +168,13 @@ class DatabaseTableEditor {
         console.log('config.table:', config.table)
         console.log('config.oldTable:', config.oldTable)
 
-        // Convert column.key to column.index for compatibility
         const tableData = config.oldTable || config.table
-        if (tableData && tableData.columns) {
-            tableData.columns.forEach((column) => {
-                if (column.key && !column.index) {
-                    // Convert "PRI" -> "primary", "UNI" -> "unique", "IND" -> "index"
-                    const keyMap = {
-                        'PRI': 'primary',
-                        'UNI': 'unique',
-                        'IND': 'index'
-                    }
-                    column.index = keyMap[column.key] || null
-                }
-            })
+
+        // Initialize empty index structure
+        this.emptyIndex = {
+            type: '',
+            name: '',
+            columns: []
         }
 
         this.state = new Reactive({
@@ -451,6 +444,14 @@ class DatabaseTableEditor {
             }
 
             if (typeObj) {
+                // If new type doesn't support indexes, remove existing index
+                if (typeObj.notSupportIndex) {
+                    const existingIndex = this.getColumnsIndex(column.name)
+                    if (existingIndex !== this.emptyIndex) {
+                        this.deleteIndex(existingIndex)
+                    }
+                }
+
                 this.updateColumn(columnIndex, 'type', {
                     name: typeObj.name,
                     notSupported: typeObj.supported === false,
@@ -466,6 +467,19 @@ class DatabaseTableEditor {
         const select = document.createElement('select')
         select.className = 'form-control'
 
+        // Check if column type supports indexes
+        const columnType = typeof column.type === 'object' ? column.type : { name: column.type }
+        const notSupportIndex = columnType.notSupportIndex || false
+
+        // Disable select for types that don't support indexes
+        if (notSupportIndex) {
+            select.disabled = true
+        }
+
+        // Get current index for this column
+        const currentIndex = this.getColumnsIndex(column.name)
+        const currentType = currentIndex !== this.emptyIndex ? currentIndex.type.toLowerCase() : ''
+
         const options = [
             { value: '', label: '' },
             { value: 'index', label: 'INDEX' },
@@ -477,12 +491,12 @@ class DatabaseTableEditor {
             const option = document.createElement('option')
             option.value = opt.value
             option.textContent = opt.label
-            option.selected = column.index === opt.value
+            option.selected = currentType === opt.value
             select.appendChild(option)
         })
 
         select.addEventListener('change', (e) => {
-            this.updateColumn(columnIndex, 'index', e.target.value)
+            this.onIndexChange(columnIndex, e.target.value)
         })
 
         return select
@@ -619,6 +633,99 @@ class DatabaseTableEditor {
 
         this.state.notify(['table', 'columns'])
         toastr.success('Soft deletes added')
+    }
+
+    getColumnsIndex(columnName) {
+        const columns = Array.isArray(columnName) ? columnName : [columnName]
+        const indexes = this.state.state.table.indexes || []
+
+        for (let i = 0; i < indexes.length; i++) {
+            const indexColumns = indexes[i].columns || []
+            // Check if columns match exactly
+            if (indexColumns.length === columns.length &&
+                indexColumns.every(col => columns.includes(col))) {
+                return indexes[i]
+            }
+        }
+
+        return this.emptyIndex
+    }
+
+    onIndexChange(columnIndex, newType) {
+        const column = this.state.state.table.columns[columnIndex]
+        const oldIndex = this.getColumnsIndex(column.name)
+
+        if (oldIndex === this.emptyIndex && newType) {
+            // Add new index
+            return this.addIndex({
+                columns: [column.name],
+                type: newType.toUpperCase()
+            })
+        }
+
+        if (!newType || newType === '') {
+            // Delete index
+            return this.deleteIndex(oldIndex)
+        }
+
+        // Update existing index
+        return this.updateIndex(oldIndex, newType.toUpperCase())
+    }
+
+    addIndex(index) {
+        if (index.type === 'PRIMARY') {
+            if (this.state.state.table.primaryKeyName) {
+                toastr.error('Table already has a primary key')
+                return
+            }
+            this.state.state.table.primaryKeyName = 'primary'
+        }
+
+        this.setIndexName(index)
+        this.state.state.table.indexes.push(index)
+        this.state.notify(['table', 'indexes'])
+    }
+
+    deleteIndex(index) {
+        if (!index || index === this.emptyIndex) {
+            return
+        }
+
+        const indexes = this.state.state.table.indexes || []
+        const indexPos = indexes.indexOf(index)
+
+        if (indexPos !== -1) {
+            if (index.type === 'PRIMARY') {
+                this.state.state.table.primaryKeyName = false
+            }
+            indexes.splice(indexPos, 1)
+            this.state.notify(['table', 'indexes'])
+        }
+    }
+
+    updateIndex(index, newType) {
+        if (index.type === 'PRIMARY') {
+            this.state.state.table.primaryKeyName = false
+        } else if (newType === 'PRIMARY') {
+            if (this.state.state.table.primaryKeyName) {
+                toastr.error('Table already has a primary key')
+                return
+            }
+            this.state.state.table.primaryKeyName = 'primary'
+        }
+
+        index.type = newType
+        this.setIndexName(index)
+        this.state.notify(['table', 'indexes'])
+    }
+
+    setIndexName(index) {
+        if (index.type === 'PRIMARY') {
+            index.name = 'primary'
+        } else {
+            // Name will be set by PHP on server
+            index.name = ''
+        }
     }
 
     validateTable() {
