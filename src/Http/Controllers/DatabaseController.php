@@ -62,6 +62,13 @@ class DatabaseController extends Controller
         // TODO: Add authorization check
         // $this->authorize('add_database');
 
+        \Log::info('=== DATABASE STORE REQUEST ===');
+        \Log::info('Request data:', [
+            'table' => $request->table ? substr($request->table, 0, 200) : 'null',
+            'create_model' => $request->create_model,
+            'model_name' => $request->model_name,
+        ]);
+
         try {
             $conn = 'database.connections.'.config('database.default');
             Type::registerCustomPlatformTypes();
@@ -71,19 +78,49 @@ class DatabaseController extends Controller
                 $table = json_decode($request->table, true);
             }
 
+            \Log::info('Decoded table data:', [
+                'name' => $table['name'] ?? 'null',
+                'columns_count' => count($table['columns'] ?? []),
+                'indexes_count' => count($table['indexes'] ?? [])
+            ]);
+
             $table['options']['collate'] = config($conn.'.collation', 'utf8mb4_unicode_ci');
             $table['options']['charset'] = config($conn.'.charset', 'utf8mb4');
 
-            $table = Table::make($table);
-            SchemaManager::createTable($table);
+            \Log::info('STEP 1: Before Table::make');
+            $tableObj = Table::make($table);
+            \Log::info('STEP 2: After Table::make, table name: ' . $tableObj->getName());
+
+            \Log::info('STEP 3: Before SchemaManager::createTable');
+            SchemaManager::createTable($tableObj);
+            \Log::info('STEP 4: After createTable - SUCCESS');
+
+            // Create model if requested
+            if ($request->filled('create_model') && $request->filled('model_name')) {
+                try {
+                    \Log::info('STEP 5: Creating model: ' . $request->model_name);
+                    $this->createModel($request->model_name, $tableObj->getName());
+                    \Log::info('STEP 6: Model created successfully');
+                } catch (\Exception $e) {
+                    \Log::error('Model creation failed: ' . $e->getMessage());
+                    \Log::error('Stack trace: ' . $e->getTraceAsString());
+                    // Don't fail the whole operation if model creation fails
+                }
+            }
 
             // TODO: Dispatch TableAdded event
             // event(new TableAdded($table));
 
+            \Log::info('STEP 7: Redirecting to database.index');
             return redirect()
                 ->route('ave.database.index')
-                ->with('success', __('ave::database.success_create_table', ['table' => $table->getName()]));
+                ->with('success', __('ave::database.success_create_table', ['table' => $tableObj->getName()]));
         } catch (Exception $e) {
+            \Log::error('DATABASE STORE EXCEPTION: ' . $e->getMessage());
+            \Log::error('Exception class: ' . get_class($e));
+            \Log::error('File: ' . $e->getFile() . ':' . $e->getLine());
+            \Log::error('Stack trace: ' . $e->getTraceAsString());
+
             return back()
                 ->with('error', $e->getMessage())
                 ->withInput();
@@ -215,5 +252,58 @@ class DatabaseController extends Controller
         $db->platform = Type::getPlatformName(SchemaManager::getDatabasePlatform());
 
         return $db;
+    }
+
+    /**
+     * Create a new Eloquent model file
+     */
+    protected function createModel(string $fullClassName, string $tableName): void
+    {
+        // Parse namespace and class name
+        $parts = explode('\\', $fullClassName);
+        $className = array_pop($parts);
+        $namespace = implode('\\', $parts);
+
+        // Determine file path
+        $basePath = app_path();
+        $relativePath = str_replace('App\\', '', $namespace);
+        $relativePath = str_replace('\\', DIRECTORY_SEPARATOR, $relativePath);
+        $directory = $basePath . DIRECTORY_SEPARATOR . $relativePath;
+        $filePath = $directory . DIRECTORY_SEPARATOR . $className . '.php';
+
+        // Check if file already exists
+        if (file_exists($filePath)) {
+            throw new \Exception("Model file already exists: {$filePath}");
+        }
+
+        // Create directory if it doesn't exist
+        if (!is_dir($directory)) {
+            mkdir($directory, 0755, true);
+        }
+
+        // Generate model content
+        $stub = $this->getModelStub();
+        $content = str_replace(
+            ['DummyNamespace', 'DummyClass', '//DummySDTraitInclude', '//DummySDTrait'],
+            [$namespace, $className, '', ''],
+            $stub
+        );
+
+        // Write file
+        file_put_contents($filePath, $content);
+    }
+
+    /**
+     * Get the model stub template
+     */
+    protected function getModelStub(): string
+    {
+        $stubPath = __DIR__ . '/../../../stubs/model.stub';
+
+        if (!file_exists($stubPath)) {
+            throw new \Exception("Model stub not found: {$stubPath}");
+        }
+
+        return file_get_contents($stubPath);
     }
 }

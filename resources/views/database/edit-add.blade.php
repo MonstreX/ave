@@ -18,6 +18,21 @@
 </div>
 @endsection
 
+@section('notifications')
+    @if(session('error'))
+        <div class="alert alert-danger">
+            <i class="voyager-x"></i>
+            <strong>Error:</strong> {{ session('error') }}
+        </div>
+    @endif
+    @if(session('success'))
+        <div class="alert alert-success">
+            <i class="voyager-check"></i>
+            <strong>Success:</strong> {{ session('success') }}
+        </div>
+    @endif
+@endsection
+
 @section('content')
 <div class="page-content">
     <div class="row">
@@ -35,21 +50,47 @@
                         </h3>
                     </div>
                     <div class="panel-body">
-                        <div class="form-group">
-                            <label for="table-name">{{ __('ave::database.table_name') }}</label>
-                            <input type="text"
-                                   class="form-control"
-                                   id="table-name"
-                                   name="name"
-                                   value="{{ $db->table->getName() }}"
-                                   pattern="{{ $db->identifierRegex }}"
-                                   required
-                                   @if($db->action === 'update') readonly @endif>
-                            @if($db->action === 'update')
-                                <p class="help-block">
-                                    <i class="voyager-info-circled"></i>
-                                    Table name cannot be changed when editing
-                                </p>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="table-name">{{ __('ave::database.table_name') }}</label>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="table-name"
+                                           name="name"
+                                           value="{{ $db->table->getName() }}"
+                                           pattern="{{ $db->identifierRegex }}"
+                                           required
+                                           @if($db->action === 'update') readonly @endif>
+                                    @if($db->action === 'update')
+                                        <p class="help-block">
+                                            <i class="voyager-info-circled"></i>
+                                            Table name cannot be changed when editing
+                                        </p>
+                                    @endif
+                                </div>
+                            </div>
+
+                            @if($db->action === 'create')
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>
+                                        <input type="checkbox" id="create-model-checkbox" name="create_model" value="1">
+                                        {{ __('ave::database.create_model') }}
+                                    </label>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="model-name"
+                                           name="model_name"
+                                           value=""
+                                           placeholder="App\Models\YourModel"
+                                           disabled>
+                                    <p class="help-block">
+                                        <i class="voyager-info-circled"></i>
+                                        Full model class name with namespace
+                                    </p>
+                                </div>
+                            </div>
                             @endif
                         </div>
                     </div>
@@ -60,17 +101,6 @@
                         <h3 class="panel-title">
                             <i class="voyager-list"></i> {{ __('ave::database.columns') }}
                         </h3>
-                        <div class="panel-actions">
-                            <button type="button" class="btn btn-sm btn-primary" id="btn-add-column">
-                                <i class="voyager-plus"></i> {{ __('ave::database.add_column') }}
-                            </button>
-                            <button type="button" class="btn btn-sm btn-success" id="btn-add-timestamps">
-                                <i class="voyager-clock"></i> {{ __('ave::database.add_timestamps') }}
-                            </button>
-                            <button type="button" class="btn btn-sm btn-info" id="btn-add-softdeletes">
-                                <i class="voyager-trash"></i> {{ __('ave::database.add_softdeletes') }}
-                            </button>
-                        </div>
                     </div>
                     <div class="panel-body">
                         <p class="text-muted text-center" id="no-columns-message" style="display: none;">
@@ -94,6 +124,18 @@
                                 {{-- Columns will be rendered here by JavaScript --}}
                             </tbody>
                         </table>
+
+                        <div class="panel-actions" style="margin-top: 15px; text-align: center;">
+                            <button type="button" class="btn btn-primary" id="btn-add-column">
+                                <i class="voyager-plus"></i> {{ __('ave::database.add_column') }}
+                            </button>
+                            <button type="button" class="btn btn-success" id="btn-add-timestamps">
+                                <i class="voyager-clock"></i> {{ __('ave::database.add_timestamps') }}
+                            </button>
+                            <button type="button" class="btn btn-info" id="btn-add-softdeletes">
+                                <i class="voyager-trash"></i> {{ __('ave::database.add_softdeletes') }}
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -280,7 +322,7 @@
 window.dbConfig = {
     action: '{{ $db->action }}',
     platform: '{{ $db->platform }}',
-    identifierRegex: '{{ $db->identifierRegex }}',
+    identifierRegex: {!! json_encode($db->identifierRegex) !!},
     types: @json($db->types),
     table: @json($db->table->toArray()),
     oldTable: @json($db->oldTable),
@@ -303,6 +345,47 @@ window.dbConfig = {
         typeNotSupported: '{{ __('ave::database.type_not_supported') }}'
     }
 };
+
+// Model creation logic
+@if($db->action === 'create')
+document.addEventListener('DOMContentLoaded', function() {
+    const tableNameInput = document.getElementById('table-name');
+    const createModelCheckbox = document.getElementById('create-model-checkbox');
+    const modelNameInput = document.getElementById('model-name');
+
+    // Convert table name to model name (snake_case to StudlyCase)
+    function tableNameToModelName(tableName) {
+        // Remove table prefix if exists
+        const prefix = '{{ DB::getTablePrefix() }}';
+        if (tableName.startsWith(prefix)) {
+            tableName = tableName.substring(prefix.length);
+        }
+
+        // Convert to singular StudlyCase
+        return 'App\\Models\\' + tableName
+            .split('_')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+            .join('');
+    }
+
+    // Update model name when table name changes
+    tableNameInput.addEventListener('input', function() {
+        if (this.value && createModelCheckbox.checked) {
+            modelNameInput.value = tableNameToModelName(this.value);
+        }
+    });
+
+    // Enable/disable model name input based on checkbox
+    createModelCheckbox.addEventListener('change', function() {
+        modelNameInput.disabled = !this.checked;
+        if (this.checked && tableNameInput.value) {
+            modelNameInput.value = tableNameToModelName(tableNameInput.value);
+        } else if (!this.checked) {
+            modelNameInput.value = '';
+        }
+    });
+});
+@endif
 </script>
 
 @endsection

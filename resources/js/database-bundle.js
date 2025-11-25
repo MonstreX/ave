@@ -187,10 +187,15 @@ class DatabaseTableEditor {
         console.log('state.table:', this.state.state.table)
         console.log('state.table.columns:', this.state.state.table.columns)
 
+        // Watch only for structural changes (not input changes)
+        // Inputs will update data directly without triggering re-render
+        this.structuralChangesOnly = false
         this.state.watch('table', () => {
-            this.state.state.isDirty = true
-            this.validateTable()
-            this.render()
+            if (!this.structuralChangesOnly) {
+                this.state.state.isDirty = true
+                this.validateTable()
+                this.render()
+            }
         })
 
         window.dbConfig.table = this.state.state.table
@@ -204,6 +209,16 @@ class DatabaseTableEditor {
     }
 
     attachEventListeners() {
+        // Update table name when input changes
+        const tableNameInput = document.getElementById('table-name')
+        if (tableNameInput) {
+            tableNameInput.addEventListener('input', (e) => {
+                this.structuralChangesOnly = true
+                this.state.state.table.name = e.target.value
+                this.structuralChangesOnly = false
+            })
+        }
+
         document.getElementById('btn-add-column')?.addEventListener('click', () => {
             this.addColumn()
         })
@@ -281,7 +296,7 @@ class DatabaseTableEditor {
         inputName.value = column.name || ''
         inputName.required = true
         inputName.pattern = this.config.identifierRegex
-        inputName.addEventListener('input', (e) => this.updateColumn(index, 'name', e.target.value))
+        inputName.addEventListener('input', (e) => this.updateColumn(index, 'name', e.target.value, false))
         tdName.appendChild(inputName)
 
         // 2. Type
@@ -295,7 +310,7 @@ class DatabaseTableEditor {
         inputLength.className = 'form-control'
         inputLength.value = column.length || ''
         inputLength.min = '0'
-        inputLength.addEventListener('input', (e) => this.updateColumn(index, 'length', e.target.value))
+        inputLength.addEventListener('input', (e) => this.updateColumn(index, 'length', e.target.value, false))
         tdLength.appendChild(inputLength)
 
         // 4. Not Null
@@ -332,7 +347,7 @@ class DatabaseTableEditor {
         inputDefault.type = 'text'
         inputDefault.className = 'form-control'
         inputDefault.value = column.default || ''
-        inputDefault.addEventListener('input', (e) => this.updateColumn(index, 'default', e.target.value))
+        inputDefault.addEventListener('input', (e) => this.updateColumn(index, 'default', e.target.value, false))
         tdDefault.appendChild(inputDefault)
 
         // 9. Delete button
@@ -456,7 +471,7 @@ class DatabaseTableEditor {
                     name: typeObj.name,
                     notSupported: typeObj.supported === false,
                     notSupportIndex: typeObj.notSupportIndex
-                })
+                }, true) // Re-render for new type
             }
         })
 
@@ -512,7 +527,7 @@ class DatabaseTableEditor {
         return null
     }
 
-    updateColumn(index, property, value) {
+    updateColumn(index, property, value, shouldRender = true) {
         const columns = this.state.state.table.columns
 
         if (!columns[index]) {
@@ -520,8 +535,17 @@ class DatabaseTableEditor {
             return
         }
 
+        // Disable rendering for simple input changes
+        if (!shouldRender) {
+            this.structuralChangesOnly = true
+        }
+
         columns[index][property] = value
-        this.state.notify(['table', 'columns', index, property])
+
+        // Re-enable rendering
+        if (!shouldRender) {
+            this.structuralChangesOnly = false
+        }
     }
 
     addColumn() {
@@ -547,10 +571,6 @@ class DatabaseTableEditor {
     }
 
     removeColumn(index) {
-        if (!confirm('Are you sure you want to remove this column?')) {
-            return
-        }
-
         const columns = this.state.state.table.columns
         columns.splice(index, 1)
 

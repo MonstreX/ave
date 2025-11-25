@@ -17,6 +17,7 @@ return [
     'editing_table' => 'Редактирование таблицы: :table',
     'creating_table' => 'Создание новой таблицы',
     'update_table' => 'Обновить таблицу',
+    'create_model' => 'Создать модель',
 
     // Колонки
     'columns' => 'Колонки',

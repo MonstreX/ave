@@ -17,6 +17,7 @@ return [
     'editing_table' => 'Editing Table: :table',
     'creating_table' => 'Creating New Table',
     'update_table' => 'Update Table',
+    'create_model' => 'Create Model',
 
     // Columns
     'columns' => 'Columns',
