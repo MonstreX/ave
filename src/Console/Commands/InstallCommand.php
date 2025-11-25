@@ -145,6 +145,10 @@ class InstallCommand extends Command
             ['resource_slug' => 'file-manager', 'ability' => 'viewAny', 'name' => __('ave::file_manager.permissions.view'), 'description' => __('ave::file_manager.permissions.view_description'), 'group' => 'system'],
             ['resource_slug' => 'file-manager', 'ability' => 'create', 'name' => __('ave::file_manager.permissions.create'), 'description' => __('ave::file_manager.permissions.create_description'), 'group' => 'system'],
             ['resource_slug' => 'file-manager', 'ability' => 'delete', 'name' => __('ave::file_manager.permissions.delete'), 'description' => __('ave::file_manager.permissions.delete_description'), 'group' => 'system'],
+            ['resource_slug' => 'database-manager', 'ability' => 'browse', 'name' => __('ave::database.permissions.browse'), 'description' => __('ave::database.permissions.browse_description'), 'group' => 'system'],
+            ['resource_slug' => 'database-manager', 'ability' => 'create', 'name' => __('ave::database.permissions.create'), 'description' => __('ave::database.permissions.create_description'), 'group' => 'system'],
+            ['resource_slug' => 'database-manager', 'ability' => 'update', 'name' => __('ave::database.permissions.update'), 'description' => __('ave::database.permissions.update_description'), 'group' => 'system'],
+            ['resource_slug' => 'database-manager', 'ability' => 'delete', 'name' => __('ave::database.permissions.delete'), 'description' => __('ave::database.permissions.delete_description'), 'group' => 'system'],
         ];
 
         $adminRole = Role::where('slug', 'admin')->first();

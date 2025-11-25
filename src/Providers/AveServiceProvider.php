@@ -120,7 +120,6 @@ class AveServiceProvider extends ServiceProvider
 
         // Discover and register resources/pages
         $this->discoverAndRegister();
-        $this->registerSystemPermissions();
     }
 
 
@@ -245,38 +244,6 @@ class AveServiceProvider extends ServiceProvider
         return null;
     }
 
-    /**
-     * Register system-level permissions that do not map to specific resources.
-     */
-    protected function registerSystemPermissions(): void
-    {
-        if (!$this->app->bound(AccessManager::class)) {
-            return;
-        }
-
-        $accessManager = $this->app->make(AccessManager::class);
-
-        if (config('ave.database.enabled', true)) {
-            $accessManager->registerPermissions('database-manager', [
-                'browse' => [
-                    'name' => __('ave::database.permissions.browse'),
-                    'description' => __('ave::database.permissions.browse_description'),
-                ],
-                'create' => [
-                    'name' => __('ave::database.permissions.create'),
-                    'description' => __('ave::database.permissions.create_description'),
-                ],
-                'update' => [
-                    'name' => __('ave::database.permissions.update'),
-                    'description' => __('ave::database.permissions.update_description'),
-                ],
-                'delete' => [
-                    'name' => __('ave::database.permissions.delete'),
-                    'description' => __('ave::database.permissions.delete_description'),
-                ],
-            ]);
-        }
-    }
 
     /**
      * Find resource slug by model class

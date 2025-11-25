@@ -69,4 +69,16 @@ return [
     // Composite indexes warning
     'no_composites_warning' => 'Warning: This table has composite indexes. Database Manager currently supports only single-column indexes. Composite indexes will be preserved but cannot be edited.',
     'composite_warning' => 'Part of composite index',
+
+    // Permissions
+    'permissions' => [
+        'browse' => 'Access Database Manager',
+        'browse_description' => 'View list of tables and read their structure',
+        'create' => 'Create tables',
+        'create_description' => 'Create new tables and optionally generate models',
+        'update' => 'Modify tables',
+        'update_description' => 'Edit existing table columns, indexes and options',
+        'delete' => 'Delete tables',
+        'delete_description' => 'Drop tables from the database',
+    ],
 ];
