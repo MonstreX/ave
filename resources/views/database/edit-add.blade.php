@@ -22,13 +22,6 @@
 <div class="page-content">
     <div class="row">
         <div class="col-md-12">
-            @if($db->table->hasCompositeIndexes ?? false)
-                <div class="alert alert-warning">
-                    <i class="voyager-warning"></i>
-                    {{ __('ave::database.no_composites_warning') }}
-                </div>
-            @endif
-
             <form id="database-form" method="POST" action="{{ $db->formAction }}">
                 @csrf
                 @if($db->action === 'update')
@@ -155,35 +148,58 @@
 }
 
 .db-column-body {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 15px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: flex-start;
 }
 
 .db-field-group {
     display: flex;
     flex-direction: column;
+    flex: 0 0 auto;
 }
 
 .db-field-group label {
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 600;
-    margin-bottom: 5px;
+    margin-bottom: 3px;
     color: #666;
+    white-space: nowrap;
 }
 
 .db-field-group input,
 .db-field-group select {
     font-size: 13px;
+    padding: 5px 8px;
+    height: 32px;
 }
 
+/* Field widths */
+.db-field-group input[type="text"] {
+    min-width: 100px;
+}
+
+.db-field-group select {
+    min-width: 120px;
+}
+
+/* Checkbox styling */
 .db-field-group.checkbox {
     flex-direction: row;
     align-items: center;
+    min-width: auto;
+    padding-top: 18px; /* Align with inputs */
 }
 
 .db-field-group.checkbox input {
     margin-right: 5px;
+    margin-bottom: 0;
+}
+
+.db-field-group.checkbox label {
+    margin-bottom: 0;
+    font-size: 12px;
 }
 
 .db-column-warning {
@@ -252,7 +268,7 @@ window.dbConfig = {
     identifierRegex: '{{ $db->identifierRegex }}',
     types: @json($db->types),
     table: @json($db->table->toArray()),
-    oldTable: {!! $db->oldTable !!},
+    oldTable: @json($db->oldTable),
     translations: {
         field: '{{ __('ave::database.field') }}',
         type: '{{ __('ave::database.type') }}',
@@ -274,7 +290,6 @@ window.dbConfig = {
 };
 </script>
 
-{{-- Database reactive library and components --}}
-<script src="{{ asset('vendor/ave/js/database/reactive.js') }}"></script>
-<script src="{{ asset('vendor/ave/js/database/app.js') }}"></script>
+{{-- Database bundle (reactive + editor) --}}
+<script src="{{ asset('vendor/ave/js/database-bundle.js') }}"></script>
 @endsection

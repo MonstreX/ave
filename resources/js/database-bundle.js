@@ -1,8 +1,164 @@
 /**
- * Database Table Editor - Main Application
- * Manages table structure editing with reactive state
+ * Database Manager Bundle
+ * Combined reactive library and table editor
  */
 
+// ===== REACTIVE LIBRARY =====
+class Reactive {
+    constructor(data = {}) {
+        this.subscribers = new Map()
+        this.computedCache = new Map()
+        this.computedDeps = new Map()
+
+        this.state = this.createReactive(data, [])
+    }
+
+    createReactive(target, path = []) {
+        if (!this.isObject(target)) {
+            return target
+        }
+
+        if (Array.isArray(target)) {
+            return this.createReactiveArray(target, path)
+        }
+
+        return new Proxy(target, {
+            get: (obj, prop) => {
+                this.trackDependency(path.concat(prop))
+                const value = obj[prop]
+                if (this.isObject(value)) {
+                    return this.createReactive(value, path.concat(prop))
+                }
+                return value
+            },
+            set: (obj, prop, value) => {
+                const oldValue = obj[prop]
+                if (oldValue === value) {
+                    return true
+                }
+                obj[prop] = value
+                this.notify(path.concat(prop))
+                return true
+            },
+            deleteProperty: (obj, prop) => {
+                if (prop in obj) {
+                    delete obj[prop]
+                    this.notify(path.concat(prop))
+                }
+                return true
+            }
+        })
+    }
+
+    createReactiveArray(target, path) {
+        const reactive = this
+        const arrayMethods = ['push', 'pop', 'shift', 'unshift', 'splice', 'sort', 'reverse']
+
+        const proxyArray = new Proxy(target, {
+            get(arr, prop) {
+                reactive.trackDependency(path.concat(prop))
+
+                if (arrayMethods.includes(prop)) {
+                    return function(...args) {
+                        const result = Array.prototype[prop].apply(arr, args)
+                        reactive.notify(path)
+                        return result
+                    }
+                }
+
+                const value = arr[prop]
+                if (reactive.isObject(value)) {
+                    return reactive.createReactive(value, path.concat(prop))
+                }
+                return value
+            },
+            set(arr, prop, value) {
+                const oldValue = arr[prop]
+                if (oldValue === value) {
+                    return true
+                }
+                arr[prop] = value
+                reactive.notify(path.concat(prop))
+                return true
+            },
+            deleteProperty(arr, prop) {
+                if (prop in arr) {
+                    delete arr[prop]
+                    reactive.notify(path)
+                }
+                return true
+            }
+        })
+
+        return proxyArray
+    }
+
+    watch(pathOrCallback, callback = null) {
+        if (typeof pathOrCallback === 'function') {
+            callback = pathOrCallback
+            pathOrCallback = []
+        }
+
+        const path = Array.isArray(pathOrCallback) ? pathOrCallback : pathOrCallback.split('.')
+        const key = this.pathToKey(path)
+
+        if (!this.subscribers.has(key)) {
+            this.subscribers.set(key, new Set())
+        }
+
+        this.subscribers.get(key).add(callback)
+
+        return () => {
+            const subs = this.subscribers.get(key)
+            if (subs) {
+                subs.delete(callback)
+            }
+        }
+    }
+
+    notify(path) {
+        const key = this.pathToKey(path)
+        const exactSubs = this.subscribers.get(key)
+        if (exactSubs) {
+            exactSubs.forEach(callback => callback(this.getByPath(path), path))
+        }
+
+        for (let i = path.length - 1; i >= 0; i--) {
+            const parentPath = path.slice(0, i)
+            const parentKey = this.pathToKey(parentPath)
+            const parentSubs = this.subscribers.get(parentKey)
+            if (parentSubs) {
+                parentSubs.forEach(callback => callback(this.getByPath(parentPath), parentPath))
+            }
+        }
+
+        const rootSubs = this.subscribers.get('')
+        if (rootSubs) {
+            rootSubs.forEach(callback => callback(this.state, []))
+        }
+    }
+
+    trackDependency(path) {
+        // Stub for computed properties support
+    }
+
+    getByPath(path) {
+        return path.reduce((obj, key) => obj?.[key], this.state)
+    }
+
+    pathToKey(path) {
+        return Array.isArray(path) ? path.join('.') : path
+    }
+
+    isObject(value) {
+        return value !== null && (typeof value === 'object' || Array.isArray(value))
+    }
+}
+
+// Export to window
+window.Reactive = Reactive
+
+// ===== DATABASE TABLE EDITOR =====
 class DatabaseTableEditor {
     constructor(config) {
         this.config = config
@@ -12,7 +168,6 @@ class DatabaseTableEditor {
         console.log('config.table:', config.table)
         console.log('config.oldTable:', config.oldTable)
 
-        // Initialize reactive state
         this.state = new Reactive({
             table: config.oldTable || config.table,
             errors: {},
@@ -23,63 +178,46 @@ class DatabaseTableEditor {
         console.log('state.table:', this.state.state.table)
         console.log('state.table.columns:', this.state.state.table.columns)
 
-        // Watch for changes
         this.state.watch('table', () => {
             this.state.state.isDirty = true
             this.validateTable()
             this.render()
         })
 
-        // Sync state with global config for form submission
         window.dbConfig.table = this.state.state.table
-
         this.init()
     }
 
     init() {
         this.render()
         this.attachEventListeners()
-
-        // Initial validation
         this.validateTable()
     }
 
-    /**
-     * Attach event listeners to buttons
-     */
     attachEventListeners() {
-        // Add column button
         document.getElementById('btn-add-column')?.addEventListener('click', () => {
             this.addColumn()
         })
 
-        // Add timestamps button
         document.getElementById('btn-add-timestamps')?.addEventListener('click', () => {
             this.addTimestamps()
         })
 
-        // Add soft deletes button
         document.getElementById('btn-add-softdeletes')?.addEventListener('click', () => {
             this.addSoftDeletes()
         })
 
-        // Form submit - sync table data to hidden input
         document.getElementById('database-form')?.addEventListener('submit', (e) => {
             if (!this.validateTable()) {
                 e.preventDefault()
                 toastr.error('Please fix validation errors before saving')
                 return false
             }
-
-            // Sync state to hidden input
             document.getElementById('table-data').value = JSON.stringify(this.state.state.table)
             window.dbConfig.table = this.state.state.table
         })
     }
 
-    /**
-     * Render columns list
-     */
     render() {
         const container = document.getElementById('columns-container')
         if (!container) return
@@ -93,32 +231,24 @@ class DatabaseTableEditor {
         }
 
         noColumnsMsg.style.display = 'none'
-
-        // Clear container
         container.innerHTML = ''
 
-        // Render each column
         columns.forEach((column, index) => {
             const columnElement = this.renderColumn(column, index)
             container.appendChild(columnElement)
         })
     }
 
-    /**
-     * Render single column row
-     */
     renderColumn(column, index) {
         const row = document.createElement('div')
         row.className = 'db-column-row'
         row.dataset.index = index
 
-        // Add error class if validation failed
         const columnErrors = this.state.state.errors[`columns.${index}`] || {}
         if (Object.keys(columnErrors).length > 0) {
             row.classList.add('has-error')
         }
 
-        // Column header
         const header = document.createElement('div')
         header.className = 'db-column-header'
 
@@ -140,20 +270,16 @@ class DatabaseTableEditor {
         header.appendChild(title)
         header.appendChild(actions)
 
-        // Column body with fields
         const body = document.createElement('div')
         body.className = 'db-column-body'
 
-        // Field: Name
         body.appendChild(this.createField('text', 'name', this.translations.field, column.name, index, {
             required: true,
             pattern: this.config.identifierRegex
         }))
 
-        // Field: Type
         body.appendChild(this.createTypeSelect(column, index))
 
-        // Field: Length
         const type = this.getTypeInfo(column.type)
         if (type && type.requiresLength) {
             body.appendChild(this.createField('text', 'length', this.translations.length, column.length, index, {
@@ -161,26 +287,20 @@ class DatabaseTableEditor {
             }))
         }
 
-        // Field: Default value
         body.appendChild(this.createField('text', 'default', this.translations.default, column.default, index))
 
-        // Not Null checkbox
         body.appendChild(this.createCheckbox('notnull', this.translations.notNull, column.notnull, index))
 
-        // Unsigned checkbox (only for numeric types)
         if (type && type.category === 'numbers') {
             body.appendChild(this.createCheckbox('unsigned', this.translations.unsigned, column.unsigned, index))
         }
 
-        // Auto Increment checkbox (only for integer types)
         if (type && (type.name === 'integer' || type.name === 'bigint' || type.name === 'smallint')) {
             body.appendChild(this.createCheckbox('autoincrement', this.translations.autoIncrement, column.autoincrement, index))
         }
 
-        // Index selector
         body.appendChild(this.createIndexSelect(column, index))
 
-        // Composite index warning
         if (column.composite) {
             const warning = document.createElement('div')
             warning.className = 'db-column-warning'
@@ -188,7 +308,6 @@ class DatabaseTableEditor {
             body.appendChild(warning)
         }
 
-        // Validation errors
         if (Object.keys(columnErrors).length > 0) {
             const errorDiv = document.createElement('div')
             errorDiv.className = 'alert alert-danger'
@@ -204,9 +323,6 @@ class DatabaseTableEditor {
         return row
     }
 
-    /**
-     * Create text/number input field
-     */
     createField(type, name, label, value, columnIndex, attrs = {}) {
         const group = document.createElement('div')
         group.className = 'db-field-group'
@@ -233,9 +349,6 @@ class DatabaseTableEditor {
         return group
     }
 
-    /**
-     * Create checkbox field
-     */
     createCheckbox(name, label, checked, columnIndex) {
         const group = document.createElement('div')
         group.className = 'db-field-group checkbox'
@@ -259,9 +372,6 @@ class DatabaseTableEditor {
         return group
     }
 
-    /**
-     * Create type select dropdown
-     */
     createTypeSelect(column, columnIndex) {
         const group = document.createElement('div')
         group.className = 'db-field-group'
@@ -273,7 +383,6 @@ class DatabaseTableEditor {
         const select = document.createElement('select')
         select.className = 'form-control'
 
-        // Group types by category
         Object.keys(this.config.types).forEach(category => {
             const optgroup = document.createElement('optgroup')
             optgroup.label = category
@@ -284,7 +393,6 @@ class DatabaseTableEditor {
                 option.textContent = type.name
                 option.selected = column.type === type.name
 
-                // Mark unsupported types
                 if (!type.supported) {
                     option.disabled = true
                     option.textContent += ` (${this.translations.typeNotSupported})`
@@ -305,9 +413,6 @@ class DatabaseTableEditor {
         return group
     }
 
-    /**
-     * Create index select dropdown
-     */
     createIndexSelect(column, columnIndex) {
         const group = document.createElement('div')
         group.className = 'db-field-group'
@@ -343,9 +448,6 @@ class DatabaseTableEditor {
         return group
     }
 
-    /**
-     * Get type information from config
-     */
     getTypeInfo(typeName) {
         for (const category in this.config.types) {
             const type = this.config.types[category].find(t => t.name === typeName)
@@ -356,9 +458,6 @@ class DatabaseTableEditor {
         return null
     }
 
-    /**
-     * Update column property
-     */
     updateColumn(index, property, value) {
         const columns = this.state.state.table.columns
 
@@ -368,14 +467,9 @@ class DatabaseTableEditor {
         }
 
         columns[index][property] = value
-
-        // Trigger re-render
         this.state.notify(['table', 'columns', index, property])
     }
 
-    /**
-     * Add new column
-     */
     addColumn() {
         const columns = this.state.state.table.columns || []
 
@@ -394,9 +488,6 @@ class DatabaseTableEditor {
         this.state.notify(['table', 'columns'])
     }
 
-    /**
-     * Remove column
-     */
     removeColumn(index) {
         if (!confirm('Are you sure you want to remove this column?')) {
             return
@@ -408,13 +499,9 @@ class DatabaseTableEditor {
         this.state.notify(['table', 'columns'])
     }
 
-    /**
-     * Add timestamps (created_at, updated_at)
-     */
     addTimestamps() {
         const columns = this.state.state.table.columns || []
 
-        // Check if timestamps already exist
         const hasCreatedAt = columns.some(col => col.name === 'created_at')
         const hasUpdatedAt = columns.some(col => col.name === 'updated_at')
 
@@ -453,13 +540,9 @@ class DatabaseTableEditor {
         toastr.success('Timestamps added')
     }
 
-    /**
-     * Add soft deletes (deleted_at)
-     */
     addSoftDeletes() {
         const columns = this.state.state.table.columns || []
 
-        // Check if soft deletes already exist
         const hasDeletedAt = columns.some(col => col.name === 'deleted_at')
 
         if (hasDeletedAt) {
@@ -482,14 +565,10 @@ class DatabaseTableEditor {
         toastr.success('Soft deletes added')
     }
 
-    /**
-     * Validate entire table
-     */
     validateTable() {
         const errors = {}
         const columns = this.state.state.table.columns || []
 
-        // Check for duplicate column names
         const names = {}
         columns.forEach((col, index) => {
             if (!col.name || col.name.trim() === '') {
@@ -505,7 +584,6 @@ class DatabaseTableEditor {
             names[col.name] = true
         })
 
-        // Check for multiple primary keys
         const primaryKeys = columns.filter(col => col.index === 'primary')
         if (primaryKeys.length > 1) {
             primaryKeys.forEach((col, i) => {

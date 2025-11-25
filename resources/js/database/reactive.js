@@ -395,10 +395,6 @@ class DOM {
     }
 }
 
-// Export for module systems or global usage
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { Reactive, DOM }
-} else {
-    window.Reactive = Reactive
-    window.DOM = DOM
-}
+// Export to global window object
+window.Reactive = Reactive
+window.DOM = DOM

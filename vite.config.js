@@ -21,8 +21,7 @@ export default defineConfig({
       input: {
         app: path.resolve(__dirname, 'resources/js/app.js'),
         editors: path.resolve(__dirname, 'resources/js/editors.js'),
-        'database/reactive': path.resolve(__dirname, 'resources/js/database/reactive.js'),
-        'database/app': path.resolve(__dirname, 'resources/js/database/app.js'),
+        'database-bundle': path.resolve(__dirname, 'resources/js/database-bundle.js'),
       },
 
       output: {

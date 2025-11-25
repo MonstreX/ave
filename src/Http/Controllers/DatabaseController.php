@@ -193,7 +193,7 @@ class DatabaseController extends Controller
             $db->formAction = route('ave.database.store');
         }
 
-        $db->oldTable = old('table') ?: json_encode(null);
+        $db->oldTable = old('table') ? json_decode(old('table'), true) : null;
         $db->action = $action;
         $db->identifierRegex = Identifier::REGEX;
         $db->platform = Type::getPlatformName(SchemaManager::getDatabasePlatform());
