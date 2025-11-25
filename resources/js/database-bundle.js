@@ -220,17 +220,21 @@ class DatabaseTableEditor {
 
     render() {
         const container = document.getElementById('columns-container')
+        const table = document.getElementById('columns-table')
+        const noColumnsMsg = document.getElementById('no-columns-message')
+
         if (!container) return
 
         const columns = this.state.state.table.columns || []
-        const noColumnsMsg = document.getElementById('no-columns-message')
 
         if (columns.length === 0) {
             noColumnsMsg.style.display = 'block'
+            if (table) table.style.display = 'none'
             return
         }
 
         noColumnsMsg.style.display = 'none'
+        if (table) table.style.display = 'table'
         container.innerHTML = ''
 
         columns.forEach((column, index) => {
@@ -240,8 +244,8 @@ class DatabaseTableEditor {
     }
 
     renderColumn(column, index) {
-        const row = document.createElement('div')
-        row.className = 'db-column-row'
+        const row = document.createElement('tr')
+        row.className = 'newTableRow'
         row.dataset.index = index
 
         const columnErrors = this.state.state.errors[`columns.${index}`] || {}
@@ -249,76 +253,85 @@ class DatabaseTableEditor {
             row.classList.add('has-error')
         }
 
-        const header = document.createElement('div')
-        header.className = 'db-column-header'
+        // 1. Name
+        const tdName = document.createElement('td')
+        const inputName = document.createElement('input')
+        inputName.type = 'text'
+        inputName.className = 'form-control'
+        inputName.value = column.name || ''
+        inputName.required = true
+        inputName.pattern = this.config.identifierRegex
+        inputName.addEventListener('input', (e) => this.updateColumn(index, 'name', e.target.value))
+        tdName.appendChild(inputName)
 
-        const title = document.createElement('div')
-        title.className = 'db-column-title'
-        title.textContent = column.name || `Column ${index + 1}`
+        // 2. Type
+        const tdType = document.createElement('td')
+        tdType.appendChild(this.createTypeSelectSimple(column, index))
 
-        const actions = document.createElement('div')
-        actions.className = 'db-column-actions'
+        // 3. Length
+        const tdLength = document.createElement('td')
+        const inputLength = document.createElement('input')
+        inputLength.type = 'number'
+        inputLength.className = 'form-control'
+        inputLength.value = column.length || ''
+        inputLength.min = '0'
+        inputLength.addEventListener('input', (e) => this.updateColumn(index, 'length', e.target.value))
+        tdLength.appendChild(inputLength)
 
-        const removeBtn = document.createElement('button')
-        removeBtn.type = 'button'
-        removeBtn.className = 'btn-remove-column'
-        removeBtn.innerHTML = '<i class="voyager-trash"></i>'
-        removeBtn.title = 'Remove column'
-        removeBtn.addEventListener('click', () => this.removeColumn(index))
+        // 4. Not Null
+        const tdNotNull = document.createElement('td')
+        const checkNotNull = document.createElement('input')
+        checkNotNull.type = 'checkbox'
+        checkNotNull.checked = !!column.notnull
+        checkNotNull.addEventListener('change', (e) => this.updateColumn(index, 'notnull', e.target.checked))
+        tdNotNull.appendChild(checkNotNull)
 
-        actions.appendChild(removeBtn)
-        header.appendChild(title)
-        header.appendChild(actions)
+        // 5. Unsigned
+        const tdUnsigned = document.createElement('td')
+        const checkUnsigned = document.createElement('input')
+        checkUnsigned.type = 'checkbox'
+        checkUnsigned.checked = !!column.unsigned
+        checkUnsigned.addEventListener('change', (e) => this.updateColumn(index, 'unsigned', e.target.checked))
+        tdUnsigned.appendChild(checkUnsigned)
 
-        const body = document.createElement('div')
-        body.className = 'db-column-body'
+        // 6. Auto Increment
+        const tdAutoInc = document.createElement('td')
+        const checkAutoInc = document.createElement('input')
+        checkAutoInc.type = 'checkbox'
+        checkAutoInc.checked = !!column.autoincrement
+        checkAutoInc.addEventListener('change', (e) => this.updateColumn(index, 'autoincrement', e.target.checked))
+        tdAutoInc.appendChild(checkAutoInc)
 
-        body.appendChild(this.createField('text', 'name', this.translations.field, column.name, index, {
-            required: true,
-            pattern: this.config.identifierRegex
-        }))
+        // 7. Index
+        const tdIndex = document.createElement('td')
+        tdIndex.appendChild(this.createIndexSelectSimple(column, index))
 
-        body.appendChild(this.createTypeSelect(column, index))
+        // 8. Default
+        const tdDefault = document.createElement('td')
+        const inputDefault = document.createElement('input')
+        inputDefault.type = 'text'
+        inputDefault.className = 'form-control'
+        inputDefault.value = column.default || ''
+        inputDefault.addEventListener('input', (e) => this.updateColumn(index, 'default', e.target.value))
+        tdDefault.appendChild(inputDefault)
 
-        const type = this.getTypeInfo(column.type)
-        if (type && type.requiresLength) {
-            body.appendChild(this.createField('text', 'length', this.translations.length, column.length, index, {
-                placeholder: type.defaultLength || ''
-            }))
-        }
+        // 9. Delete button
+        const tdDelete = document.createElement('td')
+        const btnDelete = document.createElement('div')
+        btnDelete.className = 'btn btn-danger delete-row'
+        btnDelete.innerHTML = '<i class="voyager-trash"></i>'
+        btnDelete.addEventListener('click', () => this.removeColumn(index))
+        tdDelete.appendChild(btnDelete)
 
-        body.appendChild(this.createField('text', 'default', this.translations.default, column.default, index))
-
-        body.appendChild(this.createCheckbox('notnull', this.translations.notNull, column.notnull, index))
-
-        if (type && type.category === 'numbers') {
-            body.appendChild(this.createCheckbox('unsigned', this.translations.unsigned, column.unsigned, index))
-        }
-
-        if (type && (type.name === 'integer' || type.name === 'bigint' || type.name === 'smallint')) {
-            body.appendChild(this.createCheckbox('autoincrement', this.translations.autoIncrement, column.autoincrement, index))
-        }
-
-        body.appendChild(this.createIndexSelect(column, index))
-
-        if (column.composite) {
-            const warning = document.createElement('div')
-            warning.className = 'db-column-warning'
-            warning.innerHTML = `<i class="voyager-warning"></i> ${this.translations.compositeWarning}`
-            body.appendChild(warning)
-        }
-
-        if (Object.keys(columnErrors).length > 0) {
-            const errorDiv = document.createElement('div')
-            errorDiv.className = 'alert alert-danger'
-            errorDiv.style.marginTop = '10px'
-            errorDiv.style.gridColumn = '1 / -1'
-            errorDiv.innerHTML = Object.values(columnErrors).join('<br>')
-            body.appendChild(errorDiv)
-        }
-
-        row.appendChild(header)
-        row.appendChild(body)
+        row.appendChild(tdName)
+        row.appendChild(tdType)
+        row.appendChild(tdLength)
+        row.appendChild(tdNotNull)
+        row.appendChild(tdUnsigned)
+        row.appendChild(tdAutoInc)
+        row.appendChild(tdIndex)
+        row.appendChild(tdDefault)
+        row.appendChild(tdDelete)
 
         return row
     }
@@ -372,14 +385,7 @@ class DatabaseTableEditor {
         return group
     }
 
-    createTypeSelect(column, columnIndex) {
-        const group = document.createElement('div')
-        group.className = 'db-field-group'
-
-        const label = document.createElement('label')
-        label.textContent = this.translations.type
-        group.appendChild(label)
-
+    createTypeSelectSimple(column, columnIndex) {
         const select = document.createElement('select')
         select.className = 'form-control'
 
@@ -408,27 +414,18 @@ class DatabaseTableEditor {
             this.updateColumn(columnIndex, 'type', e.target.value)
         })
 
-        group.appendChild(select)
-
-        return group
+        return select
     }
 
-    createIndexSelect(column, columnIndex) {
-        const group = document.createElement('div')
-        group.className = 'db-field-group'
-
-        const label = document.createElement('label')
-        label.textContent = this.translations.index
-        group.appendChild(label)
-
+    createIndexSelectSimple(column, columnIndex) {
         const select = document.createElement('select')
         select.className = 'form-control'
 
         const options = [
-            { value: '', label: this.translations.none },
-            { value: 'primary', label: this.translations.primary },
-            { value: 'unique', label: this.translations.unique },
-            { value: 'index', label: 'INDEX' }
+            { value: '', label: '' },
+            { value: 'index', label: 'INDEX' },
+            { value: 'unique', label: 'UNIQUE' },
+            { value: 'primary', label: 'PRIMARY' }
         ]
 
         options.forEach(opt => {
@@ -443,9 +440,7 @@ class DatabaseTableEditor {
             this.updateColumn(columnIndex, 'index', e.target.value)
         })
 
-        group.appendChild(select)
-
-        return group
+        return select
     }
 
     getTypeInfo(typeName) {

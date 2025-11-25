@@ -73,12 +73,27 @@
                         </div>
                     </div>
                     <div class="panel-body">
-                        <div id="columns-container">
-                            {{-- Columns will be rendered here by JavaScript --}}
-                            <p class="text-muted text-center" id="no-columns-message">
-                                {{ __('ave::database.table_no_columns') }}
-                            </p>
-                        </div>
+                        <p class="text-muted text-center" id="no-columns-message" style="display: none;">
+                            {{ __('ave::database.table_no_columns') }}
+                        </p>
+                        <table class="table table-bordered" id="columns-table" style="display: none;">
+                            <thead>
+                                <tr>
+                                    <th>{{ __('ave::database.name') }}</th>
+                                    <th>{{ __('ave::database.type') }}</th>
+                                    <th>{{ __('ave::database.length') }}</th>
+                                    <th>{{ __('ave::database.not_null') }}</th>
+                                    <th>{{ __('ave::database.unsigned') }}</th>
+                                    <th>{{ __('ave::database.auto_increment') }}</th>
+                                    <th>{{ __('ave::database.index') }}</th>
+                                    <th>{{ __('ave::database.default') }}</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="columns-container">
+                                {{-- Columns will be rendered here by JavaScript --}}
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 
@@ -290,6 +305,4 @@ window.dbConfig = {
 };
 </script>
 
-{{-- Database bundle (reactive + editor) --}}
-<script src="{{ asset('vendor/ave/js/database-bundle.js') }}"></script>
 @endsection
