@@ -146,6 +146,11 @@ class DatabaseUpdater
         $renamedColumns = [];
 
         foreach ($this->tableArr['columns'] as $column) {
+            // Skip columns without oldName (new columns)
+            if (!isset($column['oldName'])) {
+                continue;
+            }
+
             $oldName = $column['oldName'];
 
             // make sure this is an existing column and not a new one
@@ -171,6 +176,11 @@ class DatabaseUpdater
         $renamedIndexes = [];
 
         foreach ($this->tableArr['indexes'] as $index) {
+            // Skip indexes without oldName (new indexes)
+            if (!isset($index['oldName'])) {
+                continue;
+            }
+
             $oldName = $index['oldName'];
 
             // make sure this is an existing index and not a new one

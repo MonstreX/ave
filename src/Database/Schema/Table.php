@@ -136,6 +136,7 @@ class Table extends DoctrineTable
             // Set the indexes and key
             $columnArr['indexes'] = [];
             $columnArr['key'] = null;
+            $columnArr['index'] = null;
             if ($columnArr['indexes'] = $this->getColumnsIndexes($columnArr['name'], true)) {
                 // Convert indexes to Array
                 foreach ($columnArr['indexes'] as $indexName => $index) {
@@ -146,6 +147,8 @@ class Table extends DoctrineTable
                 // the Key will be one with highest priority
                 $indexType = array_values($columnArr['indexes'])[0]['type'];
                 $columnArr['key'] = substr($indexType, 0, 3);
+                // Set full index type for JavaScript (for select dropdown)
+                $columnArr['index'] = $indexType;
             }
 
             $exportedColumns[] = $columnArr;

@@ -381,41 +381,46 @@ class DatabaseTableEditor {
 
     /**
      * Update column index and sync with table.indexes array
+     * Based on Voyager's approach: find existing index, update or delete it
      */
     updateColumnIndex(columnIndex, newIndexType) {
         const columns = this.state.state.table.columns
         const column = columns[columnIndex]
-        const oldIndexType = column.index
         const columnName = column.name
-
-        // Update column index property
-        column.index = newIndexType || null
 
         // Initialize indexes array if not exists
         if (!this.state.state.table.indexes) {
             this.state.state.table.indexes = []
         }
 
-        // Remove old index from table.indexes if exists
-        if (oldIndexType && oldIndexType !== '') {
-            this.state.state.table.indexes = this.state.state.table.indexes.filter(idx => {
-                // Remove index if it contains only this column
-                return !(idx.columns && idx.columns.length === 1 && idx.columns[0] === columnName)
-            })
+        // Find existing index for this column (single-column index only)
+        const existingIndex = this.state.state.table.indexes.find(idx => {
+            return idx.columns && idx.columns.length === 1 && idx.columns[0] === columnName
+        })
+
+        // Case 1: Remove index (newIndexType is empty or null)
+        if (!newIndexType || newIndexType === '') {
+            if (existingIndex) {
+                const indexPos = this.state.state.table.indexes.indexOf(existingIndex)
+                this.state.state.table.indexes.splice(indexPos, 1)
+            }
+            column.index = null
         }
-
-        // Add new index to table.indexes if type is selected
-        if (newIndexType && newIndexType !== '') {
-            const indexName = newIndexType === 'primary' ? 'primary' :
-                            newIndexType === 'unique' ? `${columnName}_unique` :
-                            `${columnName}_index`
-
+        // Case 2: Add new index (no existing index)
+        else if (!existingIndex) {
+            const indexName = newIndexType === 'primary' ? 'primary' : ''
             this.state.state.table.indexes.push({
                 name: indexName,
-                oldName: indexName,
                 type: newIndexType,
                 columns: [columnName]
             })
+            column.index = newIndexType
+        }
+        // Case 3: Update existing index
+        else {
+            existingIndex.type = newIndexType
+            existingIndex.name = newIndexType === 'primary' ? 'primary' : ''
+            column.index = newIndexType
         }
 
         // Trigger re-render
