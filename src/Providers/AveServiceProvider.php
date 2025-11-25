@@ -120,6 +120,7 @@ class AveServiceProvider extends ServiceProvider
 
         // Discover and register resources/pages
         $this->discoverAndRegister();
+        $this->registerSystemPermissions();
     }
 
 
@@ -147,21 +148,56 @@ class AveServiceProvider extends ServiceProvider
                     return null; // Let other gates/policies handle
                 }
 
-                // Try to extract resource slug from arguments
-                $resourceSlug = $this->extractResourceSlug($ability, $arguments);
+                $context = $this->resolvePermissionContext($ability, $arguments);
 
-                if (!$resourceSlug) {
+                if (!$context) {
                     return null; // Not an Ave resource check, let other handlers process
                 }
 
                 // Check permission through AccessManager
-                return $accessManager->allows($user, $resourceSlug, $ability) ?: null;
+                return $accessManager->allows(
+                    $user,
+                    $context['slug'],
+                    $context['ability']
+                ) ?: null;
             } catch (\Throwable $e) {
                 // Silently fail and let other handlers process
                 // This handles cases where config is not available (e.g., unit tests)
                 return null;
             }
         });
+    }
+
+    /**
+     * Resolve resource slug and ability name based on Gate input.
+     *
+     * @param string $ability
+     * @param array<int,mixed> $arguments
+     * @return array{slug:string,ability:string}|null
+     */
+    protected function resolvePermissionContext(string $ability, array $arguments): ?array
+    {
+        if (str_contains($ability, '.')) {
+            [$slug, $abilityName] = explode('.', $ability, 2);
+
+            if (!empty($slug) && !empty($abilityName)) {
+                return [
+                    'slug' => $slug,
+                    'ability' => $abilityName,
+                ];
+            }
+        }
+
+        $resourceSlug = $this->extractResourceSlug($ability, $arguments);
+
+        if (!$resourceSlug) {
+            return null;
+        }
+
+        return [
+            'slug' => $resourceSlug,
+            'ability' => $ability,
+        ];
     }
 
     /**
@@ -207,6 +243,39 @@ class AveServiceProvider extends ServiceProvider
         }
 
         return null;
+    }
+
+    /**
+     * Register system-level permissions that do not map to specific resources.
+     */
+    protected function registerSystemPermissions(): void
+    {
+        if (!$this->app->bound(AccessManager::class)) {
+            return;
+        }
+
+        $accessManager = $this->app->make(AccessManager::class);
+
+        if (config('ave.database.enabled', true)) {
+            $accessManager->registerPermissions('database-manager', [
+                'browse' => [
+                    'name' => __('ave::database.permissions.browse'),
+                    'description' => __('ave::database.permissions.browse_description'),
+                ],
+                'create' => [
+                    'name' => __('ave::database.permissions.create'),
+                    'description' => __('ave::database.permissions.create_description'),
+                ],
+                'update' => [
+                    'name' => __('ave::database.permissions.update'),
+                    'description' => __('ave::database.permissions.update_description'),
+                ],
+                'delete' => [
+                    'name' => __('ave::database.permissions.delete'),
+                    'description' => __('ave::database.permissions.delete_description'),
+                ],
+            ]);
+        }
     }
 
     /**

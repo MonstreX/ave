@@ -18,6 +18,7 @@ class PermissionMatrix extends FormComponent
      */
     protected array $systemPermissionSlugs = [
         'file-manager',
+        'database-manager',
     ];
 
     protected ?Collection $groups = null;

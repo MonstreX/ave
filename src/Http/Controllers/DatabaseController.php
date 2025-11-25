@@ -3,6 +3,7 @@
 namespace Monstrex\Ave\Http\Controllers;
 
 use Exception;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
@@ -15,13 +16,13 @@ use Monstrex\Ave\Database\Types\Type;
 
 class DatabaseController extends Controller
 {
+    use AuthorizesRequests;
     /**
      * Display list of database tables
      */
     public function index()
     {
-        // TODO: Add authorization check
-        // $this->authorize('browse_database');
+        $this->authorize('database-manager.browse');
 
         $hiddenTables = config('ave.database.hidden_tables', []);
 
@@ -46,8 +47,7 @@ class DatabaseController extends Controller
      */
     public function create()
     {
-        // TODO: Add authorization check
-        // $this->authorize('add_database');
+        $this->authorize('database-manager.create');
 
         $db = $this->prepareDbManager('create');
 
@@ -59,8 +59,7 @@ class DatabaseController extends Controller
      */
     public function store(Request $request)
     {
-        // TODO: Add authorization check
-        // $this->authorize('add_database');
+        $this->authorize('database-manager.create');
 
         \Log::info('=== DATABASE STORE REQUEST ===');
         \Log::info('Request data:', [
@@ -132,8 +131,7 @@ class DatabaseController extends Controller
      */
     public function edit(string $table)
     {
-        // TODO: Add authorization check
-        // $this->authorize('edit_database');
+        $this->authorize('database-manager.update');
 
         if (!SchemaManager::tableExists($table)) {
             return redirect()
@@ -151,8 +149,7 @@ class DatabaseController extends Controller
      */
     public function update(Request $request, string $table)
     {
-        // TODO: Add authorization check
-        // $this->authorize('edit_database');
+        $this->authorize('database-manager.update');
 
         try {
             $tableData = json_decode($request->table, true);
@@ -203,8 +200,7 @@ class DatabaseController extends Controller
      */
     public function show(string $table)
     {
-        // TODO: Add authorization check
-        // $this->authorize('browse_database');
+        $this->authorize('database-manager.browse');
 
         return response()->json(SchemaManager::describeTable($table));
     }
@@ -214,8 +210,7 @@ class DatabaseController extends Controller
      */
     public function destroy(string $table)
     {
-        // TODO: Add authorization check
-        // $this->authorize('delete_database');
+        $this->authorize('database-manager.delete');
 
         try {
             SchemaManager::dropTable($table);
