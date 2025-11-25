@@ -16,7 +16,8 @@
         "illuminate/routing": "^12.0",
         "illuminate/validation": "^12.0",
         "illuminate/database": "^12.0",
-        "illuminate/view": "^12.0"
+        "illuminate/view": "^12.0",
+        "doctrine/dbal": "^4.3"
     },
     "require-dev": {
         "phpunit/phpunit": "^11.5",
