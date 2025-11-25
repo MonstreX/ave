@@ -65,6 +65,7 @@
 @use './content/resource-pages';
 @use './content/media';
 @use './content/icon-library';
+@use './content/database-manager';
 
 // Utilities (helpers and overlays)
 @use './utilities/animations';

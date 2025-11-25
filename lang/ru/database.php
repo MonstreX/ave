@@ -62,6 +62,9 @@ return [
     'table_has_index' => 'В таблице уже есть первичный ключ',
     'name_warning' => 'Имя столбца не может быть пустым',
     'unknown_type' => 'Неизвестный тип',
+    'remove_column_title' => 'Удаление столбца',
+    'remove_column_body' => 'Удалить столбец ":column"?',
+    'remove_column_confirm' => 'Удалить столбец',
 
     // Категории типов
     'type_not_supported' => 'Этот тип не поддерживается используемой СУБД',

@@ -62,6 +62,9 @@ return [
     'table_has_index' => 'Table already has a primary key',
     'name_warning' => 'Column name cannot be empty',
     'unknown_type' => 'Unknown type',
+    'remove_column_title' => 'Remove column',
+    'remove_column_body' => 'Are you sure you want to remove column ":column"?',
+    'remove_column_confirm' => 'Remove column',
 
     // Type categories
     'type_not_supported' => 'This type is not supported by the current database platform',

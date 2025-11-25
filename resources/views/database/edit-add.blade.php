@@ -103,27 +103,10 @@
                         </h3>
                     </div>
                     <div class="panel-body">
-                        <p class="text-muted text-center" id="no-columns-message" style="display: none;">
+                        <p class="text-muted text-center dbm-no-columns" id="no-columns-message">
                             {{ __('ave::database.table_no_columns') }}
                         </p>
-                        <table class="table table-bordered" id="columns-table" style="display: none;">
-                            <thead>
-                                <tr>
-                                    <th>{{ __('ave::database.name') }}</th>
-                                    <th>{{ __('ave::database.type') }}</th>
-                                    <th>{{ __('ave::database.length') }}</th>
-                                    <th>{{ __('ave::database.not_null') }}</th>
-                                    <th>{{ __('ave::database.unsigned') }}</th>
-                                    <th>{{ __('ave::database.auto_increment') }}</th>
-                                    <th>{{ __('ave::database.index') }}</th>
-                                    <th>{{ __('ave::database.default') }}</th>
-                                    <th></th>
-                                </tr>
-                            </thead>
-                            <tbody id="columns-container">
-                                {{-- Columns will be rendered here by JavaScript --}}
-                            </tbody>
-                        </table>
+                        <div class="dbm-columns" id="columns-container"></div>
 
                         <div class="panel-actions flex-center mt-10">
                             <button type="button" class="btn btn-primary" id="btn-add-column">
@@ -342,7 +325,12 @@ window.dbConfig = {
         columnAlreadyExists: '{{ __('ave::database.column_already_exists') }}',
         tableHasIndex: '{{ __('ave::database.table_has_index') }}',
         compositeWarning: '{{ __('ave::database.composite_warning') }}',
-        typeNotSupported: '{{ __('ave::database.type_not_supported') }}'
+        typeNotSupported: '{{ __('ave::database.type_not_supported') }}',
+        removeColumnTitle: '{{ __('ave::database.remove_column_title') }}',
+        removeColumnBody: '{{ __('ave::database.remove_column_body') }}',
+        removeColumnConfirm: '{{ __('ave::database.remove_column_confirm') }}',
+        cancel: '{{ __('ave::common.cancel') }}',
+        fixValidationErrors: '{{ __('ave::database.fix_validation_errors') }}'
     }
 };
 
