@@ -213,7 +213,11 @@ class DatabaseTableEditor {
                 toastr.error('Please fix validation errors before saving')
                 return false
             }
-            document.getElementById('table-data').value = JSON.stringify(this.state.state.table)
+
+            console.log('Submitting table data:', this.state.state.table)
+            const tableJson = JSON.stringify(this.state.state.table)
+            console.log('Table JSON:', tableJson)
+            document.getElementById('table-data').value = tableJson
             window.dbConfig.table = this.state.state.table
         })
     }
@@ -389,6 +393,8 @@ class DatabaseTableEditor {
         const select = document.createElement('select')
         select.className = 'form-control'
 
+        const currentType = typeof column.type === 'object' ? column.type.name : column.type
+
         Object.keys(this.config.types).forEach(category => {
             const optgroup = document.createElement('optgroup')
             optgroup.label = category
@@ -397,7 +403,7 @@ class DatabaseTableEditor {
                 const option = document.createElement('option')
                 option.value = type.name
                 option.textContent = type.name
-                option.selected = column.type === type.name
+                option.selected = currentType === type.name
 
                 if (!type.supported) {
                     option.disabled = true
@@ -411,7 +417,23 @@ class DatabaseTableEditor {
         })
 
         select.addEventListener('change', (e) => {
-            this.updateColumn(columnIndex, 'type', e.target.value)
+            // Find the full type object
+            let typeObj = null
+            for (const category in this.config.types) {
+                const found = this.config.types[category].find(t => t.name === e.target.value)
+                if (found) {
+                    typeObj = found
+                    break
+                }
+            }
+
+            if (typeObj) {
+                this.updateColumn(columnIndex, 'type', {
+                    name: typeObj.name,
+                    notSupported: typeObj.supported === false,
+                    notSupportIndex: typeObj.notSupportIndex
+                })
+            }
         })
 
         return select
@@ -470,7 +492,11 @@ class DatabaseTableEditor {
 
         const newColumn = {
             name: `column_${columns.length + 1}`,
-            type: 'string',
+            type: {
+                name: 'string',
+                notSupported: false,
+                notSupportIndex: false
+            },
             length: null,
             default: null,
             notnull: false,
@@ -508,7 +534,11 @@ class DatabaseTableEditor {
         if (!hasCreatedAt) {
             columns.push({
                 name: 'created_at',
-                type: 'datetime',
+                type: {
+                    name: 'datetime',
+                    notSupported: false,
+                    notSupportIndex: false
+                },
                 length: null,
                 default: null,
                 notnull: false,
@@ -521,7 +551,11 @@ class DatabaseTableEditor {
         if (!hasUpdatedAt) {
             columns.push({
                 name: 'updated_at',
-                type: 'datetime',
+                type: {
+                    name: 'datetime',
+                    notSupported: false,
+                    notSupportIndex: false
+                },
                 length: null,
                 default: null,
                 notnull: false,
@@ -547,7 +581,11 @@ class DatabaseTableEditor {
 
         columns.push({
             name: 'deleted_at',
-            type: 'datetime',
+            type: {
+                name: 'datetime',
+                notSupported: false,
+                notSupportIndex: false
+            },
             length: null,
             default: null,
             notnull: false,

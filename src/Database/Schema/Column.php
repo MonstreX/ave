@@ -37,6 +37,25 @@ abstract class Column
             $column['length'] = 191;
         }
 
+        // Convert string values to proper types for Doctrine
+        if (isset($column['length']) && $column['length'] !== null && $column['length'] !== '') {
+            $column['length'] = (int) $column['length'];
+        } else {
+            $column['length'] = null;
+        }
+
+        if (isset($column['precision']) && $column['precision'] !== null && $column['precision'] !== '') {
+            $column['precision'] = (int) $column['precision'];
+        } else {
+            $column['precision'] = null;
+        }
+
+        if (isset($column['scale']) && $column['scale'] !== null && $column['scale'] !== '') {
+            $column['scale'] = (int) $column['scale'];
+        } else {
+            $column['scale'] = 0;
+        }
+
         $options = array_diff_key($column, array_flip(['name', 'composite', 'oldName', 'null', 'extra', 'type', 'charset', 'collation']));
 
         return new DoctrineColumn($name, $type, $options);

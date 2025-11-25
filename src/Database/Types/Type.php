@@ -43,28 +43,28 @@ abstract class Type
         // Basic types for now - we'll expand this as we port custom types
         return [
             'Numbers' => [
-                ['name' => 'integer', 'notSupported' => false, 'notSupportIndex' => false],
-                ['name' => 'bigint', 'notSupported' => false, 'notSupportIndex' => false],
-                ['name' => 'smallint', 'notSupported' => false, 'notSupportIndex' => false],
-                ['name' => 'decimal', 'notSupported' => false, 'notSupportIndex' => false],
-                ['name' => 'float', 'notSupported' => false, 'notSupportIndex' => false],
-                ['name' => 'double', 'notSupported' => false, 'notSupportIndex' => false],
+                ['name' => 'integer', 'supported' => true, 'notSupportIndex' => false, 'requiresLength' => false],
+                ['name' => 'bigint', 'supported' => true, 'notSupportIndex' => false, 'requiresLength' => false],
+                ['name' => 'smallint', 'supported' => true, 'notSupportIndex' => false, 'requiresLength' => false],
+                ['name' => 'decimal', 'supported' => true, 'notSupportIndex' => false, 'requiresLength' => true, 'defaultLength' => '10,2'],
+                ['name' => 'float', 'supported' => true, 'notSupportIndex' => false, 'requiresLength' => false],
+                ['name' => 'double', 'supported' => true, 'notSupportIndex' => false, 'requiresLength' => false],
             ],
             'Strings' => [
-                ['name' => 'string', 'notSupported' => false, 'notSupportIndex' => false],
-                ['name' => 'text', 'notSupported' => false, 'notSupportIndex' => true],
-                ['name' => 'char', 'notSupported' => false, 'notSupportIndex' => false],
+                ['name' => 'string', 'supported' => true, 'notSupportIndex' => false, 'requiresLength' => true, 'defaultLength' => '255'],
+                ['name' => 'text', 'supported' => true, 'notSupportIndex' => true, 'requiresLength' => false],
+                ['name' => 'char', 'supported' => true, 'notSupportIndex' => false, 'requiresLength' => true, 'defaultLength' => '1'],
             ],
             'Date & Time' => [
-                ['name' => 'date', 'notSupported' => false, 'notSupportIndex' => false],
-                ['name' => 'datetime', 'notSupported' => false, 'notSupportIndex' => false],
-                ['name' => 'time', 'notSupported' => false, 'notSupportIndex' => false],
+                ['name' => 'date', 'supported' => true, 'notSupportIndex' => false, 'requiresLength' => false],
+                ['name' => 'datetime', 'supported' => true, 'notSupportIndex' => false, 'requiresLength' => false],
+                ['name' => 'time', 'supported' => true, 'notSupportIndex' => false, 'requiresLength' => false],
             ],
             'Other' => [
-                ['name' => 'boolean', 'notSupported' => false, 'notSupportIndex' => false],
-                ['name' => 'json', 'notSupported' => false, 'notSupportIndex' => true],
-                ['name' => 'binary', 'notSupported' => false, 'notSupportIndex' => true],
-                ['name' => 'blob', 'notSupported' => false, 'notSupportIndex' => true],
+                ['name' => 'boolean', 'supported' => true, 'notSupportIndex' => false, 'requiresLength' => false],
+                ['name' => 'json', 'supported' => true, 'notSupportIndex' => true, 'requiresLength' => false],
+                ['name' => 'binary', 'supported' => true, 'notSupportIndex' => true, 'requiresLength' => false],
+                ['name' => 'blob', 'supported' => true, 'notSupportIndex' => true, 'requiresLength' => false],
             ],
         ];
     }
