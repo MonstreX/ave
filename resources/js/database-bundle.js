@@ -168,8 +168,24 @@ class DatabaseTableEditor {
         console.log('config.table:', config.table)
         console.log('config.oldTable:', config.oldTable)
 
+        // Convert column.key to column.index for compatibility
+        const tableData = config.oldTable || config.table
+        if (tableData && tableData.columns) {
+            tableData.columns.forEach(column => {
+                if (column.key && !column.index) {
+                    // Convert "pri" -> "primary", "uni" -> "unique", "ind" -> "index"
+                    const keyMap = {
+                        'pri': 'primary',
+                        'uni': 'unique',
+                        'ind': 'index'
+                    }
+                    column.index = keyMap[column.key] || null
+                }
+            })
+        }
+
         this.state = new Reactive({
-            table: config.oldTable || config.table,
+            table: tableData,
             errors: {},
             isDirty: false
         })
