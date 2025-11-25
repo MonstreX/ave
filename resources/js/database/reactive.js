@@ -3,7 +3,7 @@
  * Based on ES6 Proxy for reactive data binding
  */
 
-class Reactive {
+export class Reactive {
     constructor(data = {}) {
         this.subscribers = new Map()
         this.computedCache = new Map()

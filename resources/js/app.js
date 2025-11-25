@@ -18,7 +18,7 @@ import { confirm, createModal, closeModal, destroyModal } from './modules/ui/mod
 import initCacheClear from './modules/cache/clearCache.js';
 import initFileManager from './modules/file-manager/fileManager.js';
 import initStorageLink from './modules/ui/storageLink.js';
-import './database-bundle.js';
+import './database/bootstrap.js';
 
 // Expose global event bus
 window.aveEvents = aveEvents;
