@@ -5,7 +5,6 @@ namespace Monstrex\Ave\Console\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Monstrex\Ave\Database\Seeders\AveDatabaseSeeder;
-use Monstrex\Ave\Models\Permission;
 use Monstrex\Ave\Models\Role;
 use Monstrex\Ave\Models\User;
 
@@ -52,13 +51,7 @@ class InstallCommand extends Command
         $this->call(AveDatabaseSeeder::class);
         $this->info('✓ Default data seeded');
 
-        // Step 5: Create File Manager permissions
-        $this->newLine();
-        $this->comment('Creating File Manager permissions...');
-        $this->createFileManagerPermissions();
-        $this->info('✓ File Manager permissions created');
-
-        // Step 6: Create admin user
+        // Step 5: Create admin user
         $this->newLine();
         $this->comment('Creating admin user...');
 
@@ -137,48 +130,6 @@ class InstallCommand extends Command
 
         $this->info('✓ Admin user created');
         return true;
-    }
-
-    protected function createFileManagerPermissions(): void
-    {
-        $permissions = [
-            ['resource_slug' => 'file-manager', 'ability' => 'viewAny', 'name' => __('ave::file_manager.permissions.view'), 'description' => __('ave::file_manager.permissions.view_description'), 'group' => 'system'],
-            ['resource_slug' => 'file-manager', 'ability' => 'create', 'name' => __('ave::file_manager.permissions.create'), 'description' => __('ave::file_manager.permissions.create_description'), 'group' => 'system'],
-            ['resource_slug' => 'file-manager', 'ability' => 'delete', 'name' => __('ave::file_manager.permissions.delete'), 'description' => __('ave::file_manager.permissions.delete_description'), 'group' => 'system'],
-            ['resource_slug' => 'database-manager', 'ability' => 'browse', 'name' => __('ave::database.permissions.browse'), 'description' => __('ave::database.permissions.browse_description'), 'group' => 'system'],
-            ['resource_slug' => 'database-manager', 'ability' => 'create', 'name' => __('ave::database.permissions.create'), 'description' => __('ave::database.permissions.create_description'), 'group' => 'system'],
-            ['resource_slug' => 'database-manager', 'ability' => 'update', 'name' => __('ave::database.permissions.update'), 'description' => __('ave::database.permissions.update_description'), 'group' => 'system'],
-            ['resource_slug' => 'database-manager', 'ability' => 'delete', 'name' => __('ave::database.permissions.delete'), 'description' => __('ave::database.permissions.delete_description'), 'group' => 'system'],
-        ];
-
-        $adminRole = Role::where('slug', 'admin')->first();
-
-        foreach ($permissions as $permissionData) {
-            $permission = Permission::firstOrCreate(
-                [
-                    'resource_slug' => $permissionData['resource_slug'],
-                    'ability' => $permissionData['ability'],
-                ],
-                [
-                    'name' => $permissionData['name'],
-                    'description' => $permissionData['description'],
-                    'group' => $permissionData['group'],
-                ]
-            );
-
-            // Attach to admin role if not already attached
-            if ($adminRole && !DB::table('ave_permission_role')
-                    ->where('role_id', $adminRole->id)
-                    ->where('permission_id', $permission->id)
-                    ->exists()) {
-                DB::table('ave_permission_role')->insert([
-                    'role_id' => $adminRole->id,
-                    'permission_id' => $permission->id,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]);
-            }
-        }
     }
 
     protected function showNextSteps(): void

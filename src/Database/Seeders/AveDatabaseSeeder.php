@@ -10,6 +10,7 @@ class AveDatabaseSeeder extends Seeder
     {
         $this->call([
             AveRolesTableSeeder::class,
+            AvePermissionsTableSeeder::class,
             AveMenusTableSeeder::class,
             AveMenuItemsTableSeeder::class,
         ]);
