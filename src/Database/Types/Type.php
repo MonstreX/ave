@@ -98,10 +98,13 @@ abstract class Type
      */
     public static function toArray(DoctrineType $type): array
     {
+        // In DBAL 4.x, getName() doesn't exist, use lookupName() instead
+        $typeName = DoctrineType::lookupName($type);
+
         return [
-            'name' => $type->getName(),
+            'name' => $typeName,
             'notSupported' => false,
-            'notSupportIndex' => in_array($type->getName(), ['text', 'json', 'binary', 'blob']),
+            'notSupportIndex' => in_array($typeName, ['text', 'json', 'binary', 'blob']),
         ];
     }
 
@@ -110,7 +113,7 @@ abstract class Type
      */
     public static function getTypeLabel(DoctrineType $type): string
     {
-        return $type->getName();
+        return DoctrineType::lookupName($type);
     }
 
     /**
