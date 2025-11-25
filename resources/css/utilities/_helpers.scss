@@ -140,3 +140,9 @@
     margin-left: 0;
     margin-right: 0;
 }
+
+// Flexbox utilities
+.flex-center {
+    display: flex;
+    justify-content: center;
+}

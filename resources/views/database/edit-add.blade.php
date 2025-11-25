@@ -125,7 +125,7 @@
                             </tbody>
                         </table>
 
-                        <div class="panel-actions" style="margin-top: 15px; text-align: center;">
+                        <div class="panel-actions flex-center mt-10">
                             <button type="button" class="btn btn-primary" id="btn-add-column">
                                 <i class="voyager-plus"></i> {{ __('ave::database.add_column') }}
                             </button>
@@ -143,7 +143,7 @@
                 <input type="hidden" name="table" id="table-data">
 
                 <div class="panel">
-                    <div class="panel-body">
+                    <div class="panel-body flex-center">
                         <button type="submit" class="btn btn-primary">
                             <i class="voyager-check"></i>
                             @if($db->action === 'update')
