@@ -535,6 +535,12 @@ class DatabaseTableEditor {
             return
         }
 
+        // Special handling for index changes - sync with table.indexes array
+        if (property === 'index') {
+            this.updateColumnIndex(index, value)
+            return
+        }
+
         // Disable rendering for simple input changes
         if (!shouldRender) {
             this.structuralChangesOnly = true
@@ -546,6 +552,46 @@ class DatabaseTableEditor {
         if (!shouldRender) {
             this.structuralChangesOnly = false
         }
+    }
+
+    updateColumnIndex(columnIndex, newIndexType) {
+        const columns = this.state.state.table.columns
+        const column = columns[columnIndex]
+        const oldIndexType = column.index
+        const columnName = column.name
+
+        // Update column index property
+        column.index = newIndexType || null
+
+        // Initialize indexes array if not exists
+        if (!this.state.state.table.indexes) {
+            this.state.state.table.indexes = []
+        }
+
+        // Remove old index from table.indexes if exists
+        if (oldIndexType && oldIndexType !== '') {
+            this.state.state.table.indexes = this.state.state.table.indexes.filter(idx => {
+                // Remove index if it contains only this column
+                return !(idx.columns && idx.columns.length === 1 && idx.columns[0] === columnName)
+            })
+        }
+
+        // Add new index to table.indexes if type is selected
+        if (newIndexType && newIndexType !== '') {
+            const indexName = newIndexType === 'primary' ? 'primary' :
+                            newIndexType === 'unique' ? `${columnName}_unique` :
+                            `${columnName}_index`
+
+            this.state.state.table.indexes.push({
+                name: indexName,
+                oldName: indexName,
+                type: newIndexType,
+                columns: [columnName]
+            })
+        }
+
+        // Trigger update (without full re-render)
+        this.structuralChangesOnly = false
     }
 
     addColumn() {
