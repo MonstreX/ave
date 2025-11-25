@@ -254,6 +254,16 @@ class DatabaseTableEditor {
         return select
     }
 
+    renderRemoveButton(index) {
+        const cell = document.createElement('td')
+        const button = document.createElement('div')
+        button.className = 'btn btn-danger btn-sm btn-square delete-row'
+        button.innerHTML = '<i class="voyager-trash"></i>'
+        button.addEventListener('click', () => this.removeColumn(index))
+        cell.appendChild(button)
+        return cell
+    }
+
     createField(type, name, label, value, columnIndex, attrs = {}) {
         const group = document.createElement('div')
         group.className = 'db-field-group'
