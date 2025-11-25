@@ -128,7 +128,27 @@ class Table extends DoctrineTable
         $exportedColumns = [];
 
         foreach ($this->getColumns() as $name => $column) {
-            $exportedColumns[] = Column::toArray($column);
+            $columnArr = Column::toArray($column);
+
+            // Add field (alias for name)
+            $columnArr['field'] = $columnArr['name'];
+
+            // Set the indexes and key
+            $columnArr['indexes'] = [];
+            $columnArr['key'] = null;
+            if ($columnArr['indexes'] = $this->getColumnsIndexes($columnArr['name'], true)) {
+                // Convert indexes to Array
+                foreach ($columnArr['indexes'] as $indexName => $index) {
+                    $columnArr['indexes'][$indexName] = Index::toArray($index);
+                }
+
+                // If there are multiple indexes for the column
+                // the Key will be one with highest priority
+                $indexType = array_values($columnArr['indexes'])[0]['type'];
+                $columnArr['key'] = substr($indexType, 0, 3);
+            }
+
+            $exportedColumns[] = $columnArr;
         }
 
         return $exportedColumns;
