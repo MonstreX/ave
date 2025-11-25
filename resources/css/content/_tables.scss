@@ -88,6 +88,15 @@
     }
 }
 
+.table-name-link {
+    color: var(--ave-color-link);
+    font-weight: normal;
+
+    &:hover {
+        color: var(--ave-color-link-hover);
+    }
+}
+
 .boolean-column {
     .ave-inline-toggle--dot {
         border: none;

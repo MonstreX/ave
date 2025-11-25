@@ -30,7 +30,7 @@
                             @forelse($tables as $table)
                                 <tr>
                                     <td>
-                                        <a href="{{ route('ave.database.edit', $table->name) }}" style="font-weight: normal;">
+                                        <a href="{{ route('ave.database.edit', $table->name) }}" class="table-name-link">
                                             {{ $table->name }}
                                         </a>
                                     </td>

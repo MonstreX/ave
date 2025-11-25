@@ -214,7 +214,10 @@ class DatabaseController extends Controller
 
             return redirect()
                 ->route('ave.database.index')
-                ->with('success', __('ave::database.success_delete_table', ['table' => $table]));
+                ->with('toast', [
+                    'type' => 'success',
+                    'message' => __('ave::database.success_delete_table', ['table' => $table])
+                ]);
         } catch (Exception $e) {
             return back()->with('error', $e->getMessage());
         }
