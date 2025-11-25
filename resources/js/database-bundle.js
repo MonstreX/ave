@@ -563,6 +563,9 @@ class DatabaseTableEditor {
         const column = columns[columnIndex]
         const columnName = column.name
 
+        // Normalize type to uppercase (select values are lowercase, backend expects uppercase)
+        const normalizedType = newIndexType ? newIndexType.toUpperCase() : ''
+
         // Initialize indexes array if not exists
         if (!this.state.state.table.indexes) {
             this.state.state.table.indexes = []
@@ -574,7 +577,7 @@ class DatabaseTableEditor {
         })
 
         // Case 1: Remove index (newIndexType is empty or null)
-        if (!newIndexType || newIndexType === '') {
+        if (!normalizedType || normalizedType === '') {
             if (existingIndex) {
                 // Use findIndex to properly locate the index in reactive array
                 const indexPos = this.state.state.table.indexes.findIndex(idx =>
@@ -588,19 +591,19 @@ class DatabaseTableEditor {
         }
         // Case 2: Add new index (no existing index)
         else if (!existingIndex) {
-            const indexName = newIndexType === 'primary' ? 'primary' : ''
+            const indexName = normalizedType === 'PRIMARY' ? 'primary' : ''
             this.state.state.table.indexes.push({
                 name: indexName,
-                type: newIndexType,
+                type: normalizedType,
                 columns: [columnName]
             })
-            column.index = newIndexType
+            column.index = normalizedType
         }
         // Case 3: Update existing index
         else {
-            existingIndex.type = newIndexType
-            existingIndex.name = newIndexType === 'primary' ? 'primary' : ''
-            column.index = newIndexType
+            existingIndex.type = normalizedType
+            existingIndex.name = normalizedType === 'PRIMARY' ? 'primary' : ''
+            column.index = normalizedType
         }
 
         // Trigger update (without full re-render)
