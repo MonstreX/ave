@@ -511,7 +511,7 @@ class DatabaseTableEditor {
         })
 
         select.addEventListener('change', (e) => {
-            this.onIndexChange(columnIndex, e.target.value)
+            this.updateColumnIndex(columnIndex, e.target.value)
         })
 
         return select
@@ -576,8 +576,13 @@ class DatabaseTableEditor {
         // Case 1: Remove index (newIndexType is empty or null)
         if (!newIndexType || newIndexType === '') {
             if (existingIndex) {
-                const indexPos = this.state.state.table.indexes.indexOf(existingIndex)
-                this.state.state.table.indexes.splice(indexPos, 1)
+                // Use findIndex to properly locate the index in reactive array
+                const indexPos = this.state.state.table.indexes.findIndex(idx =>
+                    idx.columns && idx.columns.length === 1 && idx.columns[0] === columnName
+                )
+                if (indexPos !== -1) {
+                    this.state.state.table.indexes.splice(indexPos, 1)
+                }
             }
             column.index = null
         }

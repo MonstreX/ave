@@ -161,11 +161,22 @@ class DatabaseController extends Controller
             \Log::info('Table name: ' . $table);
             \Log::info('Request table field length: ' . strlen($request->table));
             \Log::info('Decoded columns count: ' . count($tableData['columns'] ?? []));
+            \Log::info('Decoded indexes count: ' . count($tableData['indexes'] ?? []));
+
             if (isset($tableData['columns'])) {
                 foreach ($tableData['columns'] as $col) {
                     \Log::info('Column: ' . $col['name'], [
                         'index' => $col['index'] ?? 'not set',
                         'key' => $col['key'] ?? 'not set'
+                    ]);
+                }
+            }
+
+            if (isset($tableData['indexes'])) {
+                foreach ($tableData['indexes'] as $idx) {
+                    \Log::info('Index: ' . ($idx['name'] ?? 'unnamed'), [
+                        'type' => $idx['type'] ?? 'not set',
+                        'columns' => json_encode($idx['columns'] ?? [])
                     ]);
                 }
             }
