@@ -1,16 +1,13 @@
 import { Reactive } from './reactive'
 
-const INDEX_OPTIONS = [
-    { value: '', label: '' },
-    { value: 'index', label: 'INDEX' },
-    { value: 'unique', label: 'UNIQUE' },
-    { value: 'primary', label: 'PRIMARY' },
-]
-
-export class DatabaseTableEditor {
+class DatabaseTableEditor {
     constructor(config) {
         this.config = config
         this.translations = config.translations
+
+        console.log('DatabaseTableEditor init')
+        console.log('config.table:', config.table)
+        console.log('config.oldTable:', config.oldTable)
 
         const tableData = config.oldTable || config.table
 
@@ -26,10 +23,17 @@ export class DatabaseTableEditor {
             isDirty: false
         })
 
+        console.log('Reactive state initialized')
+        console.log('state.table:', this.state.state.table)
+        console.log('state.table.columns:', this.state.state.table.columns)
+
+        this.structuralChangesOnly = false
         this.state.watch('table', () => {
-            this.state.state.isDirty = true
-            this.validateTable()
-            this.render()
+            if (!this.structuralChangesOnly) {
+                this.state.state.isDirty = true
+                this.validateTable()
+                this.render()
+            }
         })
 
         window.dbConfig.table = this.state.state.table
@@ -46,123 +50,122 @@ export class DatabaseTableEditor {
         const tableNameInput = document.getElementById('table-name')
         if (tableNameInput) {
             tableNameInput.addEventListener('input', (e) => {
+                this.structuralChangesOnly = true
                 this.state.state.table.name = e.target.value
+                this.structuralChangesOnly = false
             })
         }
 
-        document.getElementById('btn-add-column')?.addEventListener('click', () => this.addColumn())
-        document.getElementById('btn-add-timestamps')?.addEventListener('click', () => this.addTimestamps())
-        document.getElementById('btn-add-softdeletes')?.addEventListener('click', () => this.addSoftDeletes())
+        document.getElementById('btn-add-column')?.addEventListener('click', () => {
+            this.addColumn()
+        })
 
-        document.getElementById('database-form')?.addEventListener('submit', (event) => {
+        document.getElementById('btn-add-timestamps')?.addEventListener('click', () => {
+            this.addTimestamps()
+        })
+
+        document.getElementById('btn-add-softdeletes')?.addEventListener('click', () => {
+            this.addSoftDeletes()
+        })
+
+        document.getElementById('database-form')?.addEventListener('submit', (e) => {
             if (!this.validateTable()) {
-                event.preventDefault()
-                toastr.error(this.translations.fixValidationErrors || 'Please fix validation errors before saving')
+                e.preventDefault()
+                toastr.error('Please fix validation errors before saving')
                 return false
             }
 
-            const payload = JSON.stringify(this.state.state.table)
-            document.getElementById('table-data').value = payload
+            console.log('=== SUBMITTING TABLE ===')
+            console.log('Table data:', this.state.state.table)
+            console.log('Columns with indexes:', this.state.state.table.columns.map(col => ({
+                name: col.name,
+                index: col.index,
+                key: col.key
+            })))
+            const tableJson = JSON.stringify(this.state.state.table)
+            console.log('Table JSON length:', tableJson.length)
+            document.getElementById('table-data').value = tableJson
             window.dbConfig.table = this.state.state.table
-
-            return true
+            console.log('Form will submit now')
         })
     }
 
     render() {
         const container = document.getElementById('columns-container')
-        const emptyState = document.getElementById('no-columns-message')
+        const table = document.getElementById('columns-table')
+        const noColumnsMsg = document.getElementById('no-columns-message')
 
-        if (!container) {
-            return
-        }
+        if (!container) return
 
         const columns = this.state.state.table.columns || []
 
         if (columns.length === 0) {
-            emptyState?.classList.add('is-visible')
-            container.innerHTML = ''
+            noColumnsMsg.style.display = 'block'
+            if (table) table.style.display = 'none'
             return
         }
 
-        emptyState?.classList.remove('is-visible')
+        noColumnsMsg.style.display = 'none'
+        if (table) table.style.display = 'table'
         container.innerHTML = ''
 
         columns.forEach((column, index) => {
-            container.appendChild(this.renderColumnCard(column, index))
+            const columnElement = this.renderColumn(column, index)
+            container.appendChild(columnElement)
         })
     }
 
-    renderColumnCard(column, index) {
-        const card = document.createElement('div')
-        card.className = 'dbm-column'
-        card.dataset.index = index
+    renderColumn(column, index) {
+        const row = document.createElement('tr')
+        row.dataset.index = index
+        row.className = 'dbm-row'
 
-        if (this.state.state.errors[`columns.${index}`]) {
-            card.classList.add('has-error')
+        const columnErrors = this.state.state.errors[`columns.${index}`] || {}
+        if (Object.keys(columnErrors).length > 0) {
+            row.classList.add('has-error')
         }
 
-        const header = document.createElement('div')
-        header.className = 'dbm-column__header'
-
-        const title = document.createElement('h4')
-        title.textContent = column.name || `Column ${index + 1}`
-
-        const actions = document.createElement('div')
-        actions.appendChild(this.createRemoveButton(column, index))
-
-        header.appendChild(title)
-        header.appendChild(actions)
-
-        const body = document.createElement('div')
-        body.className = 'dbm-column__body'
-
-        body.appendChild(this.createInputField(this.translations.field, column.name || '', (value) => this.updateColumn(index, 'name', value), {
+        const nameCell = this.renderTextInput(column.name || '', (value) => this.updateColumn(index, 'name', value), {
             required: true,
             pattern: this.config.identifierRegex,
-        }))
-
-        body.appendChild(this.createTypeSelect(column, index))
-
-        body.appendChild(this.createInputField(this.translations.length, column.length ?? '', (value) => this.updateColumn(index, 'length', value ? parseInt(value, 10) || null : null), {
-            type: 'number',
-            min: '1',
-        }))
-
-        body.appendChild(this.createCheckboxField(this.translations.not_null, !!column.notnull, (value) => this.updateColumn(index, 'notnull', value)))
-        body.appendChild(this.createCheckboxField(this.translations.unsigned, !!column.unsigned, (value) => this.updateColumn(index, 'unsigned', value)))
-        body.appendChild(this.createCheckboxField(this.translations.auto_increment, !!column.autoincrement, (value) => this.updateColumn(index, 'autoincrement', value)))
-
-        body.appendChild(this.createIndexSelect(column, index))
-
-        body.appendChild(this.createInputField(this.translations.default, column.default ?? '', (value) => this.updateColumn(index, 'default', value)))
+        })
 
         if (column.composite) {
             const warning = document.createElement('div')
-            warning.className = 'dbm-warning'
-            warning.innerHTML = `<i class="voyager-warning"></i> ${this.translations.compositeWarning || ''}`
-            body.appendChild(warning)
+            warning.className = 'dbm-index-warning'
+            warning.innerHTML = `<i class="voyager-warning"></i> ${this.translations.compositeWarning}`
+            nameCell.appendChild(warning)
         }
 
-        card.appendChild(header)
-        card.appendChild(body)
+        row.appendChild(nameCell)
+        row.appendChild(this.renderTypeSelect(column, index))
+        row.appendChild(
+            this.renderTextInput(
+                column.length ?? '',
+                (value) => this.updateColumn(index, 'length', value ? parseInt(value, 10) || null : null),
+                {
+                    type: 'number',
+                    min: '1',
+                }
+            )
+        )
+        row.appendChild(this.renderCheckbox(!!column.notnull, (value) => this.updateColumn(index, 'notnull', value)))
+        row.appendChild(this.renderCheckbox(!!column.unsigned, (value) => this.updateColumn(index, 'unsigned', value)))
+        row.appendChild(
+            this.renderCheckbox(!!column.autoincrement, (value) => this.updateColumn(index, 'autoincrement', value))
+        )
+        row.appendChild(this.createIndexSelectSimple(column, index))
+        row.appendChild(this.renderTextInput(column.default ?? '', (value) => this.updateColumn(index, 'default', value)))
+        row.appendChild(this.renderRemoveButton(index))
 
-        return card
+        return row
     }
 
-    createInputField(label, value, onChange, attrs = {}) {
-        const group = document.createElement('div')
-        group.className = 'form-group'
-
-        const labelEl = document.createElement('label')
-        labelEl.textContent = label
-        group.appendChild(labelEl)
-
+    renderTextInput(value, onChange, attrs = {}) {
+        const cell = document.createElement('td')
         const input = document.createElement('input')
-        input.type = attrs.type || 'text'
-        input.className = 'form-control'
         input.value = value ?? ''
-
+        input.type = attrs.type || 'text'
         Object.entries(attrs).forEach(([key, attrValue]) => {
             if (key !== 'type') {
                 input.setAttribute(key, attrValue)
@@ -170,39 +173,24 @@ export class DatabaseTableEditor {
         })
 
         input.addEventListener('input', (event) => onChange(event.target.value))
-        group.appendChild(input)
 
-        return group
+        cell.appendChild(input)
+        return cell
     }
 
-    createCheckboxField(label, checked, onChange) {
-        const wrapper = document.createElement('div')
-        wrapper.className = 'dbm-checkbox'
-
+    renderCheckbox(value, onChange) {
+        const cell = document.createElement('td')
         const input = document.createElement('input')
         input.type = 'checkbox'
-        input.checked = !!checked
+        input.checked = !!value
         input.addEventListener('change', (event) => onChange(event.target.checked))
-
-        const labelEl = document.createElement('label')
-        labelEl.textContent = label
-
-        wrapper.appendChild(input)
-        wrapper.appendChild(labelEl)
-
-        return wrapper
+        cell.appendChild(input)
+        return cell
     }
 
-    createTypeSelect(column, index) {
-        const group = document.createElement('div')
-        group.className = 'form-group'
-
-        const label = document.createElement('label')
-        label.textContent = this.translations.type
-        group.appendChild(label)
-
+    renderTypeSelect(column, index) {
+        const cell = document.createElement('td')
         const select = document.createElement('select')
-        select.className = 'form-control'
 
         Object.entries(this.config.types || {}).forEach(([category, typeList]) => {
             const optGroup = document.createElement('optgroup')
@@ -214,9 +202,9 @@ export class DatabaseTableEditor {
                 option.textContent = type.name
                 option.selected = column.type === type.name
 
-                if (type.supported === false) {
+                if (!type.supported) {
                     option.disabled = true
-                    option.textContent += ` (${this.translations.typeNotSupported || ''})`
+                    option.textContent += ` (${this.translations.typeNotSupported})`
                 }
 
                 optGroup.appendChild(option)
@@ -226,98 +214,103 @@ export class DatabaseTableEditor {
         })
 
         select.addEventListener('change', (event) => this.updateColumn(index, 'type', event.target.value))
-        group.appendChild(select)
-
-        return group
+        cell.appendChild(select)
+        return cell
     }
 
-    createIndexSelect(column, index) {
-        const group = document.createElement('div')
-        group.className = 'form-group'
-
-        const label = document.createElement('label')
-        label.textContent = this.translations.index
-        group.appendChild(label)
-
+    createIndexSelectSimple(column, columnIndex) {
         const select = document.createElement('select')
         select.className = 'form-control'
 
         const columnType = typeof column.type === 'object' ? column.type : { name: column.type }
-        if (columnType.notSupportIndex) {
+        const notSupportIndex = columnType.notSupportIndex || false
+
+        if (notSupportIndex) {
             select.disabled = true
         }
 
         const currentIndex = this.getColumnsIndex(column.name)
         const currentType = currentIndex !== this.emptyIndex ? currentIndex.type.toLowerCase() : ''
 
-        INDEX_OPTIONS.forEach(optionData => {
+        const options = [
+            { value: '', label: '' },
+            { value: 'index', label: 'INDEX' },
+            { value: 'unique', label: 'UNIQUE' },
+            { value: 'primary', label: 'PRIMARY' }
+        ]
+
+        options.forEach(opt => {
             const option = document.createElement('option')
-            option.value = optionData.value
-            option.textContent = optionData.label || this.translations.none || ''
-            option.selected = currentType === optionData.value
+            option.value = opt.value
+            option.textContent = opt.label
+            option.selected = currentType === opt.value
             select.appendChild(option)
         })
 
-        select.addEventListener('change', (event) => this.updateColumnIndex(index, event.target.value))
-        group.appendChild(select)
+        select.addEventListener('change', (e) => {
+            this.updateColumnIndex(columnIndex, e.target.value)
+        })
+
+        return select
+    }
+
+    renderRemoveButton(index) {
+        const cell = document.createElement('td')
+        const button = document.createElement('div')
+        button.className = 'btn btn-danger btn-sm btn-square delete-row'
+        button.innerHTML = '<i class="voyager-trash"></i>'
+        button.addEventListener('click', () => this.removeColumn(index))
+        cell.appendChild(button)
+        return cell
+    }
+
+    createField(type, name, label, value, columnIndex, attrs = {}) {
+        const group = document.createElement('div')
+        group.className = 'db-field-group'
+
+        const labelEl = document.createElement('label')
+        labelEl.textContent = label
+        group.appendChild(labelEl)
+
+        const input = document.createElement('input')
+        input.type = type
+        input.value = value || ''
+        input.className = 'form-control'
+
+        Object.keys(attrs).forEach(key => {
+            input.setAttribute(key, attrs[key])
+        })
+
+        input.addEventListener('input', (e) => {
+            this.updateColumn(columnIndex, name, e.target.value)
+        })
+
+        group.appendChild(input)
 
         return group
     }
 
-    createRemoveButton(column, index) {
-        const button = document.createElement('button')
-        button.type = 'button'
-        button.className = 'btn btn-danger btn-sm dbm-remove-column'
-        button.innerHTML = `<i class="voyager-trash"></i> ${this.translations.removeColumnConfirm || 'Remove column'}`
-        button.addEventListener('click', () => this.handleRemoveColumn(column, index))
-        return button
-    }
+    createCheckbox(name, label, checked, columnIndex) {
+        const group = document.createElement('div')
+        group.className = 'db-field-group checkbox'
 
-    async handleRemoveColumn(column, index) {
-        const confirmed = await this.confirmRemoval(column?.name || `Column ${index + 1}`)
-        if (!confirmed) {
-            return
-        }
+        const input = document.createElement('input')
+        input.type = 'checkbox'
+        input.checked = !!checked
+        input.id = `col-${columnIndex}-${name}`
 
-        const columns = this.state.state.table.columns
-        columns.splice(index, 1)
+        input.addEventListener('change', (e) => {
+            this.updateColumn(columnIndex, name, e.target.checked)
+        })
 
-        this.state.notify(['table', 'columns'])
-    }
+        const labelEl = document.createElement('label')
+        labelEl.htmlFor = input.id
+        labelEl.textContent = label
 
-    async confirmRemoval(columnName) {
-        const message = (this.translations.removeColumnBody || 'Remove column ":column"?').replace(':column', columnName)
-        const title = this.translations.removeColumnTitle || 'Remove column'
-        const confirmText = this.translations.removeColumnConfirm || 'Remove column'
-        const cancelText = this.translations.cancel || 'Cancel'
+        group.appendChild(input)
+        group.appendChild(labelEl)
 
-        if (window.Ave?.confirm) {
-            return window.Ave.confirm(message, {
-                title,
-                confirmText,
-                cancelText,
-                variant: 'danger'
-            })
-        }
-
-        return Promise.resolve(window.confirm(message))
-    }
-
-    addColumn() {
-        const columns = this.state.state.table.columns || []
-        const newColumn = {
-            name: `column_${columns.length + 1}`,
-            type: 'string',
-            length: null,
-            default: null,
-            notnull: false,
-            unsigned: false,
-            autoincrement: false,
-            index: null
-        }
-
-        columns.push(newColumn)
-        this.state.notify(['table', 'columns'])
+        return group
     }
 
     getColumnsIndex(columnName) {
@@ -326,28 +319,13 @@ export class DatabaseTableEditor {
 
         for (let i = 0; i < indexes.length; i++) {
             const indexColumns = indexes[i].columns || []
-            if (indexColumns.length === columns.length && indexColumns.every(col => columns.includes(col))) {
+            if (indexColumns.length === columns.length &&
+                indexColumns.every(col => columns.includes(col))) {
                 return indexes[i]
             }
         }
 
         return this.emptyIndex
-    }
-
-    updateColumn(index, property, value) {
-        const columns = this.state.state.table.columns
-        if (!columns[index]) {
-            return
-        }
-
-        if (property === 'index') {
-            this.updateColumnIndex(index, value)
-            return
-        }
-
-        columns[index][property] = value
-        this.validateTable()
-        window.dbConfig.table = this.state.state.table
     }
 
     updateColumnIndex(columnIndex, newIndexType) {
@@ -364,7 +342,7 @@ export class DatabaseTableEditor {
             return idx.columns && idx.columns.length === 1 && idx.columns[0] === columnName
         })
 
-        if (!normalizedType) {
+        if (!normalizedType || normalizedType === '') {
             if (existingIndex) {
                 const indexPos = this.state.state.table.indexes.findIndex(idx =>
                     idx.columns && idx.columns.length === 1 && idx.columns[0] === columnName
@@ -391,8 +369,38 @@ export class DatabaseTableEditor {
         this.state.notify(['table', 'columns', columnIndex, 'index'])
     }
 
+    addColumn() {
+        const columns = this.state.state.table.columns || []
+
+        const newColumn = {
+            name: `column_${columns.length + 1}`,
+            type: 'string',
+            length: null,
+            default: null,
+            notnull: false,
+            unsigned: false,
+            autoincrement: false,
+            index: null
+        }
+
+        columns.push(newColumn)
+        this.state.notify(['table', 'columns'])
+    }
+
+    removeColumn(index) {
+        if (!confirm('Are you sure you want to remove this column?')) {
+            return
+        }
+
+        const columns = this.state.state.table.columns
+        columns.splice(index, 1)
+
+        this.state.notify(['table', 'columns'])
+    }
+
     addTimestamps() {
         const columns = this.state.state.table.columns || []
+
         const hasCreatedAt = columns.some(col => col.name === 'created_at')
         const hasUpdatedAt = columns.some(col => col.name === 'updated_at')
 
@@ -402,11 +410,37 @@ export class DatabaseTableEditor {
         }
 
         if (!hasCreatedAt) {
-            columns.push(this.makeDateColumn('created_at'))
+            columns.push({
+                name: 'created_at',
+                type: {
+                    name: 'datetime',
+                    notSupported: false,
+                    notSupportIndex: false
+                },
+                length: null,
+                default: null,
+                notnull: false,
+                unsigned: false,
+                autoincrement: false,
+                index: null
+            })
         }
 
         if (!hasUpdatedAt) {
-            columns.push(this.makeDateColumn('updated_at'))
+            columns.push({
+                name: 'updated_at',
+                type: {
+                    name: 'datetime',
+                    notSupported: false,
+                    notSupportIndex: false
+                },
+                length: null,
+                default: null,
+                notnull: false,
+                unsigned: false,
+                autoincrement: false,
+                index: null
+            })
         }
 
         this.state.notify(['table', 'columns'])
@@ -415,6 +449,7 @@ export class DatabaseTableEditor {
 
     addSoftDeletes() {
         const columns = this.state.state.table.columns || []
+
         const hasDeletedAt = columns.some(col => col.name === 'deleted_at')
 
         if (hasDeletedAt) {
@@ -422,14 +457,8 @@ export class DatabaseTableEditor {
             return
         }
 
-        columns.push(this.makeDateColumn('deleted_at'))
-        this.state.notify(['table', 'columns'])
-        toastr.success('Soft deletes added')
-    }
-
-    makeDateColumn(name) {
-        return {
-            name,
+        columns.push({
+            name: 'deleted_at',
             type: {
                 name: 'datetime',
                 notSupported: false,
@@ -441,43 +470,66 @@ export class DatabaseTableEditor {
             unsigned: false,
             autoincrement: false,
             index: null
+        })
+
+        this.state.notify(['table', 'columns'])
+        toastr.success('Soft deletes added')
+    }
+
+    updateColumn(index, property, value) {
+        const columns = this.state.state.table.columns
+
+        if (!columns[index]) {
+            console.error('Column not found:', index)
+            return
         }
+
+        if (property === 'index') {
+            this.updateColumnIndex(index, value)
+            return
+        }
+
+        columns[index][property] = value
+        this.state.state.isDirty = true
+
+        this.validateTable()
+        window.dbConfig.table = this.state.state.table
     }
 
     validateTable() {
         const errors = {}
         const columns = this.state.state.table.columns || []
+
         const names = {}
-
-        columns.forEach((column, index) => {
-            const key = `columns.${index}`
-
-            if (!column.name || !column.name.trim()) {
-                errors[key] = errors[key] || {}
-                errors[key].name = this.translations.nameWarning || 'Column name cannot be empty'
+        columns.forEach((col, index) => {
+            if (!col.name || col.name.trim() === '') {
+                errors[`columns.${index}`] = errors[`columns.${index}`] || {}
+                errors[`columns.${index}`].name = this.translations.nameWarning
             }
 
-            if (column.name && names[column.name]) {
-                errors[key] = errors[key] || {}
-                errors[key].duplicate = (this.translations.columnAlreadyExists || 'Column :column already exists').replace(':column', column.name)
+            if (names[col.name]) {
+                errors[`columns.${index}`] = errors[`columns.${index}`] || {}
+                errors[`columns.${index}`].duplicate = this.translations.columnAlreadyExists.replace(':column', col.name)
             }
 
-            names[column.name] = true
+            names[col.name] = true
         })
 
         const primaryKeys = columns.filter(col => col.index === 'primary')
         if (primaryKeys.length > 1) {
-            primaryKeys.forEach((col, idx) => {
-                if (idx > 0) {
-                    const columnIndex = columns.indexOf(col)
-                    const key = `columns.${columnIndex}`
-                    errors[key] = errors[key] || {}
-                    errors[key].primary = this.translations.tableHasIndex || 'Table already has a primary key'
+            primaryKeys.forEach((col, i) => {
+                if (i > 0) {
+                    const idx = columns.indexOf(col)
+                    errors[`columns.${idx}`] = errors[`columns.${idx}`] || {}
+                    errors[`columns.${idx}`].primary = this.translations.tableHasIndex
                 }
             })
         }
 
         this.state.state.errors = errors
+
         return Object.keys(errors).length === 0
     }
 }
+
+export { DatabaseTableEditor }
