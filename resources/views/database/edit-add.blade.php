@@ -11,7 +11,7 @@
         @endif
     </h1>
     <div class="page-header-actions">
-        <a href="{{ route('ave.database.index') }}" class="btn btn-default">
+        <a href="{{ route('ave.database.index') }}" class="btn btn-success">
             <i class="voyager-list"></i> {{ __('ave::database.title') }}
         </a>
     </div>
