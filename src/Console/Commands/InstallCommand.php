@@ -43,6 +43,11 @@ class InstallCommand extends Command
             $this->comment('Running migrations...');
             $this->call('migrate');
             $this->info('✓ Migrations completed');
+
+            // Update User model to include locale field
+            $this->newLine();
+            $this->comment('Updating User model...');
+            $this->call('ave:update-user-model');
         }
 
         // Step 4: Seed baseline data

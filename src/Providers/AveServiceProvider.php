@@ -19,6 +19,7 @@ use Monstrex\Ave\Core\Discovery\AdminPageDiscovery;
 use Monstrex\Ave\Console\Commands\InstallCommand;
 use Monstrex\Ave\Console\Commands\UninstallCommand;
 use Monstrex\Ave\Console\Commands\MakeResourceCommand;
+use Monstrex\Ave\Console\Commands\UpdateUserModelCommand;
 use Monstrex\Ave\View\Composers\SidebarComposer;
 use Monstrex\Ave\Support\PackageAssets;
 use Monstrex\Ave\Routing\RouteRegistrar;
@@ -115,6 +116,7 @@ class AveServiceProvider extends ServiceProvider
                 InstallCommand::class,
                 UninstallCommand::class,
                 MakeResourceCommand::class,
+                UpdateUserModelCommand::class,
             ]);
         }
 
