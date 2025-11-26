@@ -74,12 +74,9 @@
         // form-control styles will be applied via class
     }
 
-    input[type="checkbox"] {
-        width: 16px;
-        height: 16px;
-        margin: 0 auto;
-        display: block;
-        cursor: pointer;
+    // Checkbox column - use system custom checkbox styles
+    td.checkbox-column {
+        text-align: center;
     }
 
     .btn-square {
