@@ -2,9 +2,9 @@
 
 namespace Monstrex\Ave\Console\Commands;
 
+use Database\Seeders\AveDatabaseSeeder;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
-use Monstrex\Ave\Database\Seeders\AveDatabaseSeeder;
 use Monstrex\Ave\Models\Role;
 use Monstrex\Ave\Models\User;
 
