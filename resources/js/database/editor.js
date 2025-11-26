@@ -148,6 +148,7 @@ class DatabaseTableEditor {
     renderTextInput(value, onChange, attrs = {}) {
         const cell = document.createElement('td')
         const input = document.createElement('input')
+        input.className = 'form-control'
         input.value = value ?? ''
         input.type = attrs.type || 'text'
         Object.entries(attrs).forEach(([key, attrValue]) => {
@@ -175,6 +176,7 @@ class DatabaseTableEditor {
     renderTypeSelect(column, index) {
         const cell = document.createElement('td')
         const select = document.createElement('select')
+        select.className = 'form-control'
 
         Object.entries(this.config.types || {}).forEach(([category, typeList]) => {
             const optGroup = document.createElement('optgroup')
@@ -203,6 +205,7 @@ class DatabaseTableEditor {
     }
 
     createIndexSelectSimple(column, columnIndex) {
+        const cell = document.createElement('td')
         const select = document.createElement('select')
         select.className = 'form-control'
 
@@ -235,7 +238,8 @@ class DatabaseTableEditor {
             this.updateColumnIndex(columnIndex, e.target.value)
         })
 
-        return select
+        cell.appendChild(select)
+        return cell
     }
 
     renderRemoveButton(index) {
@@ -323,10 +327,6 @@ class DatabaseTableEditor {
     }
 
     removeColumn(index) {
-        if (!confirm('Are you sure you want to remove this column?')) {
-            return
-        }
-
         const columns = this.state.state.table.columns
         columns.splice(index, 1)
 

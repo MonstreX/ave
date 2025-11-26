@@ -53,30 +53,33 @@
     gap: 10px;
 }
 
-/* Table styles */
+/* Table styles - use system form-control styles */
 #columns-table {
+    // Ensure all inputs and selects use form-control styling
+    td {
+        vertical-align: middle;
+        padding: 4px 6px;
+    }
+
     input[type="text"],
-    input[type="number"],
-    select {
-        font-size: 13px;
-        padding: 5px 8px;
-        height: 32px;
+    input[type="number"] {
+        width: 100%;
         min-width: 80px;
-    }
-
-    input[type="text"] {
-        min-width: 100px;
+        // form-control styles will be applied via class
     }
 
     select {
-        min-width: 120px;
+        width: 100%;
+        min-width: 100px;
+        // form-control styles will be applied via class
     }
 
     input[type="checkbox"] {
-        width: 18px;
-        height: 18px;
+        width: 16px;
+        height: 16px;
         margin: 0 auto;
         display: block;
+        cursor: pointer;
     }
 
     .btn-square {
