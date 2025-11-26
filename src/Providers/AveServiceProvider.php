@@ -29,6 +29,7 @@ use Monstrex\Ave\Core\Media\MediaRepository;
 use Monstrex\Ave\Services\BreadcrumbService;
 use Monstrex\Ave\Exceptions\AveException;
 use Monstrex\Ave\Exceptions\ResourceException;
+use Monstrex\Ave\Http\Middleware\SetLocaleMiddleware;
 use RuntimeException;
 
 /**
@@ -109,6 +110,9 @@ class AveServiceProvider extends ServiceProvider
 
         $this->registerGateIntegration();
         RouteRegistrar::create($this->app['router'])->register();
+
+        // Register SetLocaleMiddleware for web requests
+        $this->app['router']->pushMiddlewareToGroup('web', SetLocaleMiddleware::class);
 
         // Register commands
         if ($this->app->runningInConsole()) {
