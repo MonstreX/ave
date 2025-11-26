@@ -212,8 +212,23 @@ class DatabaseTableEditor {
         const select = document.createElement('select')
         select.className = 'form-control'
 
-        const columnType = typeof column.type === 'object' ? column.type : { name: column.type }
-        const notSupportIndex = columnType.notSupportIndex || false
+        // Get type name and check if it supports indexes
+        const typeName = typeof column.type === 'object' ? column.type.name : column.type
+        let notSupportIndex = false
+
+        // Check in config.types if this type supports indexes
+        if (typeof column.type === 'object') {
+            notSupportIndex = column.type.notSupportIndex || false
+        } else {
+            // Find type in config to check notSupportIndex
+            for (const category in this.config.types) {
+                const typeObj = this.config.types[category].find(t => t.name === typeName)
+                if (typeObj) {
+                    notSupportIndex = typeObj.notSupportIndex || false
+                    break
+                }
+            }
+        }
 
         if (notSupportIndex) {
             select.disabled = true
