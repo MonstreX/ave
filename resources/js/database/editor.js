@@ -453,8 +453,11 @@ class DatabaseTableEditor {
             return
         }
 
+        // Prevent re-render on simple value changes
+        this.structuralChangesOnly = true
         columns[index][property] = value
         this.state.state.isDirty = true
+        this.structuralChangesOnly = false
 
         // If type changed, check if new type supports indexes
         if (property === 'type') {
@@ -471,6 +474,21 @@ class DatabaseTableEditor {
 
         this.validateTable()
         window.dbConfig.table = this.state.state.table
+    }
+
+    updateRowErrors() {
+        const container = document.getElementById('columns-container')
+        if (!container) return
+
+        const rows = container.querySelectorAll('.dbm-row')
+        rows.forEach((row, index) => {
+            const columnErrors = this.state.state.errors[`columns.${index}`] || {}
+            if (Object.keys(columnErrors).length > 0) {
+                row.classList.add('has-error')
+            } else {
+                row.classList.remove('has-error')
+            }
+        })
     }
 
     validateTable() {
@@ -503,7 +521,11 @@ class DatabaseTableEditor {
             })
         }
 
+        this.structuralChangesOnly = true
         this.state.state.errors = errors
+        this.structuralChangesOnly = false
+
+        this.updateRowErrors()
 
         return Object.keys(errors).length === 0
     }
