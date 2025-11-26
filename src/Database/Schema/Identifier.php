@@ -9,6 +9,10 @@ abstract class Identifier
     // Warning: Do not modify this regex
     public const REGEX = '^[a-zA-Z_][a-zA-Z0-9_]*$';
 
+    // Maximum length for database identifiers (PostgreSQL: 63, MySQL: 64)
+    // Using 63 as safe limit for all databases
+    public const MAX_LENGTH = 63;
+
     /**
      * Validate database identifier (table name, column name, index name, etc.)
      *
@@ -22,11 +26,24 @@ abstract class Identifier
         $identifier = trim($identifier);
 
         $validator = Validator::make(['identifier' => $identifier], [
-            'identifier' => 'required|regex:/'.static::REGEX.'/',
+            'identifier' => [
+                'required',
+                'max:'.static::MAX_LENGTH,
+                'regex:/'.static::REGEX.'/',
+            ],
         ]);
 
         if ($validator->fails()) {
-            throw new \Exception("{$asset} Identifier '{$identifier}' is invalid. Must start with letter or underscore, contain only letters, numbers and underscores.");
+            $errors = $validator->errors()->get('identifier');
+            $message = "{$asset} Identifier '{$identifier}' is invalid. ";
+
+            if (str_contains($errors[0], 'max')) {
+                $message .= "Maximum length is " . static::MAX_LENGTH . " characters.";
+            } else {
+                $message .= "Must start with letter or underscore, contain only letters, numbers and underscores.";
+            }
+
+            throw new \Exception($message);
         }
 
         return $identifier;

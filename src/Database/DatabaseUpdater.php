@@ -108,33 +108,6 @@ class DatabaseUpdater
         return new TableDiff($this->originalTable, [], $changed);
     }
 
-    /**
-     * Get the table diff to rename columns and indexes.
-     *
-     * @return \Doctrine\DBAL\Schema\TableDiff|false
-     */
-    protected function getRenamedDiff()
-    {
-        $renamedColumns = $this->getRenamedColumns();
-        $renamedIndexes = $this->getRenamedIndexes();
-
-        if (empty($renamedColumns) && empty($renamedIndexes)) {
-            return false;
-        }
-
-        $renamedDiff = new TableDiff($this->tableArr['oldName']);
-        $renamedDiff->fromTable = $this->originalTable;
-
-        foreach ($renamedColumns as $oldName => $newName) {
-            $renamedDiff->renamedColumns[$oldName] = $this->table->getColumn($newName);
-        }
-
-        foreach ($renamedIndexes as $oldName => $newName) {
-            $renamedDiff->renamedIndexes[$oldName] = $this->table->getIndex($newName);
-        }
-
-        return $renamedDiff;
-    }
 
     /**
      * Get columns that were renamed.

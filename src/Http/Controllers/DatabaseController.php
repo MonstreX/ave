@@ -61,13 +61,6 @@ class DatabaseController extends Controller
     {
         $this->authorize('database-manager.create');
 
-        \Log::info('=== DATABASE STORE REQUEST ===');
-        \Log::info('Request data:', [
-            'table' => $request->table ? substr($request->table, 0, 200) : 'null',
-            'create_model' => $request->create_model,
-            'model_name' => $request->model_name,
-        ]);
-
         try {
             $conn = 'database.connections.'.config('database.default');
             Type::registerCustomPlatformTypes();
@@ -77,32 +70,21 @@ class DatabaseController extends Controller
                 $table = json_decode($request->table, true);
             }
 
-            \Log::info('Decoded table data:', [
-                'name' => $table['name'] ?? 'null',
-                'columns_count' => count($table['columns'] ?? []),
-                'indexes_count' => count($table['indexes'] ?? [])
-            ]);
-
             $table['options']['collate'] = config($conn.'.collation', 'utf8mb4_unicode_ci');
             $table['options']['charset'] = config($conn.'.charset', 'utf8mb4');
 
-            \Log::info('STEP 1: Before Table::make');
             $tableObj = Table::make($table);
-            \Log::info('STEP 2: After Table::make, table name: ' . $tableObj->getName());
-
-            \Log::info('STEP 3: Before SchemaManager::createTable');
             SchemaManager::createTable($tableObj);
-            \Log::info('STEP 4: After createTable - SUCCESS');
 
             // Create model if requested
             if ($request->filled('create_model') && $request->filled('model_name')) {
                 try {
-                    \Log::info('STEP 5: Creating model: ' . $request->model_name);
                     $this->createModel($request->model_name, $tableObj->getName());
-                    \Log::info('STEP 6: Model created successfully');
                 } catch (\Exception $e) {
-                    \Log::error('Model creation failed: ' . $e->getMessage());
-                    \Log::error('Stack trace: ' . $e->getTraceAsString());
+                    \Log::error('Model creation failed', [
+                        'model' => $request->model_name,
+                        'error' => $e->getMessage()
+                    ]);
                     // Don't fail the whole operation if model creation fails
                 }
             }
@@ -110,15 +92,14 @@ class DatabaseController extends Controller
             // TODO: Dispatch TableAdded event
             // event(new TableAdded($table));
 
-            \Log::info('STEP 7: Redirecting to database.index');
             return redirect()
                 ->route('ave.database.index')
                 ->with('success', __('ave::database.success_create_table', ['table' => $tableObj->getName()]));
         } catch (Exception $e) {
-            \Log::error('DATABASE STORE EXCEPTION: ' . $e->getMessage());
-            \Log::error('Exception class: ' . get_class($e));
-            \Log::error('File: ' . $e->getFile() . ':' . $e->getLine());
-            \Log::error('Stack trace: ' . $e->getTraceAsString());
+            \Log::error('Database table creation failed', [
+                'table' => $table['name'] ?? 'unknown',
+                'error' => $e->getMessage()
+            ]);
 
             return back()
                 ->with('error', $e->getMessage())
@@ -154,30 +135,6 @@ class DatabaseController extends Controller
         try {
             $tableData = json_decode($request->table, true);
 
-            \Log::info('=== DATABASE UPDATE REQUEST ===');
-            \Log::info('Table name: ' . $table);
-            \Log::info('Request table field length: ' . strlen($request->table));
-            \Log::info('Decoded columns count: ' . count($tableData['columns'] ?? []));
-            \Log::info('Decoded indexes count: ' . count($tableData['indexes'] ?? []));
-
-            if (isset($tableData['columns'])) {
-                foreach ($tableData['columns'] as $col) {
-                    \Log::info('Column: ' . $col['name'], [
-                        'index' => $col['index'] ?? 'not set',
-                        'key' => $col['key'] ?? 'not set'
-                    ]);
-                }
-            }
-
-            if (isset($tableData['indexes'])) {
-                foreach ($tableData['indexes'] as $idx) {
-                    \Log::info('Index: ' . ($idx['name'] ?? 'unnamed'), [
-                        'type' => $idx['type'] ?? 'not set',
-                        'columns' => json_encode($idx['columns'] ?? [])
-                    ]);
-                }
-            }
-
             DatabaseUpdater::update($tableData);
 
             // TODO: Dispatch TableUpdated event
@@ -187,8 +144,11 @@ class DatabaseController extends Controller
                 ->route('ave.database.index')
                 ->with('success', __('ave::database.success_update_table', ['table' => $tableData['name']]));
         } catch (Exception $e) {
-            \Log::error('Database update failed: ' . $e->getMessage());
-            \Log::error('Stack trace: ' . $e->getTraceAsString());
+            \Log::error('Database table update failed', [
+                'table' => $tableData['name'] ?? 'unknown',
+                'error' => $e->getMessage()
+            ]);
+
             return back()
                 ->with('error', $e->getMessage())
                 ->withInput();

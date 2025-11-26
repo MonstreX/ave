@@ -190,18 +190,21 @@ class RouteRegistrar
             ->name('ave.database.create');
 
         $router->post('/database', [DatabaseController::class, 'store'])
+            ->middleware('throttle:10,1')
             ->name('ave.database.store');
 
         $router->get('/database/{table}/edit', [DatabaseController::class, 'edit'])
             ->name('ave.database.edit');
 
         $router->put('/database/{table}', [DatabaseController::class, 'update'])
+            ->middleware('throttle:20,1')
             ->name('ave.database.update');
 
         $router->get('/database/{table}', [DatabaseController::class, 'show'])
             ->name('ave.database.show');
 
         $router->delete('/database/{table}', [DatabaseController::class, 'destroy'])
+            ->middleware('throttle:10,1')
             ->name('ave.database.destroy');
     }
 

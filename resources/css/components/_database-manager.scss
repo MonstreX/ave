@@ -1,0 +1,103 @@
+/* Database Manager Styles */
+
+/* Database table editor */
+.dbm-row {
+    &.has-error {
+        border-color: #dc3545;
+        background: #fff5f5;
+
+        td {
+            background: #fff5f5;
+        }
+    }
+}
+
+.dbm-index-warning {
+    background: #fff3cd;
+    border: 1px solid #ffc107;
+    border-radius: 4px;
+    padding: 4px 8px;
+    margin-top: 5px;
+    font-size: 11px;
+    color: #856404;
+    display: inline-block;
+
+    i {
+        margin-right: 5px;
+    }
+}
+
+/* Panel actions */
+.panel-actions {
+    display: flex;
+    gap: 5px;
+    justify-content: center;
+
+    &.flex-center {
+        justify-content: center;
+    }
+
+    .btn {
+        margin: 0;
+    }
+}
+
+/* Margin utilities */
+.mt-10 {
+    margin-top: 10px;
+}
+
+.flex-center {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+/* Table styles */
+#columns-table {
+    input[type="text"],
+    input[type="number"],
+    select {
+        font-size: 13px;
+        padding: 5px 8px;
+        height: 32px;
+        min-width: 80px;
+    }
+
+    input[type="text"] {
+        min-width: 100px;
+    }
+
+    select {
+        min-width: 120px;
+    }
+
+    input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        margin: 0 auto;
+        display: block;
+    }
+
+    .btn-square {
+        width: 32px;
+        height: 32px;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        i {
+            margin: 0;
+        }
+    }
+}
+
+/* Delete row button */
+.delete-row {
+    cursor: pointer;
+
+    &:hover {
+        background: #c82333 !important;
+    }
+}

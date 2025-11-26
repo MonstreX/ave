@@ -5,10 +5,6 @@ class DatabaseTableEditor {
         this.config = config
         this.translations = config.translations
 
-        console.log('DatabaseTableEditor init')
-        console.log('config.table:', config.table)
-        console.log('config.oldTable:', config.oldTable)
-
         const tableData = config.oldTable || config.table
 
         this.emptyIndex = {
@@ -22,10 +18,6 @@ class DatabaseTableEditor {
             errors: {},
             isDirty: false
         })
-
-        console.log('Reactive state initialized')
-        console.log('state.table:', this.state.state.table)
-        console.log('state.table.columns:', this.state.state.table.columns)
 
         this.structuralChangesOnly = false
         this.state.watch('table', () => {
@@ -75,18 +67,9 @@ class DatabaseTableEditor {
                 return false
             }
 
-            console.log('=== SUBMITTING TABLE ===')
-            console.log('Table data:', this.state.state.table)
-            console.log('Columns with indexes:', this.state.state.table.columns.map(col => ({
-                name: col.name,
-                index: col.index,
-                key: col.key
-            })))
             const tableJson = JSON.stringify(this.state.state.table)
-            console.log('Table JSON length:', tableJson.length)
             document.getElementById('table-data').value = tableJson
             window.dbConfig.table = this.state.state.table
-            console.log('Form will submit now')
         })
     }
 
@@ -128,6 +111,7 @@ class DatabaseTableEditor {
         const nameCell = this.renderTextInput(column.name || '', (value) => this.updateColumn(index, 'name', value), {
             required: true,
             pattern: this.config.identifierRegex,
+            maxlength: '63',
         })
 
         if (column.composite) {
@@ -262,55 +246,6 @@ class DatabaseTableEditor {
         button.addEventListener('click', () => this.removeColumn(index))
         cell.appendChild(button)
         return cell
-    }
-
-    createField(type, name, label, value, columnIndex, attrs = {}) {
-        const group = document.createElement('div')
-        group.className = 'db-field-group'
-
-        const labelEl = document.createElement('label')
-        labelEl.textContent = label
-        group.appendChild(labelEl)
-
-        const input = document.createElement('input')
-        input.type = type
-        input.value = value || ''
-        input.className = 'form-control'
-
-        Object.keys(attrs).forEach(key => {
-            input.setAttribute(key, attrs[key])
-        })
-
-        input.addEventListener('input', (e) => {
-            this.updateColumn(columnIndex, name, e.target.value)
-        })
-
-        group.appendChild(input)
-
-        return group
-    }
-
-    createCheckbox(name, label, checked, columnIndex) {
-        const group = document.createElement('div')
-        group.className = 'db-field-group checkbox'
-
-        const input = document.createElement('input')
-        input.type = 'checkbox'
-        input.checked = !!checked
-        input.id = `col-${columnIndex}-${name}`
-
-        input.addEventListener('change', (e) => {
-            this.updateColumn(columnIndex, name, e.target.checked)
-        })
-
-        const labelEl = document.createElement('label')
-        labelEl.htmlFor = input.id
-        labelEl.textContent = label
-
-        group.appendChild(input)
-        group.appendChild(labelEl)
-
-        return group
     }
 
     getColumnsIndex(columnName) {
@@ -480,7 +415,6 @@ class DatabaseTableEditor {
         const columns = this.state.state.table.columns
 
         if (!columns[index]) {
-            console.error('Column not found:', index)
             return
         }
 

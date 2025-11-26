@@ -1,6 +1,10 @@
 /**
  * Lightweight reactive state management library
  * Based on ES6 Proxy for reactive data binding
+ *
+ * This is a general-purpose library intended for use across multiple modules.
+ * Some methods (computed, setByPath, batch, DOM utilities) are not currently
+ * used by Database Manager but are kept for future functionality.
  */
 
 export class Reactive {
