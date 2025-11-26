@@ -146,30 +146,22 @@ class DatabaseTableEditor {
     }
 
     renderTextInput(value, onChange, attrs = {}) {
+        const type = attrs.type || 'text'
+        const attrsStr = Object.entries(attrs)
+            .filter(([key]) => key !== 'type')
+            .map(([key, val]) => `${key}="${val}"`)
+            .join(' ')
+
         const cell = document.createElement('td')
-        const input = document.createElement('input')
-        input.className = 'form-control'
-        input.value = value ?? ''
-        input.type = attrs.type || 'text'
-        Object.entries(attrs).forEach(([key, attrValue]) => {
-            if (key !== 'type') {
-                input.setAttribute(key, attrValue)
-            }
-        })
-
-        input.addEventListener('input', (event) => onChange(event.target.value))
-
-        cell.appendChild(input)
+        cell.innerHTML = `<input class="form-control" type="${type}" value="${value ?? ''}" ${attrsStr}>`
+        cell.querySelector('input').addEventListener('input', (e) => onChange(e.target.value))
         return cell
     }
 
     renderCheckbox(value, onChange) {
         const cell = document.createElement('td')
-        const input = document.createElement('input')
-        input.type = 'checkbox'
-        input.checked = !!value
-        input.addEventListener('change', (event) => onChange(event.target.checked))
-        cell.appendChild(input)
+        cell.innerHTML = `<input type="checkbox" ${value ? 'checked' : ''}>`
+        cell.querySelector('input').addEventListener('change', (e) => onChange(e.target.checked))
         return cell
     }
 
@@ -208,31 +200,8 @@ class DatabaseTableEditor {
     }
 
     createIndexSelectSimple(column, columnIndex) {
-        const cell = document.createElement('td')
-        const select = document.createElement('select')
-        select.className = 'form-control'
-
-        // Get type name and check if it supports indexes
         const typeName = typeof column.type === 'object' ? column.type.name : column.type
-        let notSupportIndex = false
-
-        // Check in config.types if this type supports indexes
-        if (typeof column.type === 'object') {
-            notSupportIndex = column.type.notSupportIndex || false
-        } else {
-            // Find type in config to check notSupportIndex
-            for (const category in this.config.types) {
-                const typeObj = this.config.types[category].find(t => t.name === typeName)
-                if (typeObj) {
-                    notSupportIndex = typeObj.notSupportIndex || false
-                    break
-                }
-            }
-        }
-
-        if (notSupportIndex) {
-            select.disabled = true
-        }
+        const supportsIndex = this.getTypeSupportsIndex(typeName)
 
         const currentIndex = this.getColumnsIndex(column.name)
         const currentType = currentIndex !== this.emptyIndex ? currentIndex.type.toLowerCase() : ''
@@ -244,20 +213,12 @@ class DatabaseTableEditor {
             { value: 'primary', label: 'PRIMARY' }
         ]
 
-        options.forEach(opt => {
-            const option = document.createElement('option')
-            option.value = opt.value
-            option.textContent = opt.label
-            option.selected = currentType === opt.value
-            select.appendChild(option)
-        })
-
-        select.addEventListener('change', (e) => {
-            this.updateColumnIndex(columnIndex, e.target.value)
-        })
-
-        cell.appendChild(select)
-        return cell
+        return this.createSelect(
+            options,
+            currentType,
+            (e) => this.updateColumnIndex(columnIndex, e.target.value),
+            !supportsIndex
+        )
     }
 
     renderRemoveButton(index) {
@@ -283,6 +244,47 @@ class DatabaseTableEditor {
         }
 
         return this.emptyIndex
+    }
+
+    /**
+     * Check if type supports indexes by looking up in config.types
+     */
+    getTypeSupportsIndex(typeName) {
+        for (const category in this.config.types) {
+            const typeObj = this.config.types[category].find(t => t.name === typeName)
+            if (typeObj) {
+                return !(typeObj.notSupportIndex || false)
+            }
+        }
+        return true // Default: support indexes if type not found
+    }
+
+    /**
+     * Create a select element with options
+     * @param {Array} options - Array of {value, label, disabled?} objects
+     * @param {string} selectedValue - Currently selected value
+     * @param {Function} onChange - Change handler
+     * @param {boolean} disabled - Whether select is disabled
+     * @returns {HTMLElement} td element containing select
+     */
+    createSelect(options, selectedValue, onChange, disabled = false) {
+        const cell = document.createElement('td')
+        const select = document.createElement('select')
+        select.className = 'form-control'
+        select.disabled = disabled
+
+        options.forEach(opt => {
+            const option = document.createElement('option')
+            option.value = opt.value
+            option.textContent = opt.label
+            option.selected = opt.value === selectedValue
+            if (opt.disabled) option.disabled = true
+            select.appendChild(option)
+        })
+
+        select.addEventListener('change', onChange)
+        cell.appendChild(select)
+        return cell
     }
 
     updateColumnIndex(columnIndex, newIndexType) {
@@ -446,18 +448,10 @@ class DatabaseTableEditor {
 
         // If type changed, check if new type supports indexes
         if (property === 'type') {
-            // Find type in config to check notSupportIndex
-            let notSupportIndex = false
-            for (const category in this.config.types) {
-                const typeObj = this.config.types[category].find(t => t.name === value)
-                if (typeObj) {
-                    notSupportIndex = typeObj.notSupportIndex || false
-                    break
-                }
-            }
+            const supportsIndex = this.getTypeSupportsIndex(value)
 
             // If new type doesn't support indexes, remove any existing index
-            if (notSupportIndex && columns[index].index) {
+            if (!supportsIndex && columns[index].index) {
                 this.updateColumnIndex(index, '')
             }
 
