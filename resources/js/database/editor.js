@@ -178,6 +178,9 @@ class DatabaseTableEditor {
         const select = document.createElement('select')
         select.className = 'form-control'
 
+        // Handle both string and object type
+        const columnTypeName = typeof column.type === 'object' ? column.type.name : column.type
+
         Object.entries(this.config.types || {}).forEach(([category, typeList]) => {
             const optGroup = document.createElement('optgroup')
             optGroup.label = category
@@ -186,7 +189,7 @@ class DatabaseTableEditor {
                 const option = document.createElement('option')
                 option.value = type.name
                 option.textContent = type.name
-                option.selected = column.type === type.name
+                option.selected = columnTypeName === type.name
 
                 if (!type.supported) {
                     option.disabled = true
