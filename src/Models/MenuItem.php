@@ -44,4 +44,24 @@ class MenuItem extends Model
         return $this->hasMany(self::class, 'parent_id')
             ->orderBy('order');
     }
+
+    public function getLink(): string
+    {
+        // If custom URL is set, use it
+        if ($this->url) {
+            return $this->url;
+        }
+
+        // If route is set, generate URL from route
+        if ($this->route) {
+            try {
+                return route($this->route);
+            } catch (\Exception $e) {
+                return '#';
+            }
+        }
+
+        // Default to hash
+        return '#';
+    }
 }
