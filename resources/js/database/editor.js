@@ -160,8 +160,11 @@ class DatabaseTableEditor {
 
     renderCheckbox(value, onChange) {
         const cell = document.createElement('td')
-        cell.innerHTML = `<input type="checkbox" ${value ? 'checked' : ''}>`
-        cell.querySelector('input').addEventListener('change', (e) => onChange(e.target.checked))
+        const input = document.createElement('input')
+        input.type = 'checkbox'
+        input.checked = !!value
+        input.addEventListener('change', (e) => onChange(e.target.checked))
+        cell.appendChild(input)
         return cell
     }
 
