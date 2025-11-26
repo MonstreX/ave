@@ -429,6 +429,11 @@ class DatabaseTableEditor {
         columns[index][property] = value
         this.state.state.isDirty = true
 
+        // If type changed, trigger full re-render to update index select state
+        if (property === 'type') {
+            this.state.notify(['table', 'columns'])
+        }
+
         this.validateTable()
         window.dbConfig.table = this.state.state.table
     }
