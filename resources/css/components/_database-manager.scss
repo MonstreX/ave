@@ -55,6 +55,11 @@
 
 /* Table styles - use system form-control styles */
 #columns-table {
+    // Table headers should not wrap
+    th {
+        white-space: nowrap;
+    }
+
     // Ensure all inputs and selects use form-control styling
     td {
         vertical-align: middle;
