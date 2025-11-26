@@ -444,8 +444,24 @@ class DatabaseTableEditor {
         columns[index][property] = value
         this.state.state.isDirty = true
 
-        // If type changed, trigger full re-render to update index select state
+        // If type changed, check if new type supports indexes
         if (property === 'type') {
+            // Find type in config to check notSupportIndex
+            let notSupportIndex = false
+            for (const category in this.config.types) {
+                const typeObj = this.config.types[category].find(t => t.name === value)
+                if (typeObj) {
+                    notSupportIndex = typeObj.notSupportIndex || false
+                    break
+                }
+            }
+
+            // If new type doesn't support indexes, remove any existing index
+            if (notSupportIndex && columns[index].index) {
+                this.updateColumnIndex(index, '')
+            }
+
+            // Trigger full re-render to update index select state
             this.state.notify(['table', 'columns'])
         }
 
