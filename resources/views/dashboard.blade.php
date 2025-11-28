@@ -169,15 +169,27 @@
                     <span class="info-value">{{ $_SERVER['SERVER_ADDR'] ?? 'N/A' }}</span>
                 </div>
                 @php
-                    $diskFree = disk_free_space('/');
-                    $diskTotal = disk_total_space('/');
-                    $diskUsedPercent = $diskTotal > 0 ? round((($diskTotal - $diskFree) / $diskTotal) * 100, 1) : 0;
+                    try {
+                        // Try to use storage path (accessible within open_basedir)
+                        $diskFree = @disk_free_space(storage_path());
+                        $diskTotal = @disk_total_space(storage_path());
+                    } catch (\Exception $e) {
+                        $diskFree = false;
+                        $diskTotal = 0;
+                    }
 
-                    // Format disk free space
-                    if ($diskFree >= 1073741824) {
-                        $diskFreeFormatted = round($diskFree / 1073741824, 2) . ' GB';
+                    if ($diskFree === false || $diskTotal === 0) {
+                        $diskUsedPercent = 0;
+                        $diskFreeFormatted = 'N/A';
                     } else {
-                        $diskFreeFormatted = round($diskFree / 1048576, 2) . ' MB';
+                        $diskUsedPercent = $diskTotal > 0 ? round((($diskTotal - $diskFree) / $diskTotal) * 100, 1) : 0;
+
+                        // Format disk free space
+                        if ($diskFree >= 1073741824) {
+                            $diskFreeFormatted = round($diskFree / 1073741824, 2) . ' GB';
+                        } else {
+                            $diskFreeFormatted = round($diskFree / 1048576, 2) . ' MB';
+                        }
                     }
                 @endphp
                 <div class="info-row">
