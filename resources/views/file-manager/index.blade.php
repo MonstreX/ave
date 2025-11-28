@@ -18,7 +18,7 @@
                         <i class="voyager-folder"></i>
                         <span id="fm-current-path">{{ $currentPath ?: '/' }}</span>
                     </h3>
-                    <div class="panel-actions" style="padding: 0 20px;">
+                    <div class="panel-actions flex-left">
                         <button type="button" class="btn btn-primary" id="fm-upload-btn">
                             <i class="voyager-upload"></i> {{ __('ave::file_manager.upload') }}
                         </button>
