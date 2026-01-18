@@ -35,7 +35,7 @@ Define these static properties at the top of `Resource.php`:
 | `public static ?string $label` / `$singularLabel` | Display names in navigation, breadcrumbs, headings. Provide translated strings if necessary. |
 | `public static ?string $slug` | URL segment, permission namespace, and Gate ability prefix. Choose something stable (`products`, `site-pages`, etc.). |
 | `public static ?string $icon` | Sidebar icon (Voyager icon set by default). |
-| `public static ?string $group` / `$navSort` | Optional ordering/grouping hints for your menu composer. |
+
 | `public static array $with` / `$withCount` | Relations or counts to eager load on the index view. Prevents N+1 queries. |
 | `public static array $searchable` / `$sortable` | Override automatic detection when you need custom columns for search/sort. |
 
@@ -176,7 +176,7 @@ Use hooks to adjust behaviour without touching controllers:
 | `afterUpdate(Model $model, Request $request)` | Bust caches, trigger search indexing. |
 | `afterDelete(Model $model, Request $request)` | Clean up media/related records. |
 | `getIndexRedirectParams(Model $model, Request $request, string $mode)` | Keep filters/tab selections after save (`return ['status' => $model->status];`). |
-| `syncRelations(Model $model, array $data, Request $request)` | Handle has-many relationships that aren’t covered by built-in fields. |
+
 
 All hooks run inside the same database transaction as the save/delete action.
 

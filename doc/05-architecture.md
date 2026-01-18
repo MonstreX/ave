@@ -33,7 +33,7 @@ Deliverable: a hierarchy of sections/fields plus validation notes.
 ## 4. Implement Iteratively
 
 1. **Scaffold** using `php artisan ave:resource ModelName` if you want a head start.
-2. **Fill metadata** (`$model`, `$label`, `$slug`, `$icon`, `$group`, `$navSort`).
+2. **Fill metadata** (`$model`, `$label`, `$slug`, `$icon`).
 3. **Implement the table** in small steps (columns → filters → display mode).
 4. **Implement the form** section by section, testing each component in the browser.
 5. **Add actions** after the table/form work, ensuring permissions and confirmations are in place.

@@ -90,6 +90,7 @@ public static function actions(): array
 | --- | --- | --- |
 | `EditAction` | Row | Redirects to the resource edit screen. |
 | `DeleteAction` | Row + Bulk | Soft-deletes or force-deletes the records depending on model traits. |
+| `CloneRecordAction` | Row | Duplicates the record. |
 | `RestoreAction` | Row + Bulk | Restores soft-deleted records when the model uses `SoftDeletes`. |
 | `CreateInModalAction` | Global | Opens a modal with the resource form in “create” mode. |
 | `EditInModalAction` | Row | Opens the edit form inside a modal. |
