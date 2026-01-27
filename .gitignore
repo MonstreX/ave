@@ -2,6 +2,8 @@
 /node_modules/
 /.phpunit.cache/
 /.claude/
+.idea/
+.vscode/
 .env
 .env.backup
 .phpunit.result.cache
